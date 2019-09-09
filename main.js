@@ -11,8 +11,8 @@ const i18nextOptions = require("./i18nextOptions");
 var currentSettings  = fs.readFileSync('./settings.json');
 currentSettings = JSON.parse(currentSettings);
 // set the language and load
-if ( currentSettings.language !== void 0) {
-    i18nextOptions.setLanguage(currentSettings.language);
+if ( currentSettings.defaultLanguage !== void 0) {
+    i18nextOptions.setLanguage(currentSettings.defaultLanguage);
 }
 i18next.use(Backend).init(i18nextOptions.getOptions());
 
@@ -21,18 +21,23 @@ let mainWindow;
 function createMainWindow () {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
+      title: 'R-GUI-MainApp',
+      width: 800,
+      height: 600,
+      center: true,
+      webPreferences: {
         nodeIntegration: true
-        }
+      }
     });
 
     // and load the index.html of the app.
     mainWindow.loadFile('./components/main/main.html');
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
+
+    // maximize
+    mainWindow.maximize();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', () => {
@@ -40,8 +45,12 @@ function createMainWindow () {
     });
 
     // Insert menu
+    // TODO -- what do to if load menu from file fails
     i18next.on('languageChanged', () => {
-        Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next));
+        let menu = menuFactroy(app, mainWindow, i18next);
+        if (menu) {
+          Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next));
+        }
     });
 }
 
@@ -64,21 +73,3 @@ app.on('activate', () => {
 
 
 
-// Add developer tools item if not in production
-// if(process.env.NODE_ENV !== 'production'){
-//     mainMenuTemplate.push({
-//         label: "Developer Tools",
-//         submenu: [
-//             {
-//                 label: "Toggle DevTools",
-//                 accelerator: "CommandOrControl+I",
-//                 click(item, focusedWindow){
-//                     focusedWindow.toggleDevTools();        
-//                 }
-//             },
-//             {
-//                 role: 'reload'
-//             }
-//         ]
-//     });
-// }
