@@ -1,4 +1,1 @@
-{
-    "language": "en",
-    "interface": "sdi" 
-}
+{"languages":{"en":"English","ro":"Romanian"},"defaultLanguage":"en","interface":"sdi"}
