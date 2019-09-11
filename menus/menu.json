@@ -5,7 +5,7 @@
         "subitems": [
             {
                 "id": "mainAppLoadData",
-                "name": "Load Data",
+                "name": "Load file",
                 "type": "system"
             },
             {
@@ -14,8 +14,8 @@
                 "type": "system"
             },
             {
-                "id": "mainAppImportDialog",
-                "name": "Import dialog",
+                "id": "mainAppSettings",
+                "name": "Settings",
                 "type": "system"
             },
             {
@@ -73,11 +73,6 @@
                 "id": "separator",
                 "name": "",
                 "type": "system"
-            },
-            {
-                "id": "mainAppSettings",
-                "name": "Settings",
-                "type": "system"
             }
         ]
     },
@@ -91,13 +86,13 @@
                 "type": "system"
             },
             {
-                "id": "mainAppSwitchLanguage",
-                "name": "Switch language",
-                "type": "system"
-            },
-            {
                 "id": "new-dialog",
                 "name": "New Dialog",
+                "type": "dialog"
+            },
+            {
+                "id": "emilian",
+                "name": "Emilian e cel mai tare",
                 "type": "dialog"
             }
         ]
