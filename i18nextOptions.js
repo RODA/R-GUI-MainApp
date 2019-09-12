@@ -29,9 +29,8 @@ const i18nextOptions = {
                 }
             };
         } else {
-            console.log(this.language);
-            console.log(this.namespace);
-            
+            // console.log(this.language);
+            // console.log(this.namespace);
             return {
                 lng: this.language,
                 ns: ['en-US', this.namespace],
