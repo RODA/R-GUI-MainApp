@@ -1,0 +1,1 @@
+{"properties":{"name":"QCA","title":"QCA","width":"800","height":"600"},"elements":{"xzjcn":{"parentId":"xzjcn","type":"Input","name":"input1","left":138,"top":320,"width":120,"value":"rrrr","isVisible":"true","isEnabled":"true","elementIds":["ph29o","w0979"],"conditions":"a = 5 if c == 10;"}},"syntax":{"command":"{input1}","defaultElements":[]}}

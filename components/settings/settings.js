@@ -31,7 +31,8 @@ const settings = {
                     width: 640,
                     height: 480,
                     title: theLanguage.t('Settings'),
-                    parent: theWindow,
+                    // parent: theWindow,
+                    // modal: true,
                     webPreferences: {
                         nodeIntegration: true
                     },

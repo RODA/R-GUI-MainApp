@@ -99,6 +99,11 @@
                 "id": "new-dialog",
                 "name": "New Dialog",
                 "type": "dialog"
+            },
+            {
+                "id": "qca",
+                "name": "qca",
+                "type": "dialog"
             }
         ]
     }

@@ -37,7 +37,7 @@ function createMainWindow () {
     // mainWindow.webContents.openDevTools();
 
     // maximize
-    mainWindow.maximize();
+    // mainWindow.maximize();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', () => {
@@ -66,8 +66,8 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow();
+  if (mainWindow === null) {
+    createMainWindow();
   }
 });
 
