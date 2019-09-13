@@ -1,8 +1,1 @@
-{
-    "languages": {
-        "en-US": "English US",
-        "ro-RO": "Romanian"
-    },
-    "defaultLanguage": "en-US",
-    "interface": "sdi"
-}
+{"languages":{"en-US":"English US","ro-RO":"Romanian"},"defaultLanguage":"en-US","interface":"sdi"}

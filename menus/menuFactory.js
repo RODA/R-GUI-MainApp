@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const importDialog = require('../components/importDialog');
+const menuCustomize = require('../components/menuCustomize/menuCustomize');
 const menuLibrary = require('./menuLibrary');
 
 const menuBuilder = (app, mainWindow, i18next) => {
@@ -61,6 +62,12 @@ const makeTemplate = function(data, app, i18next, mainWindow)
         menuTemplate.push({
             label: "Developer Tools",
             submenu: [
+                {
+                    label: "Customize menu",
+                    click(){
+                        menuCustomize.start(mainWindow);
+                    }
+                },
                 {
                     label : "Import dialog",
                     click(){
