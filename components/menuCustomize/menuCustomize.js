@@ -43,12 +43,13 @@ const menuCustomize = {
             // when data is ready show window
             menuCustomizeWindow.once("show", () => {
                 let dialogList = this.getAvailableDialogs();
+                let currentMenu = this.getCurrentMenu();
                 
                 let newList = [...systemElements];
                 for (let i = 0; i < dialogList.length; i++) {
                     newList.push(dialogList[i]);
                 }
-                menuCustomizeWindow.webContents.send('elementsList', newList);
+                menuCustomizeWindow.webContents.send('elementsList', {'newItemList': newList, 'currentMenu': currentMenu});
 
             });
             // when window is ready send data
@@ -70,10 +71,23 @@ const menuCustomize = {
             return [];
         }
     },
+    // get current menu
+    getCurrentMenu: function()
+    {
+        let data = fs.readFileSync(path.resolve('./menus/menu.json'), 'UTF8');
+        try{
+            // return data
+            return JSON.parse(data);
+        }catch(error){
+            return [];
+        }
+    },
+
+    // TODO
     // reset menu to default
     resetMenuToDefault: function()
     {
-        let question = dialog.showMessageBoxSync(this.theWindow, {type: "question", message: "Are you sure you sure ?\n This operation cannot be undone!", title: "Reset menu to default", buttons: ["No", "Yes"]});
+        let question = dialog.showMessageBoxSync(this.theWindow, {type: "question", message: "Are you sure you sure ? This operation cannot be undone!", title: "Reset menu to default", buttons: ["No", "Yes"]});
         if (question === 1) {
 
         }
