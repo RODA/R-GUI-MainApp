@@ -9,20 +9,24 @@
         body{
             font-family: Arial, Helvetica, sans-serif;
             font-size: 13px;
+            margin: 10px 15px;
         }
         .container{
             display: flex;
             margin-top: 30px;
         }
-        .arrows{
+        .arrows, .arrowsPosition{
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 75px;
+            width: 85px;
             flex-direction: column;
         }
+        .arrowsPosition{
+            width: 45px;
+        }
         .left, .right{
-            width: 350px;
+            width: 320px;
         }
         .right{
             padding-top: 63px;
@@ -46,10 +50,23 @@
         #leftArrow{
             background-image: url(arrow-left.svg);
         }
+        #upArrow{
+            margin: 0px;
+            background-image: url(arrow-up.svg);
+            width: 25px;
+            height: 25px;
+            margin-bottom: 10px;
+            margin-top: 100px;
+        }
+        #downArrow{
+            margin: 0px;
+            background-image: url(arrow-down.svg);
+            width: 25px;
+            height: 25px;
+        }
         .buttons{
             display: block;
-            width: 98%;
-            margin-top: 25px;
+            margin-top: 20px;
             text-align: right;
         }
         .leftContainer div, .rightContainer div{
@@ -64,8 +81,8 @@
             cursor: pointer;
         }
         .leftContainer, .rightContainer{
-            width: 90%;
-            height: 315px;
+            width: 100%;
+            height: 280px;
             overflow-y: scroll;
             border: 1px solid #ccc;
             margin: 0 auto;
@@ -73,14 +90,14 @@
         }
         label{
             display: block;
-            width: 91%;
+            width: 100%;
             margin: 0 auto;
         }
         select, #searchNewElement{
             box-sizing: border-box;
             padding: 5px;
             display: block;
-            width: 91%;
+            width: 100%;
             margin: 15px auto;
             margin-top: 3px;
             height: 30px;
@@ -91,12 +108,22 @@
             width: 80px;
             height: 30px;
             border: 1px solid #ccc;
-            margin: 0px 3px;
         }
         #updateDialogList{
             width: 140px;
             float: left;
-            margin-left: 17px;  
+        }
+        hr{
+            display: block; height: 1px;
+            border: 0; border-top: 1px solid #ccc;
+            margin: 1em 0; padding: 0;
+        }
+        #insertSeparator{
+            width: 120px;
+            margin: 10px 0px 0px 0px;
+        }
+        #renameItem{
+            width: 100px;
         }
     </style>
 </head>
@@ -123,9 +150,16 @@
             <select name="targetCategory" id="targetCategory"></select>
             <label for="leftContainer">Function</label>
             <div class="rightContainer" id="rightContainer"></div>
+            <button id="insertSeparator">Insert separator</button>
+            <button id="renameItem">Rename item</button>
+        </div>
+        <div class="arrowsPosition">
+            <button class="arrow" id="upArrow"></button>
+            <button class="arrow" id="downArrow"></button>
         </div>
     </div>
     <div class="buttons">
+        <hr/>
         <button id="updateDialogList">Update dialog list</button>
         <button id="saveMenu">Save</button>
         <button id="cancelMenu">Cancel</button>

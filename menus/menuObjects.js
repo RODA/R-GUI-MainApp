@@ -4,24 +4,34 @@ const defaultMenu = [
         'position': 1,
         'subitems': [
             {
-                'id': 'mainAppLoadData',
-                'name': 'Load Data',
-                'type': 'system'
+                "id": "mainAppLoadData",
+                "name": "Load file",
+                "type": "system",
+                "position": 0
             },
             {
-                'id': 'separator',
-                'name': '',
-                'type': 'system'
+                "id": "separator",
+                "name": "",
+                "type": "system",
+                "position": 1
             },
             {
-                'id': 'mainAppImportDialog',
-                'name': 'Import dialog',
-                'type': 'system'
+                "id": "mainAppSettings",
+                "name": "Settings",
+                "type": "system",
+                "position": 2
             },
             {
-                'id': 'mainAppExist',
-                'name': 'Exit',
-                'type': 'system'
+                "id": "separator",
+                "name": "",
+                "type": "system",
+                "position": 3
+            },
+            {
+                "id": "mainAppExist",
+                "name": "Exit",
+                "type": "system",
+                "position": 4
             }
         ]
     },
@@ -30,50 +40,47 @@ const defaultMenu = [
         'position': 2,
         'subitems': [
             {
-                'id': 'mainAppUndo',
-                'name': 'Undo',
-                'type': 'system'
+                "id": "mainAppUndo",
+                "name": "Undo",
+                "type": "system",
+                "position": 0
             },
             {
-                'id': 'mainAppRedo',
-                'name': 'Redo',
-                'type': 'system'
+                "id": "mainAppRedo",
+                "name": "Redo",
+                "type": "system",
+                "position": 1
             },
             {
-                'id': 'separator',
-                'name': '',
-                'type': 'system'
+                "id": "separator",
+                "name": "",
+                "type": "system",
+                "position": 2
             },
             {
-                'id': 'mainAppCut',
-                'name': 'Cut',
-                'type': 'system'
+                "id": "mainAppCut",
+                "name": "Cut",
+                "type": "system",
+                "position": 3
             },
             {
-                'id': 'mainAppCopy',
-                'name': 'Copy',
-                'type': 'system'
+                "id": "mainAppCopy",
+                "name": "Copy",
+                "type": "system",
+                "position": 4
             },
             {
-                'id': 'mainAppPaste',
-                'name': 'Paste',
-                'type': 'system'
+                "id": "mainAppPaste",
+                "name": "Paste",
+                "type": "system",
+                "position": 5
             },
             {
-                'id': 'mainAppSelectAll',
-                'name': 'Select All',
-                'type': 'system'
-            },
-            {
-                'id': 'separator',
-                'name': '',
-                'type': 'system'
-            },
-            {
-                'id': 'mainAppSettings',
-                'name': 'Settings',
-                'type': 'system'
-            },
+                "id": "mainAppSelectAll",
+                "name": "Select All",
+                "type": "system",
+                "position": 6
+            }
         ]
     },
     {
@@ -83,7 +90,8 @@ const defaultMenu = [
             {
                 'id': 'mainAppAbout',
                 'name': 'About',
-                'type': 'system'
+                'type': 'system',
+                'position': 0
             }
         ]
     }

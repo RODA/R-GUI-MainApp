@@ -14,7 +14,7 @@
    viewBox="0 0 7.9375002 7.9375002"
    version="1.1"
    id="svg8"
-   sodipodi:docname="arrow-right.svg"
+   sodipodi:docname="arrow-up.svg"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
   <defs
      id="defs2" />
@@ -68,16 +68,17 @@
        inkscape:rounded="0"
        inkscape:randomized="0"
        d="m 40.04602,65.277313 5.445514,-3.143969 5.445514,-3.143969 0,6.287938 0,6.287938 -5.445514,-3.143969 z"
-       inkscape:transform-center-x="-0.66146734"
+       inkscape:transform-center-x="3.0773493e-06"
        style="stroke-width:0.26458332"
-       transform="matrix(-0.36440544,0,0,-0.63116875,22.528633,334.23308)" />
+       transform="matrix(0,0.36440544,-0.63116875,0,45.154465,274.4402)"
+       inkscape:transform-center-y="-0.66146308" />
     <rect
        id="rect3717"
        width="5.2916665"
        height="2.6458333"
-       x="-5.2963519"
-       y="-294.35501"
+       x="291.75601"
+       y="-5.2763815"
        style="stroke-width:0.10529613"
-       transform="scale(-1)" />
+       transform="rotate(90)" />
   </g>
 </svg>

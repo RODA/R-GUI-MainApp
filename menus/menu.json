@@ -6,27 +6,32 @@
             {
                 "id": "mainAppLoadData",
                 "name": "Load file",
-                "type": "system"
+                "type": "system",
+                "position": 0
             },
             {
                 "id": "separator",
                 "name": "",
-                "type": "system"
+                "type": "system",
+                "position": 1
             },
             {
                 "id": "mainAppSettings",
                 "name": "Settings",
-                "type": "system"
+                "type": "system",
+                "position": 2
             },
             {
                 "id": "separator",
                 "name": "",
-                "type": "system"
+                "type": "system",
+                "position": 3
             },
             {
                 "id": "mainAppExist",
                 "name": "Exit",
-                "type": "system"
+                "type": "system",
+                "position": 4
             }
         ]
     },
@@ -37,42 +42,44 @@
             {
                 "id": "mainAppUndo",
                 "name": "Undo",
-                "type": "system"
+                "type": "system",
+                "position": 0
             },
             {
                 "id": "mainAppRedo",
                 "name": "Redo",
-                "type": "system"
+                "type": "system",
+                "position": 1
             },
             {
                 "id": "separator",
                 "name": "",
-                "type": "system"
+                "type": "system",
+                "position": 2
             },
             {
                 "id": "mainAppCut",
                 "name": "Cut",
-                "type": "system"
+                "type": "system",
+                "position": 3
             },
             {
                 "id": "mainAppCopy",
                 "name": "Copy",
-                "type": "system"
+                "type": "system",
+                "position": 4
             },
             {
                 "id": "mainAppPaste",
                 "name": "Paste",
-                "type": "system"
+                "type": "system",
+                "position": 5
             },
             {
                 "id": "mainAppSelectAll",
                 "name": "Select All",
-                "type": "system"
-            },
-            {
-                "id": "separator",
-                "name": "",
-                "type": "system"
+                "type": "system",
+                "position": 6
             }
         ]
     },
@@ -83,17 +90,20 @@
             {
                 "id": "mainAppAbout",
                 "name": "About",
-                "type": "system"
+                "type": "system",
+                "position": 0
             },
             {
                 "id": "new-dialog",
                 "name": "New Dialog",
-                "type": "dialog"
+                "type": "dialog",
+                "position": 1
             },
             {
                 "id": "emilian",
                 "name": "Emilian e cel mai tare",
-                "type": "dialog"
+                "type": "dialog",
+                "position": 2
             }
         ]
     }

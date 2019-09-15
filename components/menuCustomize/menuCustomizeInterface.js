@@ -35,11 +35,19 @@ ipcRenderer.on('elementsList', (event, args) => {
     }
 
     let menuCategories = [];
+    let menuCategoriesItems = {};
     // let menuCategories = [];
     let targetCategory = document.getElementById('targetCategory');
     if (menu.length > 0) {
         for(let i = 0; i < menu.length; i++) {
             menuCategories[menu[i].position] = menu[i].name;
+            let parentName = menu[i].name;
+            menuCategoriesItems[parentName] = [];
+            if (menu[i].subitems.length > 0) {
+                for(let j = 0; j < menu[i].subitems.length; j++) {
+                    menuCategoriesItems[parentName].push(menu[i].subitems[j]);
+                }
+            }
         }
         // new loop for ordered items
         for(let i = 0; i < menuCategories.length; i++) {
@@ -48,7 +56,8 @@ ipcRenderer.on('elementsList', (event, args) => {
             el.innerHTML = menu[i].name;
             targetCategory.appendChild(el);
         }
-
+        console.log(menuCategoriesItems);
+        
     }
 });
 
