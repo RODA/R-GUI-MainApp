@@ -26,7 +26,7 @@ const settings = {
                     return;
                 }
                
-                if (settingsWindow !== void 0) {
+                if (settingsWindow !== void 0 && settingsWindow !== null) {
                     settingsWindow.focus();
                 } else {
                     // Create the browser window.

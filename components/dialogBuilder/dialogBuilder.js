@@ -30,7 +30,9 @@ const dialogBuilder = {
     makeTheWindow: function(name, width, height, parentWindow, allData)
     {
 
-        if (windowsList[name] !== void 0) {
+        if (windowsList[name] !== void 0 && windowsList[name] !== null && !windowsList[name].isDestroyed()) {
+            console.log(windowsList);
+            
             windowsList[name].focus();
         } else {
             let theWindow;
@@ -60,8 +62,6 @@ const dialogBuilder = {
         
             // when data is ready show window
             theWindow.once("show", () => {
-                console.log('show');
-                
                 theWindow.webContents.send('dialogCreated', allData);
             });
             // when window is ready send data
