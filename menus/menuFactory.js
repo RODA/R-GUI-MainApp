@@ -49,6 +49,8 @@ const makeTemplate = function(data, app, i18next, mainWindow)
                     if ( typeof menuLibrary[thisItem.subitems[subItem].id] === 'function') {
                         tmpMenu.submenu[subItem] = menuLibrary[thisItem.subitems[subItem].id](thisItem.subitems[subItem].name);
                     }
+                } else if (thisItem.subitems[subItem].type === 'submenu') {
+                    tmpMenu.submenu[subItem] = parseSubMenu(thisItem.subitems[subItem].subitems, thisItem.subitems[subItem].name);
                 } else if (thisItem.subitems[subItem].type === 'dialog') {
                     tmpMenu.submenu[subItem] = menuLibrary.menuForDialog(thisItem.subitems[subItem].id, thisItem.subitems[subItem].name);
                 }
@@ -57,6 +59,30 @@ const makeTemplate = function(data, app, i18next, mainWindow)
         menuTemplate[thisItem.position] = tmpMenu;
     }
     
+    function parseSubMenu(items, name) 
+    {
+        let response = {
+            'label': name,
+            'submenu': []
+        };
+
+        let subItems = [];
+        for(let i = 0; i < items.length; i++) {
+            if (items[i].type === 'system') {
+                if ( typeof menuLibrary[items[i].id] === 'function') {
+                    subItems[i] = menuLibrary[items[i].id](items[i].name);
+                }
+            } else if (items[i].type === 'submenu') {
+                subItems[i] = parseSubMenu(items[i].subitems, items[i].name);
+            } else if (items[i].type === 'dialog') {
+                subItems[i] = menuLibrary.menuForDialog(items[i].id, items[i].name);
+            }
+        }
+
+        response.submenu = subItems;
+        return response;
+    }
+
     // Add developer tools item if not in production
     if(process.env.NODE_ENV !== 'production'){
         menuTemplate.push({
@@ -97,7 +123,7 @@ const makeTemplate = function(data, app, i18next, mainWindow)
                 },
             ]
         });
-    }
+    }   
 
     return menuTemplate;
 };

@@ -76,10 +76,16 @@ const defaultMenu = [
                 "position": 5
             },
             {
+                "id": "separator",
+                "name": "",
+                "type": "system",
+                "position": 6
+            },
+            {
                 "id": "mainAppSelectAll",
                 "name": "Select All",
                 "type": "system",
-                "position": 6
+                "position": 7
             }
         ]
     },

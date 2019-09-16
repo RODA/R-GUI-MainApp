@@ -76,10 +76,16 @@
                 "position": 5
             },
             {
+                "id": "separator",
+                "name": "",
+                "type": "system",
+                "position": 6
+            },
+            {
                 "id": "mainAppSelectAll",
                 "name": "Select All",
                 "type": "system",
-                "position": 6
+                "position": 7
             }
         ]
     },
@@ -90,20 +96,22 @@
             {
                 "id": "mainAppAbout",
                 "name": "About",
-                "type": "system",
-                "position": 0
-            },
-            {
-                "id": "new-dialog",
-                "name": "New Dialog",
-                "type": "dialog",
-                "position": 1
-            },
-            {
-                "id": "emilian",
-                "name": "Emilian e cel mai tare",
-                "type": "dialog",
-                "position": 2
+                "type": "submenu",
+                "position": 0,
+                "subitems": [
+                    {
+                        "id": "new-dialog",
+                        "name": "New Dialog",
+                        "type": "dialog",
+                        "position": 1
+                    },
+                    {
+                        "id": "emilian",
+                        "name": "Emilian e cel mai tare",
+                        "type": "dialog",
+                        "position": 2
+                    }
+                ]
             }
         ]
     }
