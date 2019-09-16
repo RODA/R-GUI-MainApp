@@ -28,9 +28,6 @@
         .left, .right{
             width: 320px;
         }
-        .right{
-            padding-top: 63px;
-        }
         .arrow{
             display: block;
             width: 35px;
@@ -56,7 +53,6 @@
             width: 25px;
             height: 25px;
             margin-bottom: 10px;
-            margin-top: 100px;
         }
         #downArrow{
             margin: 0px;
@@ -73,7 +69,7 @@
             display: block;
             width: 100%;
             box-sizing: border-box;
-            padding: 10px;
+            padding: 7px 10px 6px 10px;
             padding-left: 25px;
         }
         .leftContainer div:hover, .rightContainer div:hover{
@@ -87,6 +83,9 @@
             border: 1px solid #ccc;
             margin: 0 auto;
             margin-top: 3px;
+        }
+        .rightContainer{
+            height: 342px;
         }
         label{
             display: block;
@@ -118,12 +117,55 @@
             border: 0; border-top: 1px solid #ccc;
             margin: 1em 0; padding: 0;
         }
-        #insertSeparator{
-            width: 120px;
+        .dropdown{
+            position: relative;
+            display: inline-block;
+        }
+        #insertMenu{
+            text-align: left;
+            width: 90px;
             margin: 10px 0px 0px 0px;
+            padding-left: 10px;
+            background-image: url(down.svg);
+            background-repeat: no-repeat;
+            background-size: 10px;
+            background-position-x: 65px;
+            background-position-y: center;
+        }
+        .dropdown-menu{
+            display: none;
+            position: absolute;
+            z-index: 1;
+            background: #eee;
+            border: 1px solid #ccc;
+            margin-top: 2px;
+            min-width: 150px;
+            box-sizing: border-box;
+            padding: 2px;
+            box-shadow: 3px 4px 2px -1px rgba(82,82,82,0.7);
+        }
+        .dropdown-menu a{
+            padding: 6px 16px;
+            text-decoration: none;
+            display: block;
+            color: black;
+        }
+        .dropdown-menu a:hover{
+            background-color: #ccc;
+        }
+        .show {
+            display: block;
         }
         #renameItem{
             width: 100px;
+            margin-left: 15px;
+        }
+        .submenuArrow{
+            background-image: url(arrow-right.svg);
+            background-repeat: no-repeat;
+            background-size: 10px;
+            background-position-x: 85%;
+            background-position-y: 10px;
         }
     </style>
 </head>
@@ -150,7 +192,13 @@
             <select name="targetCategory" id="targetCategory"></select>
             <label for="leftContainer">Function</label>
             <div class="rightContainer" id="rightContainer"></div>
-            <button id="insertSeparator">Insert separator</button>
+            <div class="dropdown">
+                <button id="insertMenu">Insert</button>
+                <div class="dropdown-menu" id="inserMenuDropdown">
+                    <a href="#" id="insertSeparator">Insert separator</a>
+                    <a href="#" id="insertSubmenu">Insert submenu</a>
+                </div>
+            </div>
             <button id="renameItem">Rename item</button>
         </div>
         <div class="arrowsPosition">

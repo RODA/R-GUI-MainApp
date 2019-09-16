@@ -103,13 +103,13 @@
                         "id": "new-dialog",
                         "name": "New Dialog",
                         "type": "dialog",
-                        "position": 1
+                        "position": 0
                     },
                     {
                         "id": "emilian",
                         "name": "Emilian e cel mai tare",
                         "type": "dialog",
-                        "position": 2
+                        "position": 1
                     }
                 ]
             }
