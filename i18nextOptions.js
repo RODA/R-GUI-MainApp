@@ -1,6 +1,6 @@
 const i18nextOptions = {
     language: 'en',
-    namespace: 'en-US',
+    namespace: 'en_US',
 
     setLanguage(lng, ns)
     {
@@ -13,10 +13,10 @@ const i18nextOptions = {
         if (env == 'production') {
             return {
                 lng: this.language,
-                ns: ['en-US', this.namespace],
+                ns: ['en_US', this.namespace],
                 defaultNS: this.namespace,
                 fallbackLng: 'en',
-                fallbackNS: 'en-US',
+                fallbackNS: 'en_US',
                 load: 'languageOnly',
                 preload: [this.language],
                 backend:{
@@ -33,10 +33,10 @@ const i18nextOptions = {
             // console.log(this.namespace);
             return {
                 lng: this.language,
-                ns: ['en-US', this.namespace],
+                ns: ['en_US', this.namespace],
                 defaultNS: this.namespace,
                 fallbackLng: 'en',
-                fallbackNS: 'en-US',
+                fallbackNS: 'en_US',
                 load: 'languageOnly',
                 preload: [this.language],
                 // debug: true,

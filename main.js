@@ -16,7 +16,7 @@ currentSettings = JSON.parse(currentSettings);
 // set the language and load
 if ( currentSettings.defaultLanguage !== void 0) {
     // get only the en of the eu-US part
-    let lang = currentSettings.defaultLanguage.split('-');
+    let lang = currentSettings.defaultLanguage.split('_');
     i18nextOptions.setLanguage(lang[0], currentSettings.defaultLanguage);
 }
 i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV));
