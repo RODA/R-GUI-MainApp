@@ -1,7 +1,9 @@
-const { Menu } = require('electron');
+const { Menu, dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
+const importDialog = require('../components/importDialog');
+const menuCustomize = require('../components/menuCustomize/menuCustomize');
 const menuLibrary = require('./menuLibrary');
 
 const menuBuilder = (app, mainWindow, i18next) => {
@@ -20,24 +22,6 @@ const menuBuilder = (app, mainWindow, i18next) => {
     }
     if ( menuTemplate !== void 0) {
 
-        // Add developer tools item if not in production
-        if(process.env.NODE_ENV !== 'production'){
-            menuTemplate.push({
-                label: "Developer Tools",
-                submenu: [
-                    {
-                        label: "Toggle DevTools",
-                        accelerator: "CommandOrControl+I",
-                        click(item, focusedWindow){
-                            focusedWindow.toggleDevTools();        
-                        }
-                    },
-                    {
-                        role: 'reload'
-                    }
-                ]
-            });
-        }
         return Menu.buildFromTemplate(menuTemplate);
     }
      return null;
@@ -54,7 +38,7 @@ const makeTemplate = function(data, app, i18next, mainWindow)
         let thisItem = data[mainItem];
         // adding & in front af the main labels so we can acces them with alt + first leter in the name
         let tmpMenu = {
-            label: i18next.t('&' + thisItem.name),
+            label: i18next.t(thisItem.name),
         };
         
         // the menu has subitems
@@ -65,6 +49,8 @@ const makeTemplate = function(data, app, i18next, mainWindow)
                     if ( typeof menuLibrary[thisItem.subitems[subItem].id] === 'function') {
                         tmpMenu.submenu[subItem] = menuLibrary[thisItem.subitems[subItem].id](thisItem.subitems[subItem].name);
                     }
+                } else if (thisItem.subitems[subItem].type === 'submenu') {
+                    tmpMenu.submenu[subItem] = parseSubMenu(thisItem.subitems[subItem].subitems, thisItem.subitems[subItem].name);
                 } else if (thisItem.subitems[subItem].type === 'dialog') {
                     tmpMenu.submenu[subItem] = menuLibrary.menuForDialog(thisItem.subitems[subItem].id, thisItem.subitems[subItem].name);
                 }
@@ -72,6 +58,73 @@ const makeTemplate = function(data, app, i18next, mainWindow)
         }
         menuTemplate[thisItem.position] = tmpMenu;
     }
+    
+    function parseSubMenu(items, name) 
+    {
+        let response = {
+            'label': name,
+            'submenu': []
+        };
+
+        let subItems = [];
+        for(let i = 0; i < items.length; i++) {
+            if (items[i].type === 'system') {
+                if ( typeof menuLibrary[items[i].id] === 'function') {
+                    subItems[i] = menuLibrary[items[i].id](items[i].name);
+                }
+            } else if (items[i].type === 'submenu') {
+                subItems[i] = parseSubMenu(items[i].subitems, items[i].name);
+            } else if (items[i].type === 'dialog') {
+                subItems[i] = menuLibrary.menuForDialog(items[i].id, items[i].name);
+            }
+        }
+
+        response.submenu = subItems;
+        return response;
+    }
+
+    // Add developer tools item if not in production
+    if(process.env.NODE_ENV !== 'production'){
+        menuTemplate.push({
+            label: "Developer Tools",
+            submenu: [
+                {
+                    label: "Customize menu",
+                    click(){
+                        menuCustomize.start(mainWindow);
+                    }
+                },
+                {
+                    label : "Import dialog",
+                    click(){
+                        dialog.showOpenDialog(menuLibrary.theWindow, {title: "Import dialog", filters: [{name: 'R-GUI-DialogCreator', extensions: ['dat']}], properties: ['openFile']}, result => {
+                            if (result !== void 0 && result.length > 0) {                            
+                                fs.readFile(result[0], 'utf-8', (err, data) => {
+                                    if (err) {
+                                        dialog.showMessageBox(menuLibrary.theWindow, {type: 'error', title: 'Could not open the file!', buttons: ['OK']});
+                                    } else {
+                                        // pass menuLibrary.theWindow for dialog messages
+                                        importDialog.save(data, menuLibrary.theWindow);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                },
+                {
+                    label: "Toggle DevTools",
+                    accelerator: "CommandOrControl+I",
+                    click(item, focusedWindow){
+                        focusedWindow.toggleDevTools();        
+                    }
+                },
+                {
+                    role: 'reload'
+                },
+            ]
+        });
+    }   
+
     return menuTemplate;
 };
 

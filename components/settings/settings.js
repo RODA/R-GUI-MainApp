@@ -25,43 +25,46 @@ const settings = {
                     dialog.showMessageBox(theWindow, {type: "error", message: theLanguage.t("An error occured we can not open the settings window!"), title: theLanguage.t("Error"), buttons: ["OK"]});
                     return;
                 }
+               
+                if (settingsWindow !== void 0 && settingsWindow !== null) {
+                    settingsWindow.focus();
+                } else {
+                    // Create the browser window.
+                    settingsWindow = new BrowserWindow({
+                        width: 640,
+                        height: 480,
+                        title: theLanguage.t('Settings'),
+                        parent: theWindow,
+                        webPreferences: {
+                            nodeIntegration: true
+                        },
+                        resizable: false,
+                        show: false,
+                    });
+                    
+                    // Open the DevTools.
+                    settingsWindow.webContents.openDevTools();
+                    
+                    // and load the settings.html of the app.
+                    settingsWindow.loadFile('./components/settings/settings.html');
 
-                // Create the browser window.
-                settingsWindow = new BrowserWindow({
-                    width: 640,
-                    height: 480,
-                    title: theLanguage.t('Settings'),
-                    // parent: theWindow,
-                    // modal: true,
-                    webPreferences: {
-                        nodeIntegration: true
-                    },
-                    resizable: false,
-                    show: false,
-                });
+                        // Emitted when the window is closed.
+                    settingsWindow.on('closed', () => {
+                        settingsWindow = null;
+                    });
+                    
                 
-                // Open the DevTools.
-                settingsWindow.webContents.openDevTools();
-                
-                // and load the settings.html of the app.
-                settingsWindow.loadFile('./components/settings/settings.html');
+                    // when data is ready show window
+                    settingsWindow.once("show", () => {
+                        settingsWindow.webContents.send('settingsLoaded', settings.settingsData);
+                    });
+                    // when window is ready send data
+                    settingsWindow.once("ready-to-show", () => {
+                        settingsWindow.show();
+                    });
 
-                    // Emitted when the window is closed.
-                settingsWindow.on('closed', () => {
-                    settingsWindow = null;
-                });
-                
-            
-                // when data is ready show window
-                settingsWindow.once("show", () => {
-                    settingsWindow.webContents.send('settingsLoaded', settings.settingsData);
-                });
-                // when window is ready send data
-                settingsWindow.once("ready-to-show", () => {
-                    settingsWindow.show();
-                });
-
-                settingsWindow.setMenu(null);
+                    settingsWindow.setMenu(null);
+                }
             }
         });  
     },

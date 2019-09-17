@@ -1,20 +1,26 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const fs = require('fs');
+const path = require('path');
 
 const menuFactroy = require('./menus/menuFactory');
-
-var i18next = require("i18next");
-var Backend = require("i18next-node-fs-backend");
+const i18next = require("i18next");
+const Backend = require("i18next-node-fs-backend");
 const i18nextOptions = require("./i18nextOptions");
 
+// Setting ENVIROMENT
+process.env.NODE_ENV = 'development';
 
+// loading language from settings
 var currentSettings  = fs.readFileSync('./settings.json');
 currentSettings = JSON.parse(currentSettings);
 // set the language and load
 if ( currentSettings.defaultLanguage !== void 0) {
-    i18nextOptions.setLanguage(currentSettings.defaultLanguage);
+    // get only the en of the eu-US part
+    let lang = currentSettings.defaultLanguage.split('-');
+    i18nextOptions.setLanguage(lang[0], currentSettings.defaultLanguage);
 }
-i18next.use(Backend).init(i18nextOptions.getOptions());
+i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV));
+//---------------------------------------
 
 let mainWindow;
 
@@ -44,13 +50,12 @@ function createMainWindow () {
         mainWindow = null;
     });
 
-    // Insert menu
-    // TODO -- what do to if load menu from file fails
+    // Insert menu after language has loaded
     i18next.on('languageChanged', () => {
-        let menu = menuFactroy(app, mainWindow, i18next);
-        if (menu) {
-          Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next));
-        }
+      let menu = menuFactroy(app, mainWindow, i18next);
+      if (menu) {
+        Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next));
+      }
     });
 }
 
