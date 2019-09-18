@@ -6,6 +6,7 @@ const { defaultMenu, systemElements } = require('../../menus/menuObjects');
 
 let menuCustomizeWindow;
 let renameItemWindow;
+let menuTopEditWindow;
 
 const menuCustomize = {
     
@@ -31,7 +32,7 @@ const menuCustomize = {
             });
 
             // Open the DevTools.
-            menuCustomizeWindow.webContents.openDevTools();
+            // menuCustomizeWindow.webContents.openDevTools();
 
             // and load the menuCustomize.html of the app.
             menuCustomizeWindow.loadFile('./components/menuCustomize/menuCustomize.html');
@@ -170,7 +171,7 @@ ipcMain.on('renameItem', (event, args) => {
         });
 
         // Open the DevTools.
-        renameItemWindow.webContents.openDevTools();
+        // renameItemWindow.webContents.openDevTools();
 
         // and load the menuCustomize.html of the app.
         renameItemWindow.loadFile('./components/menuCustomize/menuRenameItem.html');
@@ -195,5 +196,50 @@ ipcMain.on('renameItem', (event, args) => {
 ipcMain.on('newItemName', (ev, args) => {
     menuCustomizeWindow.webContents.send('newItemName', args);
 });
+
+// lunch the tom menu editor
+ipcMain.on('menuTopEdit', (event, args) => {
+    
+    if (menuTopEditWindow !== void 0 && menuTopEditWindow !== null) {
+        menuTopEditWindow.focus();
+    } else {
+        menuTopEditWindow = new BrowserWindow({
+            width: 350,
+            height: 490,
+            title: 'Top menu edit',
+            parent: menuCustomizeWindow,
+            webPreferences: {
+                nodeIntegration: true
+            },
+            resizable: false,
+            minimizable: false,
+            show: false,
+        });
+
+        // Open the DevTools.
+        menuTopEditWindow.webContents.openDevTools();
+
+        // and load the menuCustomize.html of the app.
+        menuTopEditWindow.loadFile('./components/menuCustomize/menuTopEdit.html');
+
+            // Emitted when the window is closed.
+        menuTopEditWindow.on('closed', () => {
+            menuTopEditWindow = null;
+        });
+                
+        // when data is ready show window
+        menuTopEditWindow.once("show", () => {
+            menuTopEditWindow.webContents.send('elementData', args);
+        });
+        // when window is ready send data
+        menuTopEditWindow.once("ready-to-show", () => {
+            menuTopEditWindow.show();
+        });
+        // no menu
+        menuTopEditWindow.setMenu(null);
+    }
+});
+
+
 
 module.exports = menuCustomize;

@@ -78,6 +78,9 @@ ipcRenderer.on('elementsList', (event, args) => {
 
 ipcRenderer.on('newItemName', (event, args) => {
     
+    console.log(args);
+    
+
     let oldTopName = args.main + ' | ' + args.oldName;
     let isSubmenu = false;
 
@@ -111,11 +114,7 @@ ipcRenderer.on('newItemName', (event, args) => {
     makeMenuSubItems(menuSubTarget[args.main]);
 
     // reset the target category value
-    if (isSubmenu) {
-        document.getElementById('targetCategory').value = args.main + ' | ' + args.newName;
-    } else {
-        document.getElementById('targetCategory').value = args.main;
-    }
+    document.getElementById('targetCategory').value = args.main;
 });
 
 // menu subitems recursion
@@ -154,9 +153,7 @@ function makeMenuTopItems(nameList)
 }
 // make target sub item menu
 function makeMenuSubItems(nameList)
-{
-    console.trace(nameList);
-    
+{    
     let rightContainer = document.getElementById('rightContainer');
     rightContainer.innerHTML = "";   
     for(let i = 0; i < nameList.length; i++) {
@@ -328,6 +325,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
         makeMenuSubItems(menuSubTarget[selectedV]);    
     });
 
+    // top menu edit
+    let menuTopEdit = document.getElementById('menuTopEdit');
+    menuTopEdit.addEventListener('click', function topMenuEdit(){
+        ipcRenderer.send('menuTopEdit', menuTopTarget);
+    });
 
     let insertMenu = document.getElementById("insertMenu");
     insertMenu.addEventListener('click', function toggleDropDown(event){

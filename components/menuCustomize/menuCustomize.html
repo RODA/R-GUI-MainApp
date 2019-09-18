@@ -167,6 +167,20 @@
             background-position-x: 85%;
             background-position-y: 10px;
         }
+        #targetCategory{
+            display: inline-block;
+            width: 255px;
+        }
+        #menuTopEdit{
+            float: right;
+            width: 50px;
+            margin-top: 3px;
+            height: 30px;
+            background-image: url(cog.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 50%;
+        }
     </style>
 </head>
 <body>
@@ -190,6 +204,7 @@
         <div class="right">
             <label for="targetCategory">Target</label>
             <select name="targetCategory" id="targetCategory"></select>
+            <button id="menuTopEdit"></button>
             <label for="leftContainer">Function</label>
             <div class="rightContainer" id="rightContainer"></div>
             <div class="dropdown">
