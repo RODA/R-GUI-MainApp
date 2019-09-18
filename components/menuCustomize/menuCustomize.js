@@ -5,6 +5,7 @@ const path = require('path');
 const { defaultMenu, systemElements } = require('../../menus/menuObjects');
 
 let menuCustomizeWindow;
+let renameItemWindow;
 
 const menuCustomize = {
     
@@ -149,5 +150,50 @@ ipcMain.on('resetMenuToDefault', (event, args) => {
     menuCustomize.resetMenuToDefault();
 });
 
+// lunch the rename Item window
+ipcMain.on('renameItem', (event, args) => {
+    
+    if (renameItemWindow !== void 0 && renameItemWindow !== null) {
+        renameItemWindow.focus();
+    } else {
+        renameItemWindow = new BrowserWindow({
+            width: 300,
+            height: 140,
+            title: 'Rename menu',
+            parent: menuCustomizeWindow,
+            webPreferences: {
+                nodeIntegration: true
+            },
+            resizable: false,
+            minimizable: false,
+            show: false,
+        });
+
+        // Open the DevTools.
+        renameItemWindow.webContents.openDevTools();
+
+        // and load the menuCustomize.html of the app.
+        renameItemWindow.loadFile('./components/menuCustomize/menuRenameItem.html');
+
+            // Emitted when the window is closed.
+        renameItemWindow.on('closed', () => {
+            renameItemWindow = null;
+        });
+                
+        // when data is ready show window
+        renameItemWindow.once("show", () => {
+            renameItemWindow.webContents.send('elementData', args);
+        });
+        // when window is ready send data
+        renameItemWindow.once("ready-to-show", () => {
+            renameItemWindow.show();
+        });
+        // no menu
+        renameItemWindow.setMenu(null);
+    }
+});
+ipcMain.on('newItemName', (ev, args) => {
+    menuCustomizeWindow.webContents.send('newItemName', args);
+});
 
 module.exports = menuCustomize;
