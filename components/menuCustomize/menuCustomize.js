@@ -32,7 +32,7 @@ const menuCustomize = {
             });
 
             // Open the DevTools.
-            // menuCustomizeWindow.webContents.openDevTools();
+            menuCustomizeWindow.webContents.openDevTools();
 
             // and load the menuCustomize.html of the app.
             menuCustomizeWindow.loadFile('./components/menuCustomize/menuCustomize.html');
@@ -240,6 +240,8 @@ ipcMain.on('menuTopEdit', (event, args) => {
     }
 });
 
-
+ipcMain.on('topMenuUpdated', (event, args) => {
+    menuCustomizeWindow.webContents.send('topMenuUpdated', args);
+});
 
 module.exports = menuCustomize;

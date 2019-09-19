@@ -17,7 +17,6 @@ ipcRenderer.on('elementsList', (event, args) => {
 
         for(let i = 0; i < newItemList.length; i++) {
             let el = document.createElement('div');
-            // el.id = newItemList[i].id;
             el.setAttribute('data-id', newItemList[i].id);
             el.setAttribute('data-name', newItemList[i].name);
             el.setAttribute('data-type', newItemList[i].type);
@@ -40,28 +39,28 @@ ipcRenderer.on('elementsList', (event, args) => {
         }
     }
 
-    let menuTopItems = {};
-    let menuSubItems = {};
+    // let menuTopItems = {};
+    // let menuSubItems = {};
     
     if (menu.length > 0) {
         for(let i = 0; i < menu.length; i++) {
             // top menu
             let parentName = menu[i].name;
-            menuTopItems[parentName] = menu[i];
+            // menuTopItems[parentName] = menu[i];
             // position and name
-            menuTopTarget[menu[i].position] = {name: parentName, type: 'top', parent: ''};
+            menuTopTarget[menu[i].position] = {name: parentName, position: menu[i].position, parent: ''};
 
             // subitems
-            menuSubItems[parentName] = [];
+            // menuSubItems[parentName] = [];
             menuSubTarget[parentName] = [];
             if (menu[i].subitems.length > 0) {
                 for(let j = 0; j < menu[i].subitems.length; j++) {
                     
-                    menuSubItems[parentName].push(menu[i].subitems[j]);
+                    // menuSubItems[parentName].push(menu[i].subitems[j]);
                     // position and name
                     if (menu[i].subitems[j].type === 'submenu') {
                         let submenuName = parentName + ' | ' + menu[i].subitems[j].name;
-                        menuTopTarget.splice(menu[i].position+1, 0, {name: submenuName, type: 'top', parent: parentName});
+                        menuTopTarget.splice(menu[i].position+1, 0, {name: submenuName, sName: menu[i].subitems[j].name, position: menu[i].position+1, parent: parentName});
                         parseSubMenu(menu[i].subitems[j].subitems, submenuName);
                     }
                     menuSubTarget[parentName][menu[i].subitems[j].position] = menu[i].subitems[j];                    
@@ -76,17 +75,15 @@ ipcRenderer.on('elementsList', (event, args) => {
     }
 });
 
-ipcRenderer.on('newItemName', (event, args) => {
+ipcRenderer.on('newItemName', (event, args) => {   
     
-    console.log(args);
-    
-
     let oldTopName = args.main + ' | ' + args.oldName;
     let isSubmenu = false;
 
     for (let i = 0; i < menuTopTarget.length; i++) {
         if (menuTopTarget[i].name === oldTopName) {
             menuTopTarget[i].name = args.main + ' | ' + args.newName;
+            menuTopTarget[i].sName =  args.newName;
         }
     }
 
@@ -109,12 +106,43 @@ ipcRenderer.on('newItemName', (event, args) => {
             }            
         }
     }
+    console.log(menuTopTarget);
+    console.log(menuSubTarget);
+    
+    // menuSubTarget[args.main] = reassignPositions(menuSubTarget[args.main]);
     // remake menu
     makeMenuTopItems(menuTopTarget);
     makeMenuSubItems(menuSubTarget[args.main]);
 
     // reset the target category value
     document.getElementById('targetCategory').value = args.main;
+});
+
+ipcRenderer.on('topMenuUpdated', (event, args) => {
+
+    if (args.length > 0) {
+
+        menuTopTarget = args;
+        // get topMenu
+        let topMenuIs = document.getElementById('targetCategory');
+        let topM = topMenuIs.options[topMenuIs.selectedIndex].value;
+        makeMenuTopItems(args);
+
+        for (let i = 0; i < args.length; i++) {
+            if (menuSubTarget[args[i].initialName] !== void 0 && args[i].name !== args[i].initialName) {
+                let initilPos = menuSubTarget.indexOf(args[i].initialName);
+                // assing to hte new name
+                menuSubTarget[args[i].name] = menuSubTarget[args[i].initialName];
+                // remove ald name from array
+                delete menuSubTarget[args[i].initialName];
+            } else {
+                if (menuSubTarget[args[i].name] === void 0) {
+                    menuSubTarget[args[i].name] = [];
+                }
+            }
+        }
+        makeMenuSubItems(menuSubTarget[args[0].name]);
+    }
 });
 
 // menu subitems recursion
@@ -204,7 +232,7 @@ function addItemToTopMenu(mainItem, child)
 {
     for(let i = 0; i < menuTopTarget.length; i++) {
         if (menuTopTarget[i].name === mainItem) {
-            menuTopTarget.splice(i+1, 0, {name: mainItem + ' | '+ child, type: 'submenu', parent: mainItem});
+            menuTopTarget.splice(i+1, 0, {name: mainItem + ' | '+ child, sName: child, position: i+1, parent: mainItem});
         }
     }    
     makeMenuTopItems(menuTopTarget);
@@ -222,12 +250,19 @@ function deselectAllNewItems(side)
     }
 }
 
-// reassign positions
-function reassignPositions(arr)
+// reassign positions and update menuTopTarget
+function reassignPositions(arr, topM)
 {
     for (let i = 0; i < arr.length; i++) {
         arr[i].position = i;
-    }
+        
+        // update also top menu
+        for (let j = 0; j < menuTopTarget.length; j++) {
+            if (menuTopTarget[j].sName === arr[i].name) {
+                menuTopTarget[j].position = i;
+            }
+        }
+    }    
     return arr;
 }
 // document ready
@@ -328,6 +363,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // top menu edit
     let menuTopEdit = document.getElementById('menuTopEdit');
     menuTopEdit.addEventListener('click', function topMenuEdit(){
+        
+        // set initial name for later updates
+        for (let i = 0; i < menuTopTarget.length; i++) {
+            menuTopTarget[i].initialName = menuTopTarget[i].name;
+        }
+        // send data to the edit window
         ipcRenderer.send('menuTopEdit', menuTopTarget);
     });
 
@@ -394,6 +435,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 menuSubTarget[topM].splice(0, 0, {id:'submenu', name: 'SubMenu', type:'submenu', position: 0});
             }
             addItemToTopMenu(topM, 'SubMenu');
+            menuSubTarget[topM] = reassignPositions(menuSubTarget[topM], topM);
             makeMenuSubItems(menuSubTarget[topM]);
             document.getElementById('targetCategory').value = topM;
         } else {
@@ -500,7 +542,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 } else {
                     // insert at the begining of the list
                     menuSubTarget[topM].splice(0, 0, {id: newId, name: newName, position: 0, type: newType});
-                    menuSubTarget[topM] = reassignPositions(menuSubTarget[topM]);
+                    menuSubTarget[topM] = reassignPositions(menuSubTarget[topM], topM);
                 }
             }
         } else {
@@ -535,7 +577,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             // setting new position
             selectedPosition = (selectedPosition-1 <= 0) ? 0 : selectedPosition-1; 
             menuSubTarget[topM].splice(selectedPosition, 0, {id: sId, name: sName, position: selectedPosition, type: sType});
-            menuSubTarget[topM] = reassignPositions(menuSubTarget[topM]);
+            menuSubTarget[topM] = reassignPositions(menuSubTarget[topM], topM);
         } else {
             alert('Please select at least an item first.');
         }
@@ -583,7 +625,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             // setting new position            
             selectedPosition = (selectedPosition+1 >= menuSubTarget[topM].length) ? menuSubTarget[topM].length : selectedPosition+1;             
             menuSubTarget[topM].splice(selectedPosition, 0, {id: sId, name: sName, position: selectedPosition, type: sType});
-            menuSubTarget[topM] = reassignPositions(menuSubTarget[topM]);
+            menuSubTarget[topM] = reassignPositions(menuSubTarget[topM], topM);
         } else {
             alert('Please select at least an item first.');
         }
