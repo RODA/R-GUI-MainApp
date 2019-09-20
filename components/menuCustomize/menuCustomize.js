@@ -2,7 +2,7 @@ const { dialog, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-const { defaultMenu, systemElements } = require('../../menus/menuObjects');
+const systemElements = require('../../menus/systemElements');
 
 let menuCustomizeWindow;
 let renameItemWindow;
@@ -28,7 +28,7 @@ const menuCustomize = {
             });
 
             // Open the DevTools.
-            menuCustomizeWindow.webContents.openDevTools();
+            // menuCustomizeWindow.webContents.openDevTools();
 
             // and load the menuCustomize.html of the app.
             menuCustomizeWindow.loadFile('./components/menuCustomize/menuCustomize.html');

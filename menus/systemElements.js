@@ -51,6 +51,4 @@ const systemElements = [
     }
 ];
 
-module.exports = {
-    systemElements: systemElements,
-};
+module.exports = systemElements;
