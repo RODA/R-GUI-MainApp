@@ -1,18 +1,17 @@
 const { ipcRenderer } = require('electron');
-const { BrowserWindow } = require('electron').remote;
+const { BrowserWindow, dialog } = require('electron').remote;
+
+// TODO -- discus about deleting an item
 
 let menuItemList;
 let onlyTop = [];
-let editItem;
 
 ipcRenderer.on('elementData', (ev, args) => {
     
     if (args.length > 0) {
-        // save the initial list
-        menuItemList = args;
 
-        console.log(menuItemList);
-        
+        // save the initial list
+        menuItemList = args;     
 
         let j = 0; 
         for (let i = 0; i < menuItemList.length; i++) {
@@ -23,16 +22,19 @@ ipcRenderer.on('elementData', (ev, args) => {
         }
         makeItemList(onlyTop);        
     }
-
 });
 
+//  Helper functions ========================
+// make the item list
 function makeItemList(list)
 {
     let itemList = document.getElementById('itemList');        
+    
     // clear list
     itemList.innerHTML = '';
 
-    for(let i = 0; i < list.length; i++) {
+    for(let i = 0; i < list.length; i++) 
+    {
         let el = document.createElement('div');
 
         el.setAttribute('data-name', list[i].name);
@@ -61,14 +63,13 @@ function makeItemList(list)
         itemList.appendChild(el);
     }
 }
-
 // deselet all items
 function deselectAllItems()
 {
     let theContainer = document.getElementById('itemList');    
     let allElements = theContainer.querySelectorAll('div');
-
-    for (let i = 0; i < allElements.length; i++) {  
+    for (let i = 0; i < allElements.length; i++) 
+    {  
         allElements[i].style.backgroundColor = 'white';
         allElements[i].style.color = 'black';
         allElements[i].setAttribute('data-selected', 'false');
@@ -77,7 +78,8 @@ function deselectAllItems()
 // reassign positions
 function reassignPositions(arr)
 {
-    for (let i = 0; i < arr.length; i++) {
+    for (let i = 0; i < arr.length; i++)
+    {
         arr[i].position = i;
     }
     return arr;
@@ -86,15 +88,13 @@ function reassignPositions(arr)
 function moveItem(position)
 {
     let itemList = document.getElementById('itemList');
-    // is something selected ?
     let selected = itemList.querySelectorAll("div[data-selected='true']");
-    let selectedPosition;
-    let selectedName;
-
+    
+    // is something selected ?
     if ( selected.length > 0 && selected[0]) 
     {    
-        selectedPosition = parseInt(selected[0].getAttribute('data-position'));
-        selectedName = selected[0].getAttribute('data-name');
+        let selectedPosition = parseInt(selected[0].getAttribute('data-position'));
+        let selectedName = selected[0].getAttribute('data-name');
         onlyTop.splice(selectedPosition, 1);
         // setting new position
         if (position === 'up') {
@@ -103,20 +103,22 @@ function moveItem(position)
             selectedPosition = (selectedPosition+1 >= onlyTop.length) ? onlyTop.length : selectedPosition+1;
         }
         onlyTop.splice(selectedPosition, 0, {name: selectedName, position: selectedPosition, parent: ''});    
-        onlyTop = reassignPositions(onlyTop);        
+        onlyTop = reassignPositions(onlyTop);  
+        
+        makeItemList(onlyTop);
+        // reselect item
+        let sItem = itemList.querySelectorAll("div[data-name='"+ selectedName +"']");
+        if (sItem[0]) {
+            sItem[0].style.backgroundColor = '#0078d7';
+            sItem[0].style.color = 'white';
+            sItem[0].setAttribute('data-selected', 'true');
+        }
     } else {
-        alert('Please select at least an item first.');
-    }
-
-    makeItemList(onlyTop);
-    // reselect item
-    let sItem = itemList.querySelectorAll("div[data-name='"+ selectedName +"']");
-    if (sItem[0]) {
-        sItem[0].style.backgroundColor = '#0078d7';
-        sItem[0].style.color = 'white';
-        sItem[0].setAttribute('data-selected', 'true');
+        let theWindow = BrowserWindow.getFocusedWindow();
+        dialog.showMessageBoxSync(theWindow, {type: 'none', message: 'Please select at least an item first.', title:'No item selected', buttons:['OK']});
     }
 }
+// TODO -- to be discussed
 // delete/remove item
 function deleteItem(ev)
 {
@@ -137,7 +139,8 @@ function deleteItem(ev)
 // update name in initial array
 function updateNameInitial(newName, oldName)
 {
-    for (let i = 0; i < menuItemList.length; i++) {
+    for (let i = 0; i < menuItemList.length; i++) 
+    {
         if (menuItemList[i].name === oldName) {
             menuItemList[i].name = newName;
         }        
@@ -147,19 +150,19 @@ function updateNameInitial(newName, oldName)
         }
     }
 }
+
 // document ready
 document.addEventListener("DOMContentLoaded", function(event) { 
   
-    // save settings
+    // make, send data & close the window
     let save = document.getElementById('save');
-    save.addEventListener('click', function(event){
-        console.log('--- saving ---');
-        
+    save.addEventListener('click', function(event)
+    {    
         let theList = [];
         let sublist = {};
-
         // get submenus
-        for (let i = 0; i < menuItemList.length; i++) {
+        for (let i = 0; i < menuItemList.length; i++) 
+        {
             if (menuItemList[i].parent !== '') {
                 if (sublist[menuItemList[i].parent] === void 0) {
                     sublist[menuItemList[i].parent] = [];
@@ -175,8 +178,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         let position = 0;
         // update positions
-        for (let i = 0; i < onlyTop.length; i++) {
-            
+        for (let i = 0; i < onlyTop.length; i++) 
+        {    
             let name = onlyTop[i].name;
             let found = false;
             for (let j = 0; j < menuItemList.length; j++) {
@@ -210,9 +213,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         window.close();     
     });
 
-    // cancel settings
+    // close the window
     let cancel = document.getElementById('cancel');
-    cancel.addEventListener('click', function(event){
+    cancel.addEventListener('click', function(event)
+    {
         let window = BrowserWindow.getFocusedWindow();
         window.close();
     });
@@ -233,13 +237,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     // rename an item
     let renameItem = document.getElementById('renameItemButton');
-    renameItem.addEventListener('click', function renameItem(event){
-        
+    renameItem.addEventListener('click', function renameItem(event)
+    {    
+        let theWindow = BrowserWindow.getFocusedWindow();
         let selected = itemList.querySelectorAll("div[data-selected='true']");
         
         // if something is selected
-        if ( selected.length > 0 && selected[0]) 
-        {
+        if ( selected.length > 0 && selected[0]) {
             let newName = document.getElementById('renameItemInput').value;
             let oldName = selected[0].getAttribute('data-name');
 
@@ -249,15 +253,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
                         onlyTop[i].name = newName;
                     }
                 }
-            } else {
-                alert('Please set a name!');
+            } 
+            else {
+                dialog.showMessageBoxSync(theWindow, {type: 'none', message: 'Please set a name.', title:'No name', buttons:['OK']});
             }
             updateNameInitial(newName, oldName);
             makeItemList(onlyTop);
             // reset rename input value
             document.getElementById('renameItemInput').value = '';
-        } else {
-            alert('Please select an item!');
+        } 
+        else {
+            dialog.showMessageBoxSync(theWindow, {type: 'none', message: 'Please select an item.', title:'No item selected', buttons:['OK']});
         }
     });
 
@@ -272,15 +278,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
         let lastItemPos = onlyTop.length;
     
         // if something is selected
-        if ( selected.length > 0 && selected[0]) 
-        {    
+        if ( selected.length > 0 && selected[0]) {    
             selectedPosition = parseInt(selected[0].getAttribute('data-position'));
             onlyTop.splice(selectedPosition, 0, {name: 'New menu', position: selectedPosition, parent: ''});
-        } else {
+        } 
+        else {
             onlyTop.splice(lastItemPos, 0, {name: 'New menu', position: lastItemPos, parent: ''});
         }        
         reassignPositions(onlyTop);
         makeItemList(onlyTop);
     });
-
 });

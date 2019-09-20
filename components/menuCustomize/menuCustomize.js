@@ -9,13 +9,9 @@ let renameItemWindow;
 let menuTopEditWindow;
 
 const menuCustomize = {
-    
-    theWindow: {},
 
-    start: function(mWindow){
-
-        this.theWindow = mWindow;
-
+    start: function(mWindow)
+    {
         if (menuCustomizeWindow !== void 0 && menuCustomizeWindow !== null) {
             menuCustomizeWindow.focus();
         } else {
@@ -83,61 +79,55 @@ const menuCustomize = {
         }catch(error){
             return [];
         }
-    },
-
-    // rebuild the available dialog list
-    reduildAvailableDialogList: function()
-    {
-        let question = dialog.showMessageBoxSync(this.theWindow, {type: "question", message: "Are you sure you want to update the dialog list?", title: "Update available dialog list", buttons: ["No", "Yes"]});
-        if (question === 1) {
-            let dialogList = [];
-            fs.readdir(path.resolve('./dialogs'), (err, files) => {
-                if(err){
-                    console.log('Error reading the dialogs folder' + err);
-                } else {
-                    for (let i = 0; i< files.length; i++) 
-                    {    
-                        let dialog;
-                        let data = fs.readFileSync(path.resolve('./dialogs/' + files[i]), 'UTF8');
-                        
-                        try{
-                            dialog = JSON.parse(data);
-                        }catch(error){
-                            console.log('Could not parse dialog. ' + err);
-                            dialog = null;
-                        }
-                        if (dialog !== void 0 && dialog !== null) {
-                            let dialogFileName = files[i].substring(0, files[i].length - 5);
-                            dialogList.push({
-                                "id": dialogFileName,
-                                "name": dialog.properties.title,
-                                "type": "dialog"
-                            });
-                        }               
-                    }
-                    fs.open(path.resolve('./menus/menuDialogList.json'), 'w', (err, fd) => {
-                        if (err) {
-                            console.log('Could not open the menuDialogList for writing' + err);
-                        } else {
-                            fs.writeFile(fd, JSON.stringify(dialogList), (err) => {
-                                if (err) {
-                                    dialog.showMessageBox(this.theWindow, {type: "error", message: "Could not update the available dialog list", title: "Error", buttons: ["OK"]});
-                                } else {
-                                    dialog.showMessageBox(this.theWindow, {type: "info", message: "Dialog list updated successfully! Please close and reopen the window.", title: "Success", buttons: ["OK"]});
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
     }
 };
-
+// rebuild the available dialog list
 ipcMain.on('rebuildDialogList', (event, args) => {
-    menuCustomize.reduildAvailableDialogList();
+    let question = dialog.showMessageBoxSync(menuCustomizeWindow, {type: "question", message: "Are you sure you want to update the dialog list?", title: "Update available dialog list", buttons: ["No", "Yes"]});
+    if (question === 1) {
+        let dialogList = [];
+        fs.readdir(path.resolve('./dialogs'), (err, files) => {
+            if(err){
+                console.log('Error reading the dialogs folder' + err);
+            } else {
+                for (let i = 0; i< files.length; i++) 
+                {    
+                    let dialog;
+                    let data = fs.readFileSync(path.resolve('./dialogs/' + files[i]), 'UTF8');
+                    
+                    try{
+                        dialog = JSON.parse(data);
+                    }catch(error){
+                        console.log('Could not parse dialog. ' + err);
+                        dialog = null;
+                    }
+                    if (dialog !== void 0 && dialog !== null) {
+                        let dialogFileName = files[i].substring(0, files[i].length - 5);
+                        dialogList.push({
+                            "id": dialogFileName,
+                            "name": dialog.properties.title,
+                            "type": "dialog"
+                        });
+                    }               
+                }
+                fs.open(path.resolve('./menus/menuDialogList.json'), 'w', (err, fd) => {
+                    if (err) {
+                        console.log('Could not open the menuDialogList for writing' + err);
+                    } else {
+                        fs.writeFile(fd, JSON.stringify(dialogList), (err) => {
+                            if (err) {
+                                dialog.showMessageBox(menuCustomizeWindow, {type: "error", message: "Could not update the available dialog list", title: "Error", buttons: ["OK"]});
+                            } else {
+                                dialog.showMessageBox(menuCustomizeWindow, {type: "info", message: "Dialog list updated successfully! Please close and reopen the window.", title: "Success", buttons: ["OK"]});
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
 });
-
+// reset menu to default
 ipcMain.on('resetMenuToDefault', (event, args) => {
     let question = dialog.showMessageBoxSync(menuCustomizeWindow, {type: "question", message: "Are you sure you sure ? This operation cannot be undone!", title: "Reset menu to default", buttons: ["No", "Yes"]});
     if (question === 1) {
@@ -208,6 +198,7 @@ ipcMain.on('renameItem', (event, args) => {
         renameItemWindow.setMenu(null);
     }
 });
+// send the new name back
 ipcMain.on('newItemName', (ev, args) => {
     menuCustomizeWindow.webContents.send('newItemName', args);
 });
@@ -279,7 +270,6 @@ ipcMain.on("saveAsDefault", (event, args) => {
         }
     });
 });
-
 // save menu
 ipcMain.on("saveMenu", (event, args) => 
 {
@@ -296,12 +286,12 @@ ipcMain.on("saveMenu", (event, args) =>
                     dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot save the menu!", title: "Error", buttons: ["OK"]});
                 } else {
                     dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'info', message: "Menu saved!", title: "Success", buttons: ["OK"]});
+                    menuCustomizeWindow.close();
                 }
             });
         }
     });
 });
-
 // meke data for saving
 makeMenuData = function(data) {
     let topMenu = data.topMenu;
