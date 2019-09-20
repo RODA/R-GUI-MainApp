@@ -1,10 +1,10 @@
 const { ipcRenderer } = require('electron');
-const { BrowserWindow } = require('electron').remote;
+const { BrowserWindow, dialog } = require('electron').remote;
 
 // TODO -- replace alert with dialog
 
 var menuTopTarget = [];
-var menuSubTarget = [];
+var menuSubTarget = {};
 
 ipcRenderer.on('elementsList', (event, args) => {
     
@@ -39,35 +39,33 @@ ipcRenderer.on('elementsList', (event, args) => {
         }
     }
 
-    // let menuTopItems = {};
-    // let menuSubItems = {};
-    
+    let topPosition = 0;
     if (menu.length > 0) {
         for(let i = 0; i < menu.length; i++) {
             // top menu
             let parentName = menu[i].name;
-            // menuTopItems[parentName] = menu[i];
-            // position and name
-            menuTopTarget[menu[i].position] = {name: parentName, position: menu[i].position, parent: ''};
 
+            // position and name
+            menuTopTarget[topPosition] = {name: parentName, position: menu[i].position, parent: ''};
+            topPosition++;
             // subitems
-            // menuSubItems[parentName] = [];
             menuSubTarget[parentName] = [];
             if (menu[i].subitems.length > 0) {
                 for(let j = 0; j < menu[i].subitems.length; j++) {
-                    
-                    // menuSubItems[parentName].push(menu[i].subitems[j]);
                     // position and name
                     if (menu[i].subitems[j].type === 'submenu') {
-                        let submenuName = parentName + ' | ' + menu[i].subitems[j].name;
-                        menuTopTarget.splice(menu[i].position+1, 0, {name: submenuName, sName: menu[i].subitems[j].name, position: menu[i].position+1, parent: parentName});
+                        let submenuName = parentName + ' | ' + menu[i].subitems[j].name;                        
+                        menuTopTarget.splice(topPosition, 0, {name: submenuName, sName: menu[i].subitems[j].name, position: menu[i].position+1, parent: parentName});
                         parseSubMenu(menu[i].subitems[j].subitems, submenuName);
+                        topPosition++;
                     }
                     menuSubTarget[parentName][menu[i].subitems[j].position] = menu[i].subitems[j];                    
                 }
             }
-        }
-
+        }        
+        // console.log(menuTopTarget);
+        // console.log(menuSubTarget);
+        
         // initial setup
         makeMenuTopItems(menuTopTarget);        
         // load first element in list
@@ -130,7 +128,6 @@ ipcRenderer.on('topMenuUpdated', (event, args) => {
 
         for (let i = 0; i < args.length; i++) {
             if (menuSubTarget[args[i].initialName] !== void 0 && args[i].name !== args[i].initialName) {
-                let initilPos = menuSubTarget.indexOf(args[i].initialName);
                 // assing to hte new name
                 menuSubTarget[args[i].name] = menuSubTarget[args[i].initialName];
                 // remove ald name from array
@@ -148,8 +145,8 @@ ipcRenderer.on('topMenuUpdated', (event, args) => {
 // menu subitems recursion
 function parseSubMenu(items, parentName)
 {
-    if (items.length > 0) {
-        menuSubTarget[parentName] = [];
+    menuSubTarget[parentName] = [];
+    if (items.length > 0) {        
         for(let j = 0; j < items.length; j++) {
             
             // position and name
@@ -271,18 +268,25 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // save settings
     let save = document.getElementById('saveMenu');
     save.addEventListener('click', function(event){
-        console.log('--- saving ---');
-        
-        console.log(menuTopTarget);
-        console.log(menuSubTarget);
+        ipcRenderer.send('saveMenu', {topMenu: menuTopTarget, subMenu: menuSubTarget});
+    });
 
+    // make current as default
+    let makeDefault = document.getElementById('makeDefault');
+    makeDefault.addEventListener('click', function saveAsDefault(){
+        let theWindow = BrowserWindow.getFocusedWindow();
+        dialog.showMessageBox(theWindow, {type: "question", message: "Are you sure you sure ? This operation cannot be undone!", title: "Save current menu configuration as ddefault", buttons: ["No", "Yes"]}).then(function(value){
+            if (value.response === 1) {
+                ipcRenderer.send('saveAsDefault', {topMenu: menuTopTarget, subMenu: menuSubTarget});
+            }
+        });
     });
 
     // cancel settings
     let cancel = document.getElementById('cancelMenu');
     cancel.addEventListener('click', function(event){
-        let window = BrowserWindow.getFocusedWindow();
-        window.close();
+        let theWindow = BrowserWindow.getFocusedWindow();
+        theWindow.close();
     });
     
     // update available dialog list
@@ -403,7 +407,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         if ( selected.length > 0 && selected[0]) {
             selectedPosition = selected[0].getAttribute('data-position');
-            menuSubTarget[topM].splice(selectedPosition, 0, {id:'separator', name: '', type:'system', position: selectedPosition});
+            menuSubTarget[topM].splice(selectedPosition, 0, {id:'separator', name: '', type:'system', position: parseInt(selectedPosition)});
         } else {
             menuSubTarget[topM].splice(0, 0, {id:'separator', name: '', type:'system', position: 0});
         }
@@ -497,6 +501,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 }
             }
         }
+        // reassign positions
+        menuSubTarget[topM] = reassignPositions(menuSubTarget[topM], topM);
+
         makeMenuSubItems(menuSubTarget[topM]);
         makeMenuTopItems(menuTopTarget);
         document.getElementById('targetCategory').value = topM;

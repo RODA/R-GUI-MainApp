@@ -85,15 +85,6 @@ const menuCustomize = {
         }
     },
 
-    // TODO
-    // reset menu to default
-    resetMenuToDefault: function()
-    {
-        let question = dialog.showMessageBoxSync(this.theWindow, {type: "question", message: "Are you sure you sure ? This operation cannot be undone!", title: "Reset menu to default", buttons: ["No", "Yes"]});
-        if (question === 1) {
-
-        }
-    },
     // rebuild the available dialog list
     reduildAvailableDialogList: function()
     {
@@ -132,7 +123,7 @@ const menuCustomize = {
                                 if (err) {
                                     dialog.showMessageBox(this.theWindow, {type: "error", message: "Could not update the available dialog list", title: "Error", buttons: ["OK"]});
                                 } else {
-                                    dialog.showMessageBox(this.theWindow, {type: "info", message: "Dialog list updated successfully!", title: "Success", buttons: ["OK"]});
+                                    dialog.showMessageBox(this.theWindow, {type: "info", message: "Dialog list updated successfully! Please close and reopen the window.", title: "Success", buttons: ["OK"]});
                                 }
                             });
                         }
@@ -148,7 +139,31 @@ ipcMain.on('rebuildDialogList', (event, args) => {
 });
 
 ipcMain.on('resetMenuToDefault', (event, args) => {
-    menuCustomize.resetMenuToDefault();
+    let question = dialog.showMessageBoxSync(menuCustomizeWindow, {type: "question", message: "Are you sure you sure ? This operation cannot be undone!", title: "Reset menu to default", buttons: ["No", "Yes"]});
+    if (question === 1) {
+        fs.readFile(path.resolve('./menus/menuDefault.json'), (err, data) =>
+        {
+            if (err) {
+                dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Read error occured!", title: "Error", buttons: ["OK"]});
+            } else {
+                // write data to file
+                fs.open(path.resolve('./menus/menu.json'), 'w', function openMenuDefault(err, fd)
+                {
+                    if (err) {
+                        dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot not reset the menu!", title: "Error", buttons: ["OK"]});
+                    } else {
+                        fs.writeFile(fd, data, function writeMenuDefault(err) {
+                            if (err) {
+                                dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot not reset the menu!", title: "Error", buttons: ["OK"]});
+                            } else {
+                                dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'info', message: "Menu reseted successfully!", title: "Success", buttons: ["OK"]});
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
 });
 
 // lunch the rename Item window
@@ -217,7 +232,7 @@ ipcMain.on('menuTopEdit', (event, args) => {
         });
 
         // Open the DevTools.
-        menuTopEditWindow.webContents.openDevTools();
+        // menuTopEditWindow.webContents.openDevTools();
 
         // and load the menuCustomize.html of the app.
         menuTopEditWindow.loadFile('./components/menuCustomize/menuTopEdit.html');
@@ -239,9 +254,118 @@ ipcMain.on('menuTopEdit', (event, args) => {
         menuTopEditWindow.setMenu(null);
     }
 });
-
 ipcMain.on('topMenuUpdated', (event, args) => {
     menuCustomizeWindow.webContents.send('topMenuUpdated', args);
 });
+
+// save menu as default
+ipcMain.on("saveAsDefault", (event, args) => {
+    
+    let theMenu = makeMenuData(args);
+
+    // write data to file
+    fs.open(path.resolve('./menus/menuDefault.json'), 'w', function openMenuDefault(err, fd)
+    {
+        if (err) {
+            dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot save menu as default!", title: "Error", buttons: ["OK"]});
+        } else {
+            fs.writeFile(fd, JSON.stringify(theMenu), function writeMenuDefault(err) {
+                if (err) {
+                    dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot save menu as default!", title: "Error", buttons: ["OK"]});
+                } else {
+                    dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'info', message: "Menu saved as default!", title: "Success", buttons: ["OK"]});
+                }
+            });
+        }
+    });
+});
+
+// save menu
+ipcMain.on("saveMenu", (event, args) => 
+{
+    let theMenu = makeMenuData(args);
+
+    // write data to file
+    fs.open(path.resolve('./menus/menu.json'), 'w', function openMenuDefault(err, fd)
+    {
+        if (err) {
+            dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot save the menu!", title: "Error", buttons: ["OK"]});
+        } else {
+            fs.writeFile(fd, JSON.stringify(theMenu), function writeMenuDefault(err) {
+                if (err) {
+                    dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'error', message: "Cannot save the menu!", title: "Error", buttons: ["OK"]});
+                } else {
+                    dialog.showMessageBoxSync(menuCustomizeWindow, {type: 'info', message: "Menu saved!", title: "Success", buttons: ["OK"]});
+                }
+            });
+        }
+    });
+});
+
+// meke data for saving
+makeMenuData = function(data) {
+    let topMenu = data.topMenu;
+    let subMenu = data.subMenu;
+
+    let theMenu = [];
+
+    for (let i = 0; i < topMenu.length; i++) 
+    {
+        if (topMenu[i].parent === '') {
+            let menuItem = {};
+            menuItem.name = topMenu[i].name;
+            menuItem.position = topMenu[i].position;
+            menuItem.subitems = [];    
+            for (let j = 0; j < subMenu[topMenu[i].name].length; j++) 
+            {
+                let menuSubItem = {};
+                menuSubItem.id = (subMenu[topMenu[i].name][j].id === void 0) ? 'wrongId' : makeID(subMenu[topMenu[i].name][j].id);
+                menuSubItem.name = subMenu[topMenu[i].name][j].name;
+                menuSubItem.position = subMenu[topMenu[i].name][j].position;
+                menuSubItem.type = subMenu[topMenu[i].name][j].type;
+                if (menuSubItem.type === 'submenu') {
+                    menuSubItem.subitems = [];
+                    menuSubItem.subitems = makeSubitems(menuItem.name + ' | ' + menuSubItem.name);
+                }
+                menuItem.subitems.push(menuSubItem);
+            }
+            theMenu.push(menuItem);
+        }
+
+    }
+    function makeSubitems(name)
+    {
+        let items = [];
+        if (subMenu[name]) {
+            for (let k = 0; k < subMenu[name].length; k++) {
+                let item = {};
+                item.id = (subMenu[name][k].id === void 0) ? 'wrongId' : makeID(subMenu[name][k].id);
+                item.name = subMenu[name][k].name;
+                item.position = subMenu[name][k].position;
+                item.type = subMenu[name][k].type;
+                if (item.type === 'submenu') {
+                    item.subitems = [];
+                    item.subitems = makeSubitems(name + ' | ' + item.name);
+                }
+                items.push(item);
+            }
+        }
+        return items;        
+    }
+    function makeID(id)
+    {
+        let newID = id;
+        let testSeparator = id.substring(0, 9).toLowerCase();
+        if (testSeparator === 'separator') {
+            newID = testSeparator;
+        }
+        let testSubmenu = id.substring(0, 7).toLowerCase();
+        if (testSubmenu === 'submenu') {
+            newID = testSubmenu;
+        }
+        return newID;
+    }
+    return theMenu;
+};
 
 module.exports = menuCustomize;

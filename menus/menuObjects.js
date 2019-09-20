@@ -1,117 +1,7 @@
-const defaultMenu = [
-    {
-        'name': 'File',
-        'position': 1,
-        'subitems': [
-            {
-                "id": "mainAppLoadData",
-                "name": "Load file",
-                "type": "system",
-                "position": 0
-            },
-            {
-                "id": "separator",
-                "name": "",
-                "type": "system",
-                "position": 1
-            },
-            {
-                "id": "mainAppSettings",
-                "name": "Settings",
-                "type": "system",
-                "position": 2
-            },
-            {
-                "id": "separator",
-                "name": "",
-                "type": "system",
-                "position": 3
-            },
-            {
-                "id": "mainAppExist",
-                "name": "Exit",
-                "type": "system",
-                "position": 4
-            }
-        ]
-    },
-    {
-        'name': 'Edit',
-        'position': 2,
-        'subitems': [
-            {
-                "id": "mainAppUndo",
-                "name": "Undo",
-                "type": "system",
-                "position": 0
-            },
-            {
-                "id": "mainAppRedo",
-                "name": "Redo",
-                "type": "system",
-                "position": 1
-            },
-            {
-                "id": "separator",
-                "name": "",
-                "type": "system",
-                "position": 2
-            },
-            {
-                "id": "mainAppCut",
-                "name": "Cut",
-                "type": "system",
-                "position": 3
-            },
-            {
-                "id": "mainAppCopy",
-                "name": "Copy",
-                "type": "system",
-                "position": 4
-            },
-            {
-                "id": "mainAppPaste",
-                "name": "Paste",
-                "type": "system",
-                "position": 5
-            },
-            {
-                "id": "separator",
-                "name": "",
-                "type": "system",
-                "position": 6
-            },
-            {
-                "id": "mainAppSelectAll",
-                "name": "Select All",
-                "type": "system",
-                "position": 7
-            }
-        ]
-    },
-    {
-        'name': 'Info',
-        'position': 3,
-        'subitems': [
-            {
-                'id': 'mainAppAbout',
-                'name': 'About',
-                'type': 'system',
-                'position': 0
-            }
-        ]
-    }
-];
-
 const systemElements = [
     {
         'id': 'mainAppLoadData',
-        'name': 'Load Data',
-        'type': 'system'
-    },
-    {
-        'id': 'mainAppImportDialog',
-        'name': 'Import dialog',
+        'name': 'Load file',
         'type': 'system'
     },
     {
@@ -162,6 +52,5 @@ const systemElements = [
 ];
 
 module.exports = {
-    defaultMenu: defaultMenu,
     systemElements: systemElements,
 };
