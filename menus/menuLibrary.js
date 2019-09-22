@@ -13,28 +13,30 @@ const menuLibrary = {
 
     theApp: {},
     theWindow: {},
-    theLanguage: {},
+    i18next: {},
+    theSettings: {},
 
-    initialize: function(app, translation, mainWindow)
+    initialize: function(theApp, i18next, mainWindow, theSettings)
     {
-        this.theApp = app;
+        this.theApp = theApp;
         this.theWindow = mainWindow;
-        this.theLanguage = translation;
+        this.i18next = i18next;
+        this.theSettings = theSettings;
     },
 
     mainAppLoadData: function(name)
     {
         return {
-            label : menuLibrary.theLanguage.t(name),
+            label : menuLibrary.i18next.t(name),
             accelerator: "CommandOrControl+L",
             click(){
-                dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.theLanguage.t("Load data"), filters: [{name: 'Comma-separated values', extensions: ['csv']}], properties: ['openFile']}, result => {
+                dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t("Load data"), filters: [{name: 'Comma-separated values', extensions: ['csv']}], properties: ['openFile']}, result => {
                     if (result !== void 0 && result.length > 0) {            
                         let filePath = result.pop();    
                         // check if the file exists and we can read from it                                            
                         fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
                             if (err) {
-                                dialog.showMessageBox(menuLibrary.theWindow, {type: 'error', title: menuLibrary.theLanguage.t('Could not open the file!'), buttons: ['OK']});
+                                dialog.showMessageBox(menuLibrary.theWindow, {type: 'error', title: menuLibrary.i18next.t('Could not open the file!'), buttons: ['OK']});
                             } else {
                                 // pass menuLibrary.theWindow for dialog messages
                                 loadFile.import(filePath, menuLibrary.theWindow);
@@ -49,9 +51,9 @@ const menuLibrary = {
     mainAppSettings: function(name)
     {
         return {
-            label : menuLibrary.theLanguage.t(name),
+            label : menuLibrary.i18next.t(name),
             click(){
-                settings.createSettingsWindow(menuLibrary.theLanguage, menuLibrary.theWindow);
+                settings.createSettingsWindow(menuLibrary.i18next, menuLibrary.theWindow, menuLibrary.theSettings);
             }
         };
     },
@@ -59,7 +61,7 @@ const menuLibrary = {
     mainAppExist: function(name) 
     {
         return {
-            label : menuLibrary.theLanguage.t(name),
+            label : menuLibrary.i18next.t(name),
             accelerator: "CommandOrControl+Q",
             click(){
                 menuLibrary.theApp.quit();
@@ -70,11 +72,11 @@ const menuLibrary = {
     menuForDialog: function(dialogID, dialogName)
     {
         return {
-            label : menuLibrary.theLanguage.t(dialogName),
+            label : menuLibrary.i18next.t(dialogName),
             click(){
                 fs.readFile(path.resolve('./dialogs/' + dialogID + '.json'), 'UTF8', (err, data) => {
                     if ( err ) {
-                        dialog.showMessageBox(menuLibrary.theWindow, {type: "info", message: menuLibrary.theLanguage.t("No functionality for this item!"), title: menuLibrary.theLanguage.t("Error"), buttons: ["OK"]});
+                        dialog.showMessageBox(menuLibrary.theWindow, {type: "info", message: menuLibrary.i18next.t("No functionality for this item!"), title: menuLibrary.i18next.t("Error"), buttons: ["OK"]});
                     } else {
                        dialogBuilder.build(data, menuLibrary.theWindow);
                     }
@@ -88,7 +90,7 @@ const menuLibrary = {
     // {
     //     return {
     //         // Just playing around
-    //         label : menuLibrary.theLanguage.t(name),
+    //         label : menuLibrary.i18next.t(name),
     //         click(){
     //             let newLang = 'ro';
     //             if(menuLibrary.theLanguage.language == 'ro') {
@@ -106,27 +108,27 @@ const menuLibrary = {
     // System -------------------------------------------------
     mainAppUndo: function(name)
     {
-        return { label: menuLibrary.theLanguage.t(name), accelerator: "CmdOrCtrl+Z", selector: "undo:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+Z", selector: "undo:" };
     },
     mainAppRedo: function(name)
     {
-        return { label: menuLibrary.theLanguage.t(name), accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" };
     },
     mainAppCut: function(name)
     {
-        return { label: menuLibrary.theLanguage.t(name), accelerator: "CmdOrCtrl+X", selector: "cut:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+X", selector: "cut:" };
     },
     mainAppCopy: function(name)
     {
-        return { label: menuLibrary.theLanguage.t(name), accelerator: "CmdOrCtrl+C", selector: "copy:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+C", selector: "copy:" };
     },
     mainAppPaste: function(name)
     {
-        return { label: menuLibrary.theLanguage.t(name), accelerator: "CmdOrCtrl+V", selector: "paste:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+V", selector: "paste:" };
     },
     mainAppSelectAll: function(name)
     {
-        return { label: menuLibrary.theLanguage.t(name), accelerator: "CmdOrCtrl+A", selector: "selectAll:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+A", selector: "selectAll:" };
     },
     separator: function(name)
     {

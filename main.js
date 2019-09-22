@@ -6,19 +6,35 @@ const menuFactroy = require('./menus/menuFactory');
 const i18next = require("i18next");
 const Backend = require("i18next-node-fs-backend");
 const i18nextOptions = require("./i18nextOptions");
+const logging = require('./libraries/logging');
 
 // Setting ENVIROMENT
 process.env.NODE_ENV = 'development';
 
+// the settings object - to be passed around - add here other properties
+let theSettings = {
+  language: 'en',
+  languageNS: 'en_US'
+};
+
 // loading language from settings
-var currentSettings  = fs.readFileSync('./settings.json');
-currentSettings = JSON.parse(currentSettings);
-// set the language and load
-if ( currentSettings.defaultLanguage !== void 0) {
-    // get only the en of the eu-US part
-    let lang = currentSettings.defaultLanguage.split('_');
-    i18nextOptions.setLanguage(lang[0], currentSettings.defaultLanguage);
+let settingsFileData  = fs.readFileSync(path.resolve('./settings.json'), 'utf8');
+try{
+  settingsFileData = JSON.parse(settingsFileData);
 }
+catch (error){
+  logging.error('Reading settings - ' + error);
+}
+// set the language and load
+if ( settingsFileData.defaultLanguage !== void 0) {
+    // get only the en of the eu_US part
+    let lang = settingsFileData.defaultLanguage.split('_');
+    // update date from the settings file
+    theSettings.language = lang[0];
+    theSettings.languageNS = settingsFileData.defaultLanguage;
+}
+
+i18nextOptions.setLanguage(theSettings.language, theSettings.languageNS);
 i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV));
 //---------------------------------------
 
@@ -43,7 +59,7 @@ function createMainWindow () {
     // mainWindow.webContents.openDevTools();
 
     // maximize
-    // mainWindow.maximize();
+    mainWindow.maximize();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', () => {
@@ -52,10 +68,7 @@ function createMainWindow () {
 
     // Insert menu after language has loaded
     i18next.on('languageChanged', () => {
-      let menu = menuFactroy(app, mainWindow, i18next);
-      if (menu) {
-        Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next));
-      }
+        Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next, theSettings));
     });
 }
 

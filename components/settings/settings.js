@@ -9,20 +9,24 @@ let settingsWindow;
 // TODO -- add translation
 const settings = {
     // used later fot saving
-    settingsData: {},
+    data: {},
+    i18next: {},
+    windowWidth: 640,
+    windowHeight: 480,
 
-    createSettingsWindow: function(theLanguage, theWindow) 
+    createSettingsWindow: function(i18next, theWindow, theSettings) 
     {    
         fs.readFile(path.resolve('./settings.json'), function rs(err, data){
             if (err) {
-                dialog.showMessageBox(theWindow, {type: "error", message: theLanguage.t("An error occured we can not open the settings window!"), title: theLanguage.t("Error"), buttons: ["OK"]});
+                dialog.showMessageBox(theWindow, {type: "error", message: i18next.t("An error occured we can not open the settings window!"), title: theLanguage.t("Error"), buttons: ["OK"]});
             }
             else {
-                let settingsData;
+                // let settingsData;
                 try {
-                    settings.settingsData = JSON.parse(data);
+                    settings.data = JSON.parse(data);
+                    settings.i18next = i18next;
                 } catch (error) {
-                    dialog.showMessageBox(theWindow, {type: "error", message: theLanguage.t("An error occured we can not open the settings window!"), title: theLanguage.t("Error"), buttons: ["OK"]});
+                    dialog.showMessageBox(theWindow, {type: "error", message: i18next.t("An error occured we can not open the settings window!"), title: theLanguage.t("Error"), buttons: ["OK"]});
                     return;
                 }
                
@@ -31,9 +35,9 @@ const settings = {
                 } else {
                     // Create the browser window.
                     settingsWindow = new BrowserWindow({
-                        width: 640,
-                        height: 480,
-                        title: theLanguage.t('Settings'),
+                        width: settings.windowWidth,
+                        height: settings.windowHeight,
+                        title: i18next.t('Settings'),
                         parent: theWindow,
                         webPreferences: {
                             nodeIntegration: true
@@ -56,7 +60,12 @@ const settings = {
                 
                     // when data is ready show window
                     settingsWindow.once("show", () => {
-                        settingsWindow.webContents.send('settingsLoaded', settings.settingsData);
+                        settingsWindow.webContents.send('settingsLoaded', {
+                            wWidth : settings.windowWidth - 10,
+                            wHeight : settings.windowHeight - 30,
+                            systemS: theSettings,
+                            data : settings.data
+                        });
                     });
                     // when window is ready send data
                     settingsWindow.once("ready-to-show", () => {
@@ -91,12 +100,6 @@ const settings = {
             }
         });
     },
-
-    // cancel settings
-    closeWindow: function()
-    {
-        
-    }
 };
 
 ipcMain.on('saveSettings', (event, args) => {

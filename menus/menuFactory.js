@@ -5,32 +5,33 @@ const path = require('path');
 const importDialog = require('../components/importDialog');
 const menuCustomize = require('../components/menuCustomize/menuCustomize');
 const menuLibrary = require('./menuLibrary');
+const logging = require('../libraries/logging');
 
-const menuBuilder = (app, mainWindow, i18next) => {
+const menuBuilder = (app, mainWindow, i18next, theSettings) => {
 
     let menuTemplate;
-    let menuData = fs.readFileSync(path.resolve('./menus/menu.json'));
+    let menuData = fs.readFileSync(path.resolve('./menus/menu.json'), "utf8");
     try {
         menuData = JSON.parse(menuData);
     } catch (error) {
-        console.log('Error loading menu', error);
+        logging.error('Loading menu file - ' + error);
         return [];
     }
 
     if ( menuData !== void 0) {
-        menuTemplate = makeTemplate(menuData, app, i18next, mainWindow);               
+        menuTemplate = makeTemplate(menuData, app, i18next, mainWindow, theSettings);               
     }
-    if ( menuTemplate !== void 0) {
-
+    if ( menuTemplate !== void 0) 
+    {
         return Menu.buildFromTemplate(menuTemplate);
     }
      return null;
 };
 
-const makeTemplate = function(data, app, i18next, mainWindow)
+const makeTemplate = function(data, app, i18next, mainWindow, theSettings)
 {
     // set the translations and the window for the menu
-    menuLibrary.initialize(app, i18next, mainWindow);
+    menuLibrary.initialize(app, i18next, mainWindow, theSettings);
 
     let menuTemplate = [];
     

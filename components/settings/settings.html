@@ -4,71 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="https://unpkg.com/i18next@16.0.0/dist/umd/i18next.min.js"></script>
+    <script>window.Raphael = require('raphael');</script>
     <script src="./settingsInterface.js"></script>
     <style>
         html, body{
             font-family: 'Arial';
             font-size: 13px;
             font-weight: 400;
+            margin: 0px;
+            padding: 0px;
         }
-        .container{
+        #paperSettings{
             display: flex;
+            align-content: center;
+            align-items: center;
             flex-direction: column;
         }
-        .settings, .buttons{
-            flex-grow: 1;
+        rect{
+            shape-rendering: crispEdges;
         }
-        .settings{
-            min-height: 350px;
-        }
-        #saveSettings:focus, #cancelSettings:focus{
-            outline: none;
-        }  
-        #saveSettings, #cancelSettings{
-            margin-top: 0px;
-            width: 140px;
-            height: 25px;
-            cursor: pointer;
-            background-color: #f0f0f0;
-            border-top: 2px solid #eaeaea;
-            border-left:2px solid #eaeaea;
-            border-bottom: 2px solid #BBB;
-            border-right: 2px solid #BBB;
-        }
-        #saveSettings:active, #cancelSettings:active{
-            border-left:2px solid #BBB;
-            border-top: 2px solid #BBB;
-            border-right:2px solid #d6d6d6;
-            border-bottom: 2px solid #d6d6d6;
-            transition: all;
-        }
-        select, input{
-            box-sizing: border-box;
-            display: inline-block;
-            width: 170px;
-            height: 25px;
-            border: 1px solid #e6e5e5;
-            padding: 2px 5px;
-        }
-        .selectAppLanguage{
-            width: 100%;
-            display: block;
-            margin-bottom: 16px;
-            padding: 15px 15px;
-            box-sizing: border-box;
-        }
-        .selectAppLanguage label{
-            display: inline-block;
-            line-height: 24px;
-        }
-        .selectAppLanguage select{
-            display: block;
+        circle, path { 
+            shape-rendering: geometricPrecision;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="paperSettings"></div>
+    <!-- <div class="container">
         <div class="settings">
             <div class="selectAppLanguage">
                 <label for="defaultLanguage">Language</label>
@@ -80,6 +42,6 @@
             <button id="saveSettings">Save</button>
             <button id="cancelSettings">Cancel</button>
         </div>
-    </div>
+    </div> -->
 </body>
 </html>
