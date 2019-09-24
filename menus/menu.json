@@ -4,8 +4,8 @@
         "position": 0,
         "subitems": [
             {
-                "id": "mainAppLoadData",
-                "name": "Load file",
+                "id": "mainAppImportFromFile",
+                "name": "Import from file",
                 "position": 0,
                 "type": "system"
             },

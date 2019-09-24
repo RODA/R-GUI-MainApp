@@ -1,7 +1,7 @@
 const systemElements = [
     {
-        'id': 'mainAppLoadData',
-        'name': 'Load file',
+        'id': 'mainAppImportFromFile',
+        'name': 'Import from file',
         'type': 'system'
     },
     {

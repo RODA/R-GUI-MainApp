@@ -1,13 +1,14 @@
 const { ipcRenderer } = require('electron');
-const { BrowserWindow } = require('electron').remote;
+const { BrowserWindow, dialog } = require('electron').remote;
 const EventEmitter = require('events');
+const fs = require('fs');
 const path = require('path');
 
 const i18next = require("i18next");
 const Backend = require ('i18next-sync-fs-backend');
 const i18nextOptions = require("../../i18nextOptions");
 
-// TODO -- optimize for multiple settings
+let importOptions = {};
 
 ipcRenderer.on('settingsLoaded', (event, args) => {
     
@@ -15,40 +16,44 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     let wHeight = args.wHeight;
 
     let settings = args.systemS;
-    let data = args.data;
 
     // load translations to FRONT
     i18nextOptions.setLanguage(settings.language, settings.languageNS);
     i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV, false));    
 
     // create paper and background
-    let paper = Raphael('paperSettings', wWidth, wHeight);
+    let paper = Raphael('paperImportFromFile', wWidth, wHeight);
     paper.rect(0, 0, wWidth, wHeight).attr({fill: '#FFFFFF', stroke: '#FFFFFF'});
 
-    // Default language
-    paper.text(15, 25, i18next.t('Language')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
+    // create the browse file
+    selectFile(paper, wWidth, wHeight);
+
+    //  make function to show preview
+    paper.text(15, 85, i18next.t('Preview Data')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
+    paper.rect(15, 95, wWidth / 1.85, wHeight - 150).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
     
-    // select default language
-    let language = drawSelect(paper, 15, 40, Object.keys(data.languages));
-    language.setValue(langName(data.languages, data.defaultLanguage));
+    
+    drawRadioGroup(paper, (wWidth / 1.85) + 50, 105, 'Delimiter', ['comma', 'space', 'tab', 'other']);
+    
+    // // select default language
+    // let language = drawSelect(paper, 15, 40, Object.keys(data.languages));
+    // language.setValue(langName(data.languages, data.defaultLanguage));
 
     
-    // Settings reload app message
-    paper.text(15, wHeight - 28, i18next.t('If order to apply the setting please reload the aplication.')).attr({'fill': '#aaaaaa', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
 
     let buttonsX = wWidth - 185;
     let buttonsY = wHeight - 40;
     // get the text's width
-    let saveBox = getTextDim(paper, i18next.t('Save'));
-    let saveTxtPosX = buttonsX + (Math.floor(75/2) - Math.floor(saveBox.width / 2));
+    let importBox = getTextDim(paper, i18next.t('Import'));
+    let saveTxtPosX = buttonsX + (Math.floor(75/2) - Math.floor(importBox.width / 2));
     // save button
     paper.rect(buttonsX, buttonsY, 75, 25).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
-    paper.text(saveTxtPosX, buttonsY + 12, i18next.t('Save')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
+    paper.text(saveTxtPosX, buttonsY + 12, i18next.t('Import')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
     paper.rect(buttonsX, buttonsY, 75, 25).attr({fill: "#FFFFFF", stroke: "none", "fill-opacity": 0, "cursor": "pointer"}).click(function saveSettings(){
     
-        let sendData = {'defaultLanguage': langCode(data.languages, language.value)};
+        // let sendData = {'defaultLanguage': langCode(data.languages, language.value)};
 
-        ipcRenderer.send('saveSettings', sendData);
+        // ipcRenderer.send('importFileFromText', sendData);
         // window closes if setting succesfully saved.
     });
     // get the text's width
@@ -62,9 +67,9 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     });
 });
 
-ipcRenderer.on('settingsSaved', (event, args) => {
-    BrowserWindow.getFocusedWindow().close();
-});
+// ipcRenderer.on('settingsSaved', (event, args) => {
+//     BrowserWindow.getFocusedWindow().close();
+// });
 
 // make a select element
 function drawSelect(paper, x, y, list)
@@ -303,27 +308,110 @@ function drawSelect(paper, x, y, list)
     return select;
 }
 
-function langCode(langs, lang)
+// draw select file
+function selectFile(paper, wWidth, wHeight)
 {
-    let code;
-    for (let item in langs) {
-        if (item === lang) {
-            code = langs[item];
-        }
-    }
-    return code;
-}
-function langName(langs, code)
-{
-    let name;
-    for (let item in langs) {
-        if (langs[item] === code) {
-            name = item;
-        }
-    }
-    return name;
+    let name = '';
+    let theWindow = BrowserWindow.getFocusedWindow();
+
+    paper.text(15, 25, i18next.t('File to read from')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
+    paper.rect(15, 35, wWidth - 150, 25).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
+
+    let browseXPos = wWidth - 125;
+    // get the text's width & position
+    let browseBox = getTextDim(paper, i18next.t('Browse'));
+    let browseTxtPosX = browseXPos + (Math.floor(75/2) - Math.floor(browseBox.width / 2));
+    paper.rect(browseXPos, 35, 75, 25).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
+    paper.text(browseTxtPosX, 35 + 12, i18next.t('Browse')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
+    paper.rect(browseXPos, 35, 75, 25).attr({fill: "#FFFFFF", stroke: "none", "fill-opacity": 0, "cursor": "pointer"}).click(function openDialog()
+    {
+        dialog.showOpenDialog(theWindow, {title: i18next.t("Select text file to import"), filters: [{name: 'Comma-separated values', extensions: ['csv']}], properties: ['openFile']}, result => {
+            if (result !== void 0 && result.length > 0) {            
+                let filePath = result.pop();    
+                // check if the file exists and we can read from it                                            
+                fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
+                    if (err) {
+                        dialog.showMessageBox(theWindow, {type: 'error', title: i18next.t('There is a problem with the file you selected!'), buttons: ['OK']});
+                    } else {
+                        if (typeof name.remove === 'function') {
+                            name.remove();
+                        }                        
+                        name = paper.text(25, 48, filePath).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
+                        importOptions.filePath = filePath;
+                    }
+                });
+            }
+        });
+    });
+    
 }
 
+function drawRadioGroup(paper, x, y, name, elements)
+{
+    let radio = {
+        name: name,
+        value: ''
+    };
+
+    // data
+    let dataLeft = parseInt(x);
+    let dataTop = parseInt(y);
+    let group = [];
+    let elSize = 7;
+
+    paper.text(dataLeft - 15, dataTop, name).attr({"text-anchor": "start", "font-size": '13px', "font-family": 'Arial', fill: '#000000', cursor:"default"});
+
+    dataTop += 25;
+
+    for (let i = 0; i < elements.length; i++) 
+    {
+        group[elements[i]] = {};
+        let me = group[elements[i]];
+
+        let yPos = dataTop + (i * 30);
+
+        // drawing the radio and label
+        me.label = paper.text(dataLeft + 15, yPos, elements[i]).attr({"text-anchor": "start", "font-size": '13px', "font-family": 'Arial', fill: '#000000', cursor:"default"});
+        me.circle = paper.circle(dataLeft, yPos, elSize).attr({fill: '#eeeeee', "stroke": "#5d5d5d", "stroke-width": 1});
+
+        // selected - initial hide - new Raphael SET
+        me.fill = paper.set();
+        // the interior green circle
+        me.fill.push(paper.circle(dataLeft, yPos, elSize - 0.5).attr({fill: "#97bd6c", stroke: "none"}));
+        // the interior black smaller circle
+        me.fill.push(paper.circle(dataLeft, yPos, elSize - 4.5).attr({fill: "#000000", stroke: "none"}));
+        // add iD / name
+        me.name = elements[i];
+        me.fill.hide();
+
+        me.cover =  paper.circle(dataLeft, yPos, elSize + 2).attr({fill: "#ffffff", opacity:0, "cursor": "pointer"});
+        me.cover.click(function() 
+        {
+            let rList = Object.keys(group);
+            for(let i = 0; i < rList.length; i++)
+            {
+                if(rList[i] == me.name) {
+                    group[rList[i]].fill.show();
+                    radio.value = me.name;
+                } else {
+                    group[rList[i]].fill.hide();
+                }
+            }
+        });
+
+        // // listen for events / changes
+        // objects.events.on('iSpeak', function(data)
+        // {
+        //     if(obj.name != data.name){
+        //         objects.conditionsChecker(data, radio);
+        //     }
+        // });
+        
+    }
+
+}
+
+// Helper functions ====================
 // retun a text's width
 function getTextDim(paper, text, fSize, fFamily) 
 {

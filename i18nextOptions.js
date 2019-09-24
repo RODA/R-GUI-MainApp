@@ -1,3 +1,4 @@
+const path = require('path');
 const i18nextOptions = {
     language: 'en',
     namespace: 'en_US',
@@ -8,7 +9,7 @@ const i18nextOptions = {
         this.namespace = ns;
     },
 
-    getOptions: function(env)
+    getOptions: function(env, front)
     {
         if (env == 'production') {
             return {
@@ -26,11 +27,10 @@ const i18nextOptions = {
                     addPath: './locales/{{ lng }}/{{ ns }}.missing.json',
                     // jsonIndent to use when storing json files
                     jsonIndent: 2,
-                }
+                },
             };
         } else {
             // console.log(this.language);
-            // console.log(this.namespace);
             return {
                 lng: this.language,
                 ns: ['en_US', this.namespace],
@@ -42,6 +42,7 @@ const i18nextOptions = {
                 // debug: true,
                 saveMissing: true,
                 saveMissingTo: 'current',
+                initImmediate: front,
                 backend:{
                     // path where resources get loaded from
                     loadPath: './locales/{{lng}}/{{ns}}.json',
@@ -51,7 +52,7 @@ const i18nextOptions = {
                     jsonIndent: 2,
                     // custom parser
                     // parse: function(data) { return data; }
-                }
+                },
             };
         }
     }

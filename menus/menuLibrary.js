@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 
-const loadFile = require('../components/loadFile/loadFile');
+const loadFile = require('../components/importFromFile/importFromFile');
 const settings = require('../components/settings/settings');
 const dialogBuilder = require('../components/dialogBuilder/dialogBuilder');
 
@@ -24,26 +24,15 @@ const menuLibrary = {
         this.theSettings = theSettings;
     },
 
-    mainAppLoadData: function(name)
+    mainAppImportFromFile: function(name)
     {
         return {
             label : menuLibrary.i18next.t(name),
             accelerator: "CommandOrControl+L",
             click(){
-                dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t("Load data"), filters: [{name: 'Comma-separated values', extensions: ['csv']}], properties: ['openFile']}, result => {
-                    if (result !== void 0 && result.length > 0) {            
-                        let filePath = result.pop();    
-                        // check if the file exists and we can read from it                                            
-                        fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
-                            if (err) {
-                                dialog.showMessageBox(menuLibrary.theWindow, {type: 'error', title: menuLibrary.i18next.t('Could not open the file!'), buttons: ['OK']});
-                            } else {
-                                // pass menuLibrary.theWindow for dialog messages
-                                loadFile.import(filePath, menuLibrary.theWindow);
-                            }
-                        });
-                    }
-                });
+                loadFile.createLoadFileWindow(menuLibrary.i18next, menuLibrary.theWindow, menuLibrary.theSettings);
+
+                
             }
         };
     },

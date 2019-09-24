@@ -79,10 +79,10 @@ const settings = {
     },
 
     saveSettings: function(data)
-    {
+    {        
         for(let key in data) {
-            if ( settings.settingsData[key] ) {
-                settings.settingsData[key] = data[key];
+            if ( settings.data[key] ) {
+                settings.data[key] = data[key];
             }
         }
 
@@ -90,7 +90,7 @@ const settings = {
             if (err) { 
                 dialog.showMessageBox(theWindow, {type: "error", message: theLanguage.t("An error occured while trying to save the settings!"), title: theLanguage.t("Error"), buttons: ["OK"]});
             } else {
-                fs.writeFile(fd, JSON.stringify(settings.settingsData), 'utf8', (err) => {
+                fs.writeFile(fd, JSON.stringify(settings.data), 'utf8', (err) => {
                     if (err) { 
                         dialog.showMessageBox(theWindow, {type: "error", message: theLanguage.t("An error occured while trying to save the settings!"), title: theLanguage.t("Error"), buttons: ["OK"]});
                     } else {
@@ -103,6 +103,8 @@ const settings = {
 };
 
 ipcMain.on('saveSettings', (event, args) => {
+    console.log(args);
+    
     settings.saveSettings(args);
 });
 

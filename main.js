@@ -35,7 +35,7 @@ if ( settingsFileData.defaultLanguage !== void 0) {
 }
 
 i18nextOptions.setLanguage(theSettings.language, theSettings.languageNS);
-i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV));
+i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV, true));
 //---------------------------------------
 
 let mainWindow;

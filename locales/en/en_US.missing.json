@@ -1,15 +1,21 @@
 {
   "Load file": "Load file",
-  "Load data": "Load data",
-  "Gorghitza": "Gorghitza",
   "Information": "Information",
-  "Dialogs": "Dialogs",
-  "Emiliano": "Emiliano",
-  "QCA": "QCA",
-  "New dialog": "New dialog",
-  "My dialog": "My dialog",
-  "The Dialog": "The Dialog",
-  "Empty": "Empty",
   "Dialog": "Dialog",
-  "Emilian": "Emilian"
+  "Emilian": "Emilian",
+  "Save": "Save",
+  "Cancel": "Cancel",
+  "If you want to apply the setting please reload the aplication": {
+    "": "If you want to apply the setting please reload the aplication."
+  },
+  "If order to apply the setting please reload the aplication": {
+    "": "If order to apply the setting please reload the aplication."
+  },
+  "Import from file": "Import from file",
+  "Import from text file": "Import from text file",
+  "Import": "Import",
+  "File to read from": "File to read from",
+  "Browse": "Browse",
+  "Select text file to import": "Select text file to import",
+  "Preview Data": "Preview Data"
 }
