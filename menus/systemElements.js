@@ -10,6 +10,11 @@ const systemElements = [
         'type': 'system'
     },
     {
+        'id': 'mainAppChangeWD',
+        'name': 'Set working directory',
+        'type': 'system'
+    },
+    {
         'id': 'mainAppUndo',
         'name': 'Undo',
         'type': 'system'

@@ -17,5 +17,7 @@
   "File to read from": "File to read from",
   "Browse": "Browse",
   "Select text file to import": "Select text file to import",
-  "Preview Data": "Preview Data"
+  "Preview Data": "Preview Data",
+  "Set working directory": "Set working directory",
+  "Select directory": "Select directory"
 }

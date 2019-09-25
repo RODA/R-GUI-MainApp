@@ -14,7 +14,8 @@ process.env.NODE_ENV = 'development';
 // the settings object - to be passed around - add here other properties
 let theSettings = {
   language: 'en',
-  languageNS: 'en_US'
+  languageNS: 'en_US',
+  workingDirectory: '~'
 };
 
 // loading language from settings

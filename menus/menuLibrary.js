@@ -31,12 +31,24 @@ const menuLibrary = {
             accelerator: "CommandOrControl+L",
             click(){
                 loadFile.createLoadFileWindow(menuLibrary.i18next, menuLibrary.theWindow, menuLibrary.theSettings);
-
-                
             }
         };
     },
     
+    // change R working directory
+    mainAppChangeWD: function(name)
+    {
+        return {
+            label : menuLibrary.i18next.t(name),
+            click(){
+                
+                dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t('Select directory'), defaultPath: menuLibrary.theSettings.workingDirectory, properties: ['openDirectory']}, function getSelectedDirectoy(result){
+                    console.log(result);
+                })
+            }
+        };
+    },
+
     mainAppSettings: function(name)
     {
         return {

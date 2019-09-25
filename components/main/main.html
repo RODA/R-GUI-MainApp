@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <script src="./mainInterface.js"></script>
+    <link rel="Stylesheet" href="../../node_modules/xterm/dist/xterm.css">
     <style>
       html, body{
         font-family: 'Arial';
@@ -13,10 +13,13 @@
   </head>
   <body>
     <h1 id="welcome">Welcome to the R GUI MainApp</h1>
-    
+    <div class="terminal">
+       <div id="xterm"></div>
+    </div>
     
     <!-- We are using node <script>document.write(process.versions.node)</script>, -->
     <!-- Chrome <script>document.write(process.versions.chrome)</script>, -->
     <!-- and Electron <script>document.write(process.versions.electron)</script>. -->
+    <script src="./mainInterface.js"></script>
   </body>
 </html>
