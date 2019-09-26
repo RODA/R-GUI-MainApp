@@ -1,6 +1,7 @@
 const { dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const upath = require("upath");
 
 
 const loadFile = require('../components/importFromFile/importFromFile');
@@ -43,8 +44,8 @@ const menuLibrary = {
             click(){
                 
                 dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t('Select directory'), defaultPath: menuLibrary.theSettings.workingDirectory, properties: ['openDirectory']}, function getSelectedDirectoy(result){
-                    console.log(result);
-                })
+                    menuLibrary.theWindow.webContents.send('changeWorkingDirectory', upath.normalize(result[0]));
+                });
             }
         };
     },

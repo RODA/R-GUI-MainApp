@@ -1,4 +1,5 @@
 const { app, BrowserWindow, Menu } = require('electron');
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
@@ -15,7 +16,7 @@ process.env.NODE_ENV = 'development';
 let theSettings = {
   language: 'en',
   languageNS: 'en_US',
-  workingDirectory: '~'
+  workingDirectory: os.homedir()
 };
 
 // loading language from settings
@@ -46,7 +47,9 @@ function createMainWindow () {
     mainWindow = new BrowserWindow({
       title: 'R-GUI-MainApp',
       width: 800,
+      minWidth: 800,
       height: 600,
+      minHeight: 600,
       center: true,
       webPreferences: {
         nodeIntegration: true
