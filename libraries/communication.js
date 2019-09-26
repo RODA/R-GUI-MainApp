@@ -9,7 +9,7 @@ xterm.open(document.getElementById('xterm'));
 
 const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 
-const ptyProcess = pty.spawn('powershell.exe', [], {
+const ptyProcess = pty.spawn(shell, [], {
   name: 'xterm-color',
   cols: 80,
   rows: 30,
