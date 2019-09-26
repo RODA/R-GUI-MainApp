@@ -17,6 +17,7 @@ const ptyProcess = pty.spawn(shell, [], {
   env: process.env
 });
 
+ptyProcess.write('R.exe -q\n')
 
 // Setup communication between xterm.js and node-pty
 xterm.onData(data => ptyProcess.write(data));
@@ -24,7 +25,6 @@ ptyProcess.on('data', function (data) {
   xterm.write(data);
 });
 
-// ptyProcess.write('R.exe -q\n')
 
 // ptyProcess.on('data', function(data) {
 //   process.stdout.write(data);
