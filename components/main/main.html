@@ -21,6 +21,8 @@
           width: 100%;
           height: 100%;
           max-height: 100%;
+          box-sizing: border-box;
+          padding: 15px;
       }
       .gutter {
         background-color: #eee;
@@ -29,12 +31,21 @@
         background-position: 50%;
       } 
       .gutter.gutter-vertical {
+          flex-shrink: 0;
           cursor: ns-resize;
           background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+          border-left: 1px solid #000000;
+          border-right: 1px solid #000000;
       }
-      #command{background-color: bisque;}
-      #xterm-screen{
-        min-height: 600px;
+      #command {
+        flex-shrink: 0;
+        box-sizing: border-box;
+        padding: 15px;
+        border: 1px solid #000000;
+      }
+      #xterm {
+        background-color: #f8f8f8;
+        border: 1px solid #000000;
       }
     </style>
   </head>
@@ -43,9 +54,9 @@
       <div id="command">
         <h1 id="welcome">Welcome to the R GUI MainApp</h1>
       </div>
-      <div  id="terminal">
-        <div id="xterm"></div>
-      </div>
+      <div id="xterm"></div>
+      <!-- <div  id="terminal"> -->
+      <!-- </div> -->
     </div>
     <!-- We are using node <script>document.write(process.versions.node)</script>, -->
     <!-- Chrome <script>document.write(process.versions.chrome)</script>, -->

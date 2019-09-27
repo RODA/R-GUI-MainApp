@@ -4,7 +4,7 @@ const Split = require('split.js');
 
 
 
-Split(['#command', '#terminal'], {
+Split(['#command', '#xterm'], {
     elementStyle: (dimension, size, gutterSize) => ({
         'flex-basis': `calc(${size}% - ${gutterSize}px)`,
     }),
@@ -12,8 +12,16 @@ Split(['#command', '#terminal'], {
         'flex-basis':  `${gutterSize}px`,
     }),
     direction: 'vertical',
-    sizes: [25, 75],
+    sizes: [15, 85],
+    minSize: [100, 200],
+    onDragEnd: () => {
+        console.log('resizing...');
+        
+        comm.resizeTerm();   
+    }
 });
+
+// Split.onDragEnd();
 
 ipcRenderer.on('openFile', (event, args) => {
 
