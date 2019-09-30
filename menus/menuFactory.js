@@ -98,14 +98,14 @@ const makeTemplate = function(data, app, i18next, mainWindow, theSettings)
                 {
                     label : "Import dialog",
                     click(){
-                        dialog.showOpenDialog(menuLibrary.theWindow, {title: "Import dialog", filters: [{name: 'R-GUI-DialogCreator', extensions: ['dat']}], properties: ['openFile']}, result => {
+                        dialog.showOpenDialog(menuLibrary.theWindow, {title: "Import dialog", filters: [{name: 'R-GUI-DialogCreator', extensions: ['json']}], properties: ['openFile']}, result => {
                             if (result !== void 0 && result.length > 0) {                            
                                 fs.readFile(result[0], 'utf-8', (err, data) => {
                                     if (err) {
                                         dialog.showMessageBox(menuLibrary.theWindow, {type: 'error', title: 'Could not open the file!', buttons: ['OK']});
                                     } else {
                                         // pass menuLibrary.theWindow for dialog messages
-                                        importDialog.save(data, menuLibrary.theWindow);
+                                        importDialog.save(data, menuLibrary.theWindow, menuLibrary.theSettings);
                                     }
                                 });
                             }

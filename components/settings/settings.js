@@ -102,9 +102,7 @@ const settings = {
     },
 };
 
-ipcMain.on('saveSettings', (event, args) => {
-    console.log(args);
-    
+ipcMain.on('saveSettings', (event, args) => {    
     settings.saveSettings(args);
 });
 

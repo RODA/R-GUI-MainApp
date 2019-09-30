@@ -1,11 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const { dialog } = require('electron');
+const logging = require('../libraries/logging');
 
 const importDialog = {
     
     //save the dialog
-    save: function(data, mWindow)
+    save: function(data, mWindow, theSettings)
     {
         let dialogData;
         try {
@@ -38,6 +39,10 @@ const importDialog = {
                                 if (err) {
                                     dialog.showMessageBox(mWindow, {type: "error", message: "Could not import file! Error write!", title: "Error", buttons: ["OK"]});
                                 } else {
+                                     // check that we have the property
+                                    if (dialogData.properties.dependencies !== void 0) {
+                                        importDialog.updateMainDependencies(dialogData.properties.dependencies, theSettings.dependencies);
+                                    }
                                     dialog.showMessageBox(mWindow, {type: "info", message: "Dialog imported successfully!", title: "Success", buttons: ["OK"]});
                                 }
                             });
@@ -54,6 +59,10 @@ const importDialog = {
                             if (err) {
                                 dialog.showMessageBox(mWindow, {type: "error", message: "Could not import file! Error write non exist!", title: "Error", buttons: ["OK"]});
                             } else {
+                                 // check that we have the property
+                                 if (dialogData.properties.dependencies !== void 0) {
+                                    importDialog.updateMainDependencies(dialogData.properties.dependencies, theSettings.dependencies);
+                                }
                                 dialog.showMessageBox(mWindow, {type: "info", message: "Dialog imported successfully!", title: "Success", buttons: ["OK"]});
                             }
                         });
@@ -62,6 +71,62 @@ const importDialog = {
             }
         }
     },
+    // update new dependencies
+    updateMainDependencies: function(dependencies)
+    {        
+        fs.open(path.resolve('./settings.json'), "r+", function(err, fd) {
+            if (err) {
+                logging.error('Opening setting when importing dialog: ' + err);
+            } else {
+                fs.readFile(fd, function rs(err, data){
+                    if (err) {
+                        logging.error('Reading from setting when importing dialog: ' + err);
+                    }
+                    else {
+                        try {
+                            let settingsData = JSON.parse(data);
+
+                            let depArray = dependencies.split(';');
+                            let newDependencies = [];
+                            
+                            // remove last element after the (;) which should be ''
+                            if (depArray[depArray.length-1] === '') {
+                                depArray.pop();
+                            }
+                            // do we have dependencies?
+                            if (Array.isArray(settingsData.dependencies)) {
+
+                                for (let i = 0; i < depArray.length; i++) {
+                                    if (!settingsData.dependencies.includes(depArray[i])) {
+                                        newDependencies.push(depArray[i]);
+                                    }
+                                }
+
+                                newDependencies = settingsData.dependencies.concat(newDependencies);
+                            } else {
+                                newDependencies = depArray;
+                            }
+
+                            // update dependencies
+                            settingsData.dependencies = newDependencies;
+
+                            // write settings back
+                            fs.writeFile(path.resolve('./settings.json'), JSON.stringify(settingsData), {encoding: 'utf8', flag: 'w+'}, (err) => {
+                                if (err) { 
+                                    logging.error('Writing back to setting when importing dialog: ' + err);
+                                } else {
+                                    return true;
+                                }
+                            });                   
+                        } catch (error) {
+                            logging.error('Parsing from setting when importing dialog: ' + err);
+                            return;
+                        }
+                    }
+                });
+            }   
+        });
+    }
 };
 
 module.exports = importDialog;

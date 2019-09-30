@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
@@ -16,13 +16,15 @@ process.env.NODE_ENV = 'development';
 let theSettings = {
   language: 'en',
   languageNS: 'en_US',
-  workingDirectory: os.homedir()
+  workingDirectory: os.homedir(),
+  dependencies: ''
 };
 
 // loading language from settings
 let settingsFileData  = fs.readFileSync(path.resolve('./settings.json'), 'utf8');
 try{
   settingsFileData = JSON.parse(settingsFileData);
+  theSettings.dependencies = settingsFileData.dependencies;
 }
 catch (error){
   logging.error('Reading settings - ' + error);
@@ -53,14 +55,15 @@ function createMainWindow () {
       center: true,
       webPreferences: {
         nodeIntegration: true
-      }
+      },
+      show: false
     });
 
     // and load the index.html of the app.
     mainWindow.loadFile('./components/main/main.html');
 
     // Open the DevTools.
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 
     // maximize
     // mainWindow.maximize();
@@ -72,7 +75,16 @@ function createMainWindow () {
 
     // Insert menu after language has loaded
     i18next.on('languageChanged', () => {
-        Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next, theSettings));
+        Menu.setApplicationMenu(menuFactroy(app, mainWindow, i18next, theSettings));        
+    });
+
+    // when window is ready send data
+    mainWindow.once("ready-to-show", ()=>{
+        mainWindow.show();
+    });
+    // when data is ready show window
+    mainWindow.once("show", () => {
+        mainWindow.webContents.send('initializeApp', theSettings.dependencies);
     });
 }
 
@@ -93,5 +105,10 @@ app.on('activate', () => {
   }
 });
 
+ipcMain.on('missingPackages', (event, args) => {   
+  if (args.length > 0) {
+    dialog.showMessageBox(mainWindow, {type: "warning", message: "Please install the folowing packages: "+ args +" and restart the application.", title: "Warning", buttons: ["OK"]});
+  }
+}); 
 
 

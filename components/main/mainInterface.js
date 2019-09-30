@@ -1,8 +1,14 @@
-const comm = require('../../libraries/communication');
 const { ipcRenderer } = require('electron');
 const Split = require('split.js');
 
+var comm; 
 
+ipcRenderer.on('initializeApp', (event, args) => {
+    // load communication library
+    comm = require('../../libraries/communication');
+    // check for R packages dependencies
+    comm.checkForRPackages(args); 
+});
 
 Split(['#command', '#xterm'], {
     elementStyle: (dimension, size, gutterSize) => ({
@@ -14,9 +20,7 @@ Split(['#command', '#xterm'], {
     direction: 'vertical',
     sizes: [15, 85],
     minSize: [100, 200],
-    onDragEnd: () => {
-        console.log('resizing...');
-        
+    onDragEnd: () => {       
         comm.resizeTerm();   
     }
 });
@@ -28,6 +32,8 @@ ipcRenderer.on('openFile', (event, args) => {
 });
 
 
-ipcRenderer.on('changeWorkingDirectory', (event, args) => {
+
+// change working directory from menu
+ipcRenderer.on('changeWorkingDirectory', (event, args) => {    
     comm.setWorkingDirectory(args);    
 });
