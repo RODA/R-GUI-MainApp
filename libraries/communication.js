@@ -16,15 +16,15 @@ const comm = {
     setWorkingDirectory: function(dir)
     {
         // invisible = true;
-        ptyProcess.write('setwd("' + dir + '")\r');
+        ptyProcess.write('setwd("' + dir + '")\n');
     },
     // check for dependencies
     checkForRPackages: function(list)
     {
         // console.log(JSON.stringify(list));
            
-        invisible = true;
-        ptyProcess.write('\r');
+        // invisible = true;
+        // ptyProcess.write('\r');
     },
     // process invisible data
     processData: function(data) 
@@ -87,16 +87,16 @@ xterm.open(document.getElementById('xterm'));
 
 // set the shell and R terminal
 let shell;
-let rShortcutOS;
+let rShortcutOS = "";
 let initializeXTerm = true;
 if (os.platform() === 'win32') {
     // shell = 'cmd.exe';
     // shell = 'bash.exe';
     shell = 'powershell.exe';
-    rShortcutOS = 'R.exe -q --no-save';
+    rShortcutOS = 'R.exe -q --no-save\r\n';
 } else {
     shell= 'bash';
-    rShortcutOS = 'R -q --no-save';
+    rShortcutOS = 'R -q --no-save\r\n';
 }
 const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
@@ -104,7 +104,7 @@ const ptyProcess = pty.spawn(shell, [], {
     rows: 30,
     cwd: process.env.HOME,
     env: process.env,
-    encoding: null
+    // encoding: null
 });
 
 
@@ -113,10 +113,14 @@ xterm.onData(function sendData(data) {
     ptyProcess.write(data);
 });
 
+let countP = 0;
 // // Setup communication between node-pty and xterm.js
 ptyProcess.on('data', function (data) 
 {      
-    const prompter = data.charAt(6) === ">";
+    // console.log(typeof data);
+    console.trace(data.toString());
+    
+    const prompter = data.charAt(0) === ">";
 
     if (initializeXTerm) {
         data = '';
@@ -125,23 +129,29 @@ ptyProcess.on('data', function (data)
             xterm.write(' R-GUI-MainApp terminal\r\n');
             xterm.write('\r\n');
             xterm.write('> ');
+            // invisible = true;
+            // ptyProcess.write('1 + 1\n');
             initializeXTerm = false;  
         }
         return;    
     }
 
-    if (invisible) {
-        comm.processData(data);
-        invisible = false;
-        console.log('invizibil');
-    } 
-    else if (data !=='') {
+    // if (invisible) {
+    //     if (prompter) countP++;
+    //     if(countP == 2) { 
+    //         invisible = false;
+    //         countP = 0;
+    //         console.log('invizibil');
+    //         comm.processData(data);
+    //     }
+    // } 
+    if (data !==' ') {
         if (data.indexOf("Error: ") >= 0) {
             // make line red
             xterm.write(colors.red(data));
         } else {
             // console.log('final');
-            
+            // xterm.write('final');
             xterm.write(data);
         }
     }
@@ -183,7 +193,7 @@ const colors = {
 }; 
 
 // start the R terminal
-ptyProcess.write('R.exe -q --no-save');
+ptyProcess.write(rShortcutOS);
 
 
 
