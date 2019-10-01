@@ -21,6 +21,8 @@ var objects = {
     fontSize: defaultSettings.fontSize,
     // the container -- needed for dialog reset
     dialogDefaultData: {},
+    // the container -- needed for dialog status restore
+    dialogCurrentData: {},
     // the main paper
     paper: {},
     // list of all created objects
@@ -34,7 +36,7 @@ var objects = {
 
     // create the main window & Raphael paper
     makeDialog: function(container) 
-    {       
+    {               
         if (((container.properties === void 0) == false) && helpers.hasSameProps(defaultSettings.dialog, container.properties)) {
          
             // save data for laer use
@@ -58,11 +60,15 @@ var objects = {
         if(container.syntax !== void 0 && container.syntax.command != '') {
             this.makeCommand(container.syntax);
         }
+        // listening for change event
         objects.events.on('iSpeak', function(data)
         {
             if(container.syntax !== void 0 && container.syntax.command != '') {
                 objects.makeCommand(container.syntax);
             }
+            
+            objects.saveCurrentState(data);
+            console.log(objects.dialogCurrentData);
         });
 
         // register listener for executing the command
@@ -185,6 +191,34 @@ var objects = {
     keyPressedEvent: function(theKey, theStatus)
     {
         objects.events.emit('keyTriggered', {key: theKey, status: theStatus});
+    },
+
+    // save elements current state - modify object.dialogCurrentData
+    saveCurrentState(data)
+    {
+        if (data.name && data.status) {
+            
+            objects.dialogCurrentData[data.name] = {visible: objects.objList[data.name].visible};
+            
+            // does it have the enable property
+            if (objects.objList[data.name].enabled) {
+                objects.dialogCurrentData[data.name]['enabled'] = objects.objList[data.name].enabled;
+            }
+            
+            switch(data.status){
+                case 'check': 
+                case 'uncheck':
+                    objects.dialogCurrentData[data.name]['checked'] = objects.objList[data.name].checked;
+                    break;
+                case 'value':
+                    objects.dialogCurrentData[data.name]['value'] = objects.objList[data.name].value;
+                    break;
+                case 'select':
+                case 'deselect':
+                    objects.dialogCurrentData[data.name]['selected'] = objects.objList[data.name].selected;
+                    break;
+            }
+        }
     },
 
     // Elements 

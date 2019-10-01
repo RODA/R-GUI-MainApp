@@ -3,11 +3,15 @@ const pty = require('node-pty');
 const Terminal = require('xterm').Terminal;
 const { ipcRenderer } = require('electron');
 const { BrowserWindow } = require('electron').remote;
+const fs = require('fs');
 
 // we use this variable to send invisible data to R
 let invisible = false;
 
 const comm = {
+    // used for window resize event
+    initial: true,
+
     // set R working directory
     setWorkingDirectory: function(dir)
     {
@@ -36,7 +40,8 @@ const comm = {
     // resize the terminal with the window
     resizeTerm: function()
     {
-        let size = BrowserWindow.getFocusedWindow().getSize(); 
+        let theWindow = BrowserWindow.getFocusedWindow(); 
+        let size = theWindow.getSize(); 
         let commandHeight = document.getElementById('command').offsetHeight;
 
         let newWidth = Math.floor((size[0] - 65) / 7) - 1;
@@ -46,6 +51,13 @@ const comm = {
         ptyRows = newHeight;
 
         xterm.resize(newWidth, newHeight);
+        ptyProcess.resize(newWidth, newHeight);
+
+        // add resize listener
+        if (this.initial) {
+            theWindow.on('resize', debounce(comm.resizeTerm, 500, false));
+            this.initial = false;
+        }
     }
 
 };
@@ -70,68 +82,53 @@ const xterm = new Terminal({
     selection: 'rgba(193, 221, 255, 0.5)'
   }
 });
+
 xterm.open(document.getElementById('xterm'));
-// resize xterm with the window
-let theWindow = BrowserWindow.getFocusedWindow();
-comm.resizeTerm();
-theWindow.on('resize', debounce(comm.resizeTerm, 500, false));
 
 // set the shell and R terminal
-var shell;
-var r;
+let shell;
+let rShortcutOS;
 let initializeXTerm = true;
 if (os.platform() === 'win32') {
     // shell = 'cmd.exe';
     // shell = 'bash.exe';
     shell = 'powershell.exe';
-    // shell = 'COMSPEC';
-    r = 'R.exe -q';
+    rShortcutOS = 'R.exe -q --no-save';
 } else {
-    shell= 'SHELL';
-    r = 'R -q';
+    shell= 'bash';
+    rShortcutOS = 'R -q --no-save';
 }
 const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
-    cols: 200,
-    rows: 100,
+    cols: 80,
+    rows: 30,
     cwd: process.env.HOME,
-    env: process.env
+    env: process.env,
+    encoding: null
 });
 
-
-// start the R terminal
-ptyProcess.write(r + '\r');
 
 // Setup communication between xterm.js and node-pty
-xterm.onData(function sendData(data)
-{
+xterm.onData(function sendData(data) {
     ptyProcess.write(data);
 });
-// Setup communication between node-pty and xterm.js
+
+// // Setup communication between node-pty and xterm.js
 ptyProcess.on('data', function (data) 
-{  
-    // xterm.write(data);
-    // console.log(data);
-    // xterm.write(data);
-    
-    const prompter = data.charAt(0) === ">";
+{      
+    const prompter = data.charAt(6) === ">";
 
-    // if (initializeXTerm) {
-    //     data = '';
-    //     if (prompter) {
-    //         xterm.write('\r\n');
-    //         xterm.write(' R-GUI-MainApp terminal\r\n');
-    //         xterm.write('\r\n');
-    //         xterm.write('> ');
-    //         initializeXTerm = false;  
-    //     }
-    //     return;    
-    // }
-
-    // console.log(prompter);
-    
-    // console.log('inapoi');
-    // console.log(invisible);
+    if (initializeXTerm) {
+        data = '';
+        if (prompter) {
+            xterm.write('\r\n');
+            xterm.write(' R-GUI-MainApp terminal\r\n');
+            xterm.write('\r\n');
+            xterm.write('> ');
+            initializeXTerm = false;  
+        }
+        return;    
+    }
 
     if (invisible) {
         comm.processData(data);
@@ -184,5 +181,10 @@ const colors = {
         return("\u001b[1m" + line + "\u001b[0m");
     }
 }; 
+
+// start the R terminal
+ptyProcess.write('R.exe -q --no-save');
+
+
 
 module.exports = comm;

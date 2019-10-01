@@ -1,11 +1,11 @@
 const { ipcRenderer } = require('electron');
 const Split = require('split.js');
+const comm = require('../../libraries/communication');
 
-var comm; 
 
 ipcRenderer.on('initializeApp', (event, args) => {
-    // load communication library
-    comm = require('../../libraries/communication');
+    // resize terminal according to window size
+    comm.resizeTerm();    
     // check for R packages dependencies
     comm.checkForRPackages(args); 
 });
