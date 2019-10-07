@@ -4,7 +4,7 @@ let windowsList = {};
 
 const dialogBuilder = {
     
-    build: function(data, parentWindow)
+    build: function(dialogID, data, parentWindow, lastState)
     {
         let dialogData;
         try {
@@ -22,24 +22,27 @@ const dialogBuilder = {
                 dialogData.properties.width,
                 dialogData.properties.height,
                 parentWindow,
-                dialogData
+                dialogData, 
+                lastState,
+                dialogID
             );
         }
     },
 
-    makeTheWindow: function(name, width, height, parentWindow, allData)
-    {
+    makeTheWindow: function(name, windowWidth, windowHeight, parentWindow, allData, lastState, dialogID)
+    {      
 
-        if (windowsList[name] !== void 0 && windowsList[name] !== null && !windowsList[name].isDestroyed()) {
-            console.log(windowsList);
-            
+        if (windowsList[name] !== void 0 && windowsList[name] !== null && !windowsList[name].isDestroyed()) {           
             windowsList[name].focus();
         } else {
             let theWindow;
             theWindow = new BrowserWindow({
-                width: width + 30,
-                height: height + 50,
+                // x: 10,
+                // y: 10,
+                width: parseInt(windowWidth) + 40,
+                height: parseInt(windowHeight) + 50,
                 title: name,
+                resizable: false,
                 parent: parentWindow,
                 webPreferences: {
                     nodeIntegration: true
@@ -62,7 +65,7 @@ const dialogBuilder = {
         
             // when data is ready show window
             theWindow.once("show", () => {
-                theWindow.webContents.send('dialogCreated', allData);
+                theWindow.webContents.send('dialogCreated', {'dialogID': dialogID, 'data': allData, 'lastState': lastState});
             });
             // when window is ready send data
             theWindow.once("ready-to-show", () => {

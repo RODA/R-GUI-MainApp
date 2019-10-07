@@ -25,15 +25,16 @@ Split(['#command', '#xterm'], {
     }
 });
 
-// Split.onDragEnd();
-
 ipcRenderer.on('openFile', (event, args) => {
 
 });
 
-
-
 // change working directory from menu
 ipcRenderer.on('changeWorkingDirectory', (event, args) => {    
     comm.setWorkingDirectory(args);    
+});
+
+// show current dialog command
+ipcRenderer.on('commandSyntax', (event, args) => {
+    document.getElementById('command').innerHTML = args;
 });

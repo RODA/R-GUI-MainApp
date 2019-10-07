@@ -80,7 +80,9 @@ const menuLibrary = {
                     if ( err ) {
                         dialog.showMessageBox(menuLibrary.theWindow, {type: "info", message: menuLibrary.i18next.t("No functionality for this item!"), title: menuLibrary.i18next.t("Error"), buttons: ["OK"]});
                     } else {
-                       dialogBuilder.build(data, menuLibrary.theWindow);
+                        let lastState = menuLibrary.theSettings.dialogs[dialogID] ? menuLibrary.theSettings.dialogs[dialogID] : null;
+                        
+                        dialogBuilder.build(dialogID, data, menuLibrary.theWindow, lastState);                      
                     }
                 });
             }

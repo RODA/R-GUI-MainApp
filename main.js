@@ -17,7 +17,9 @@ let theSettings = {
   language: 'en',
   languageNS: 'en_US',
   workingDirectory: os.homedir(),
-  dependencies: ''
+  dependencies: '',
+  dialogs: {},
+  currentCommand: ''
 };
 
 // loading language from settings
@@ -111,4 +113,18 @@ ipcMain.on('missingPackages', (event, args) => {
   }
 }); 
 
+// save dialogs state
+ipcMain.on('dialogCurrentStateUpdate', (event, args) => {
+  // save dialog state to settings
+  if (theSettings.dialogs[args.name]) {
+    theSettings.dialogs[args.name] = args.changes;
+  } else {
+    theSettings.dialogs[args.name] = {};
+    theSettings.dialogs[args.name] = args.changes;
+  }
+});
 
+// show the current dialog command
+ipcMain.on('dialogCommandUpdate', (event, args) => {
+  mainWindow.webContents.send('commandSyntax', args);
+});

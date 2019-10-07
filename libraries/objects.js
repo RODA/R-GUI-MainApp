@@ -11,16 +11,19 @@ const helpers = require("./helpers");
 const objectsHelpers = require("./objectsHelpers");
 const conditions = require('./conditions');
 
+const { ipcRenderer } = require('electron');
 
 // const mockupData = require('./objectsMockup');
 
-var objects = {
-    
+var objects = 
+{    
     // default styles
     fontFamily: defaultSettings.fontFamily,
     fontSize: defaultSettings.fontSize,
     // the container -- needed for dialog reset
     dialogDefaultData: {},
+    // dialog ID
+    dialogID: '',
     // the container -- needed for dialog status restore
     dialogCurrentData: {},
     // the main paper
@@ -35,15 +38,16 @@ var objects = {
     command: '',
 
     // create the main window & Raphael paper
-    makeDialog: function(container) 
-    {               
-        if (((container.properties === void 0) == false) && helpers.hasSameProps(defaultSettings.dialog, container.properties)) {
-         
-            // save data for laer use
-            if(!this.reseted) {
-                this.dialogData = container;
-            }
+    makeDialog: function(dialogID, container) 
+    {            
+        this.dialogID = dialogID;   
+
+        console.log(dialogID);
+        console.log(container);
+        console.log(helpers.hasSameProps(defaultSettings.dialog, container.properties));
         
+        if (((container.properties === void 0) == false) && helpers.hasSameProps(defaultSettings.dialog, container.properties)) 
+        {
             let props = container.properties;
             // create a new raphael paper
             this.paper = Raphael('paper', props.width, props.height);
@@ -68,7 +72,8 @@ var objects = {
             }
             
             objects.saveCurrentState(data);
-            console.log(objects.dialogCurrentData);
+            // save current state
+            ipcRenderer.send('dialogCurrentStateUpdate', {name: dialogID, changes: objects.dialogCurrentData});
         });
 
         // register listener for executing the command
@@ -140,7 +145,8 @@ var objects = {
         }
         // update dialog comand
         objects.command = command;        
-        this.events.emit('commandUpdate', command);
+        // this.events.emit('commandUpdate', command);
+        ipcRenderer.send('dialogCommandUpdate', command);
     },
 
     // execute a command trigered by a button
@@ -154,37 +160,50 @@ var objects = {
             } else if (data.type == "reset") {
                 dialog.showMessageBox(objectsWindow, {type: "question", message: "Are you sure you want to reset the dialog?", title: "Reset dialog", buttons: ["No", "Yes"]}, (response) => {
                     if (response) {
-                        for (let element in objects.dialogDefaultData) {
-                            
-                            if ( objects.objList[element] !== void 0) {
-                                // reinitalizing do not emit events
-                                objects.objList[element].initialize = true;
-                                let theEl = objects.dialogDefaultData[element];
-                                for (let prop in theEl) {
-                                    switch(prop){
-                                        case 'visible':
-                                            if (theEl[prop]) { objects.objList[element].show(); } else { objects.objList[element].hide(); }
-                                            break;
-                                        case 'enabled':
-                                            if (theEl[prop]) { objects.objList[element].enable(); } else { objects.objList[element].disable(); }
-                                            break;
-                                        case 'checked':
-                                            if (theEl[prop]) { objects.objList[element].check(); } else { objects.objList[element].uncheck(); }
-                                            break;
-                                        case 'value':
-                                            objects.objList[element].setValue(theEl[prop]);
-                                            break;
-                                        case 'selected':
-                                            if (theEl[prop]) { objects.objList[element].select(); } else { objects.objList[element].deselect(); }
-                                            break;
-                                    }
-                                }
-                            }
-                        }
+                      objects.changeDialogState(objects.dialogDefaultData, false);  
+                      // reset also state
+                      objects.dialogCurrentData = {};
+                      ipcRenderer.send('dialogCurrentStateUpdate', {name: objects.dialogID, changes: objects.dialogCurrentData});
                     }
                 });
             }
         });
+    },
+    // change the dialog state - reset to default or update to old state
+    changeDialogState: function(data, saveCurrent)
+    {
+        for (let element in data) {
+                            
+            if ( objects.objList[element] !== void 0) {
+                // reinitalizing do not emit events
+                objects.objList[element].initialize = true;
+                let theEl = data[element];
+                for (let prop in theEl) {
+                    switch(prop){
+                        case 'visible':
+                            if (theEl[prop]) { objects.objList[element].show(); } else { objects.objList[element].hide(); }
+                            break;
+                        case 'enabled':
+                            if (theEl[prop]) { objects.objList[element].enable(); } else { objects.objList[element].disable(); }
+                            break;
+                        case 'checked':
+                            if (theEl[prop]) { objects.objList[element].check(); } else { objects.objList[element].uncheck(); }
+                            break;
+                        case 'value':
+                            objects.objList[element].setValue(theEl[prop]);
+                            break;
+                        case 'selected':                           
+                            if (theEl[prop]) { objects.objList[element].select(); } else { objects.objList[element].deselect(); }
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (saveCurrent) {
+            objects.dialogCurrentData = data;
+            ipcRenderer.send('dialogCurrentStateUpdate', {name: objects.dialogID, changes: objects.dialogCurrentData});
+        }
     },
 
     // shift key - container multiselect
@@ -202,20 +221,20 @@ var objects = {
             
             // does it have the enable property
             if (objects.objList[data.name].enabled) {
-                objects.dialogCurrentData[data.name]['enabled'] = objects.objList[data.name].enabled;
+                objects.dialogCurrentData[data.name].enabled = objects.objList[data.name].enabled;
             }
             
             switch(data.status){
                 case 'check': 
                 case 'uncheck':
-                    objects.dialogCurrentData[data.name]['checked'] = objects.objList[data.name].checked;
+                    objects.dialogCurrentData[data.name].checked = objects.objList[data.name].checked;
                     break;
                 case 'value':
-                    objects.dialogCurrentData[data.name]['value'] = objects.objList[data.name].value;
+                    objects.dialogCurrentData[data.name].value = objects.objList[data.name].value;
                     break;
                 case 'select':
                 case 'deselect':
-                    objects.dialogCurrentData[data.name]['selected'] = objects.objList[data.name].selected;
+                    objects.dialogCurrentData[data.name].selected = objects.objList[data.name].selected;
                     break;
             }
         }
@@ -830,7 +849,7 @@ var objects = {
                 }
                 objects.events.emit('containerData', {name: container.name, data: container.data, selected: []});
             }
-        },   
+        };   
         container.show = function() {
             // container.element.show();
             listSupport.div.style.display = 'block';
@@ -1007,7 +1026,7 @@ var objects = {
                 .attr({"text-anchor": txtanchor, "font-size": obj.fontsize, "font-family": objects.fontFamily});
                 counter.value = newVal;
             }
-        },
+        };
 
         counter.show = function() {
             for (let i in counter.element){
@@ -1587,7 +1606,7 @@ var objects = {
             select.value = data;
             select.selected = true;
             // etmit event - obj value change
-            objects.events.emit('iSpeak', {name: obj.name, status: 'select'});            
+            objects.events.emit('iSpeak', {name: obj.name, status: 'value'});            
         });
         eventMe.on('deSelected', function(data) {
             if(typeof select.objSelected.remove === "function") {
@@ -1596,7 +1615,7 @@ var objects = {
             select.value = '';
             select.selected = false;
             // etmit event - obj value change
-            objects.events.emit('iSpeak', {name: obj.name, status: 'deselect'});
+            objects.events.emit('iSpeak', {name: obj.name, status: 'value'});
         });
 
         const listSupport = {
@@ -1789,7 +1808,7 @@ var objects = {
                 }
             }
             listSupport.hide();
-        },
+        };
         select.show = function(){
             select.element.rect.show();
             select.element.downsign.show();
@@ -2042,7 +2061,7 @@ var objects = {
                 // move triangle to position
                 triangle.translate(newPos - triangle.getBBox().x, 0);
             }
-        },
+        };
         slider.show = function() {
             slider.element.show();
             //  emit event only if already intialized

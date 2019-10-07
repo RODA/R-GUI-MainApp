@@ -6,5 +6,10 @@ ipcRenderer.on('dialogCreated', (event, args) =>
     // console.log(args);
     // console.log('emilian');
     
-    objects.makeDialog(args);
+    objects.makeDialog(args.dialogID, args.data);
+
+    // update to last state
+    if(args.lastState) {
+        objects.changeDialogState(args.lastState, true);
+    }
 });

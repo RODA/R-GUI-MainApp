@@ -1,1 +1,225 @@
-{"properties":{"name":"QCA","title":"QCA","width":"800","height":"600"},"elements":{"xzjcn":{"parentId":"xzjcn","type":"Input","name":"input1","left":138,"top":320,"width":120,"value":"rrrr","isVisible":"true","isEnabled":"true","elementIds":["ph29o","w0979"],"conditions":"a = 5 if c == 10;"}},"syntax":{"command":"{input1}","defaultElements":[]}}
+{
+    "properties": {
+        "name": "QCA",
+        "title": "QCA",
+        "width": "640",
+        "height": "480",
+        "dependencies": "QCA;"
+    },
+    "elements": {
+        "fpkwc": {
+            "parentId": "fpkwc",
+            "type": "Separator",
+            "name": "separator1",
+            "direction": "x",
+            "left": 325,
+            "top": 178,
+            "length": 300,
+            "isVisible": "true",
+            "elementIds": [
+                "e52od"
+            ],
+            "conditions": ""
+        },
+        "lqu4a": {
+            "parentId": "lqu4a",
+            "type": "Select",
+            "name": "method",
+            "label": "Method",
+            "left": 505,
+            "top": 187,
+            "width": 120,
+            "isVisible": "true",
+            "isEnabled": "true",
+            "dataSource": "custom",
+            "dataValue": "direct,indirect,TFR",
+            "elementIds": [
+                "pyv7m",
+                "9a8ak"
+            ],
+            "conditions": ""
+        },
+        "wyce9": {
+            "parentId": "wyce9",
+            "type": "Slider",
+            "name": "idm",
+            "left": 42,
+            "top": 309,
+            "length": "200",
+            "value": "0.95",
+            "isVisible": "true",
+            "isEnabled": "true",
+            "elementIds": [
+                "91aql",
+                "48dj1"
+            ],
+            "conditions": ""
+        },
+        "djvhg": {
+            "parentId": "djvhg",
+            "type": "Radio",
+            "name": "fuzzy",
+            "label": "Fuzzy",
+            "radioGroup": "type",
+            "left": 330,
+            "top": 30,
+            "isVisible": "true",
+            "isEnabled": "true",
+            "isSelected": "true",
+            "elementIds": [
+                "xol23",
+                "inkdz"
+            ],
+            "conditions": ""
+        },
+        "0c9la": {
+            "parentId": "0c9la",
+            "type": "Radio",
+            "name": "crisp",
+            "label": "Crisp",
+            "radioGroup": "type",
+            "left": 330,
+            "top": 60,
+            "isVisible": "true",
+            "isEnabled": "true",
+            "isSelected": "false",
+            "elementIds": [
+                "kv6xf",
+                "pymx4"
+            ],
+            "conditions": ""
+        },
+        "1xuv0": {
+            "parentId": "1xuv0",
+            "type": "Label",
+            "name": "idmlabel",
+            "text": "IDM",
+            "left": 48,
+            "top": 287,
+            "fontSize": "13",
+            "isVisible": "true",
+            "elementIds": [
+                "egs2m"
+            ],
+            "conditions": ""
+        },
+        "v84d9": {
+            "parentId": "v84d9",
+            "type": "Checkbox",
+            "name": "logistic",
+            "label": "Logistic",
+            "left": 450,
+            "top": 284,
+            "isVisible": "true",
+            "isEnabled": "true",
+            "isChecked": "true",
+            "elementIds": [
+                "fa3ut",
+                "eyk5e"
+            ],
+            "conditions": ""
+        },
+        "3qtbm": {
+            "parentId": "3qtbm",
+            "type": "Checkbox",
+            "name": "ecdf",
+            "label": "ecdf",
+            "left": 450,
+            "top": 317,
+            "isVisible": "true",
+            "isEnabled": "true",
+            "isChecked": "false",
+            "elementIds": [
+                "sx5vf",
+                "lligz"
+            ],
+            "conditions": ""
+        },
+        "h5v62": {
+            "parentId": "h5v62",
+            "type": "Input",
+            "name": "above",
+            "left": 316,
+            "top": 415,
+            "width": 50,
+            "value": "1",
+            "isVisible": "true",
+            "isEnabled": "true",
+            "elementIds": [
+                "g37sb",
+                "jvh8y"
+            ],
+            "conditions": ""
+        },
+        "ypm66": {
+            "parentId": "ypm66",
+            "type": "Input",
+            "name": "below",
+            "left": 121,
+            "top": 416,
+            "width": 50,
+            "value": "1",
+            "isVisible": "true",
+            "isEnabled": "true",
+            "elementIds": [
+                "bqdco",
+                "lps4y"
+            ],
+            "conditions": ""
+        },
+        "3x7jh": {
+            "parentId": "3x7jh",
+            "type": "Label",
+            "name": "label1",
+            "text": "Below",
+            "left": 77,
+            "top": 422,
+            "fontSize": "13",
+            "isVisible": "true",
+            "elementIds": [
+                "r6ass"
+            ],
+            "conditions": ""
+        },
+        "etb3s": {
+            "parentId": "etb3s",
+            "type": "Label",
+            "name": "label2",
+            "text": "Above",
+            "left": 264,
+            "top": 419,
+            "fontSize": "13",
+            "isVisible": "true",
+            "elementIds": [
+                "713so"
+            ],
+            "conditions": ""
+        },
+        "o57on": {
+            "parentId": "o57on",
+            "type": "Label",
+            "name": "label3",
+            "text": "QCA Test",
+            "left": 70,
+            "top": 127,
+            "fontSize": "18",
+            "isVisible": "true",
+            "elementIds": [
+                "qa4x0"
+            ],
+            "conditions": ""
+        }
+    },
+    "syntax": {
+        "command": "calibrate(x, type = \"{type}\", method = \"{method}\", thresholds = NA,logistic = {logistic}, idm = {idm}, ecdf = {ecdf}, below = {below}, above = {above})",
+        "defaultElements": {
+            "above": "1",
+            "below": "1",
+            "ecdf": "false",
+            "idm": "0.95",
+            "logistic": "true",
+            "method": "direct",
+            "type": "fuzzy"
+        }
+    }
+}

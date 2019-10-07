@@ -118,7 +118,7 @@ let countP = 0;
 ptyProcess.on('data', function (data) 
 {      
     // console.log(typeof data);
-    console.trace(data.toString());
+    // console.trace(data.toString());
     
     const prompter = data.charAt(0) === ">";
 

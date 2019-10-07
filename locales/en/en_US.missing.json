@@ -19,5 +19,9 @@
   "Select text file to import": "Select text file to import",
   "Preview Data": "Preview Data",
   "Set working directory": "Set working directory",
-  "Select directory": "Select directory"
+  "Select directory": "Select directory",
+  "QCA": "QCA",
+  "No functionality for this item!": "No functionality for this item!",
+  "Error": "Error",
+  "Testing": "Testing"
 }
