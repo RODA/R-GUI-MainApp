@@ -36,16 +36,15 @@ var objects =
     events: new EventEmitter(),
     // command
     command: '',
+    // dataframe data
+    dataframes: {},
+    // select data
+    selectData: {},
 
     // create the main window & Raphael paper
-    makeDialog: function(dialogID, container) 
+    makeDialog: function(dialogID, container, dataFromR) 
     {            
-        this.dialogID = dialogID;   
-
-        console.log(dialogID);
-        console.log(container);
-        console.log(helpers.hasSameProps(defaultSettings.dialog, container.properties));
-        
+        this.dialogID = dialogID;        
         if (((container.properties === void 0) == false) && helpers.hasSameProps(defaultSettings.dialog, container.properties)) 
         {
             let props = container.properties;
@@ -77,11 +76,9 @@ var objects =
         });
 
         // register listener for executing the command
-        this.executeCommand();
-        // TODO -- to be removed
-        // Testing with mockup data
-        // objects.events.emit('containerData', mockupData.df);
-        // objects.events.emit('selectData', mockupData.select);
+        this.registerListenersForCommandExecution();   
+        // announce objects of the available data
+        this.incommingDataFromR(dataFromR);
     },
 
     // create an object based on it's type
@@ -150,13 +147,13 @@ var objects =
     },
 
     // execute a command trigered by a button
-    executeCommand: function()
+    registerListenersForCommandExecution: function()
     {        
         objects.events.on('iSpeakButton', function(data)
         {            
             if (data.type == "run"){
-                //TODO -- trigger command execution - / dialog name
-                // objects.events.emit('iSpeakRun', objects.container.properties.name);
+                // send the command to main
+                ipcRenderer.send('dialogRunCommand', objects.command);
             } else if (data.type == "reset") {
                 dialog.showMessageBox(objectsWindow, {type: "question", message: "Are you sure you want to reset the dialog?", title: "Reset dialog", buttons: ["No", "Yes"]}, (response) => {
                     if (response) {
@@ -213,7 +210,7 @@ var objects =
     },
 
     // save elements current state - modify object.dialogCurrentData
-    saveCurrentState(data)
+    saveCurrentState: function(data)
     {
         if (data.name && data.status) {
             
@@ -237,6 +234,21 @@ var objects =
                     objects.dialogCurrentData[data.name].selected = objects.objList[data.name].selected;
                     break;
             }
+        }
+    },
+
+    // new data from R - anounce objects
+    incommingDataFromR: function(data)
+    {
+        // do we have dataframes
+        if (data.dataframes !== void 0) {
+            this.dataframes = data.dataframes;
+            objects.events.emit('containerData', this.dataframes);
+        }
+        // do we have R objects (martix, vectors, etc.)
+        if (data.selectData !== void 0) {
+            this.selectData = data.selectData;
+            objects.events.emit('selectData', this.selectData);
         }
     },
 

@@ -120,7 +120,7 @@ ptyProcess.on('data', function (data)
     // console.log(typeof data);
     // console.trace(data.toString());
     
-    const prompter = data.charAt(0) === ">";
+    const prompter = data.charAt(6) === ">";
 
     if (initializeXTerm) {
         data = '';
