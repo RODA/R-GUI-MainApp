@@ -44,8 +44,10 @@ const menuLibrary = {
             label : menuLibrary.i18next.t(name),
             click(){
                 
-                dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t('Select directory'), defaultPath: menuLibrary.theSettings.workingDirectory, properties: ['openDirectory']}, function getSelectedDirectoy(result){
-                    menuLibrary.theWindow.webContents.send('changeWorkingDirectory', upath.normalize(result[0]));
+                dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t('Select directory'), defaultPath: menuLibrary.theSettings.workingDirectory, properties: ['openDirectory']}, function getSelectedDirectoy(result){                 
+                    if (result[0]) { 
+                        menuLibrary.theWindow.webContents.send('changeWorkingDirectory', upath.normalize(result[0]));
+                    }
                 });
             }
         };

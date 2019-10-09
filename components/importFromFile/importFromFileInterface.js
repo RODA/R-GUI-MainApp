@@ -12,8 +12,8 @@ let importOptions = {};
 
 ipcRenderer.on('settingsLoaded', (event, args) => {
     
-    let wWidth = args.wWidth;
-    let wHeight = args.wHeight;
+    let wWidth = parseInt(args.wWidth);
+    let wHeight = parseInt(args.wHeight);
 
     let settings = args.systemS;
 
@@ -30,15 +30,34 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
 
     //  make function to show preview
     paper.text(15, 85, i18next.t('Preview Data')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
-    paper.rect(15, 95, wWidth / 1.85, wHeight - 150).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
-    
-    
-    drawRadioGroup(paper, (wWidth / 1.85) + 50, 105, 'Delimiter', ['comma', 'space', 'tab', 'other']);
-    
-    // // select default language
-    // let language = drawSelect(paper, 15, 40, Object.keys(data.languages));
-    // language.setValue(langName(data.languages, data.defaultLanguage));
+    paper.rect(15, 95, wWidth - 30, wHeight - 350).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
 
+    drawLabel(paper, 20, wHeight - 223, 'Name');
+    drawInput(paper, 65, wHeight - 235, 150, 'datasetName', true);
+    
+    drawLabel(paper, 20, wHeight - 188, 'Skip');
+    drawInput(paper, 65, wHeight - 200, 50, 'skip', true);
+
+    drawCheckBox(paper, 20, wHeight - 150, 'firstRow', 'First row as names');
+    drawCheckBox(paper, 20, wHeight - 120, 'trimSpace', 'Trim spaces');
+
+    paper.path("M240 " + (wHeight - 245) + "L240 " + ((wHeight - 245) + 180)).attr({stroke: "#ccc"});
+    drawRadioGroup(paper, 270, wHeight - 223, 'Delimiter', ['comma', 'space', 'tab', 'other'], true);
+    
+    paper.path("M380 " + (wHeight - 245) + "L380 " + ((wHeight - 245) + 180)).attr({stroke: "#ccc"});
+    drawRadioGroup(paper, 410, wHeight - 223, 'Decimal', ['dot', 'comma'], false);
+    
+    paper.path("M490 " + (wHeight - 245) + "L490 " + ((wHeight - 245) + 180)).attr({stroke: "#ccc"});
+
+    drawLabel(paper, 520, wHeight - 223, 'NA values');
+    let na = drawSelect(paper, 520, wHeight - 207, ['Default', 'NA', '0', 'NULL', 'empty']);
+    na.setValue('Default');
+
+    drawLabel(paper, 520, wHeight - 165, 'Comment');
+    let comment = drawSelect(paper, 520, wHeight - 150, ['Default', '#', '%', '//', '\'', '!', ';', '--', '*', '||', '\"', '\\', '*>']);
+    comment.setValue('Default');
+    
+    paper.path("M15 " + (wHeight - 55) + "L" + (wWidth - 15) + " " + (wHeight - 55)).attr({stroke: "#000"});
     
 
     let buttonsX = wWidth - 185;
@@ -55,6 +74,8 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
 
         // ipcRenderer.send('importFileFromText', sendData);
         // window closes if setting succesfully saved.
+        console.log(importOptions);
+        
     });
     // get the text's width
     let cancelBox = getTextDim(paper, i18next.t('Cancel'));
@@ -148,7 +169,7 @@ function drawSelect(paper, x, y, list)
         }
         select.objSelected = paper.text(dataLeft+10, dataTop+12, data).attr({"text-anchor": "start",fill: "#000000", "font-size": "13px", "font-family": "Arial"});
         select.value = data;
-        select.selected = true;       
+        select.selected = true;      
     });
     eventMe.on('deSelected', function(data) {
         if(typeof select.objSelected.remove === "function") {
@@ -176,7 +197,7 @@ function drawSelect(paper, x, y, list)
 
             // initialy paper is small - allow ather elements to be clickable
             let newPaper = Raphael(listSupport.div, dataWidth, 1);
-            let p = document.getElementById('paperSettings');
+            let p = document.getElementById('paperImportFromFile');
             p.appendChild(listSupport.div);
 
             listSupport.paper = newPaper;
@@ -325,7 +346,7 @@ function selectFile(paper, wWidth, wHeight)
     paper.text(browseTxtPosX, 35 + 12, i18next.t('Browse')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
     paper.rect(browseXPos, 35, 75, 25).attr({fill: "#FFFFFF", stroke: "none", "fill-opacity": 0, "cursor": "pointer"}).click(function openDialog()
     {
-        dialog.showOpenDialog(theWindow, {title: i18next.t("Select text file to import"), filters: [{name: 'Comma-separated values', extensions: ['csv']}], properties: ['openFile']}, result => {
+        dialog.showOpenDialog(theWindow, {title: i18next.t("Select text file to import"), properties: ['openFile']}, result => {
             if (result !== void 0 && result.length > 0) {            
                 let filePath = result.pop();    
                 // check if the file exists and we can read from it                                            
@@ -346,7 +367,7 @@ function selectFile(paper, wWidth, wHeight)
     
 }
 
-function drawRadioGroup(paper, x, y, name, elements)
+function drawRadioGroup(paper, x, y, name, elements, other)
 {
     let radio = {
         name: name,
@@ -358,10 +379,11 @@ function drawRadioGroup(paper, x, y, name, elements)
     let dataTop = parseInt(y);
     let group = [];
     let elSize = 7;
+    let input;
 
     paper.text(dataLeft - 15, dataTop, name).attr({"text-anchor": "start", "font-size": '13px', "font-family": 'Arial', fill: '#000000', cursor:"default"});
 
-    dataTop += 25;
+    dataTop += 35;
 
     for (let i = 0; i < elements.length; i++) 
     {
@@ -393,12 +415,25 @@ function drawRadioGroup(paper, x, y, name, elements)
                 if(rList[i] == me.name) {
                     group[rList[i]].fill.show();
                     radio.value = me.name;
+                    // check if select type other
+                    if (other && me.name === 'other') {
+                        input.enable();
+                        importOptions[name] = input.value;
+                    } else if(other){
+                        input.disable();
+                        importOptions[name] = me.name;
+                    } else {
+                        importOptions[name] = me.name;
+                    }
                 } else {
                     group[rList[i]].fill.hide();
                 }
             }
         });
 
+        if (elements[i] === 'other') {
+           input = drawInput(paper, dataLeft + 50, yPos - 12, 35, name, false);
+        }
         // // listen for events / changes
         // objects.events.on('iSpeak', function(data)
         // {
@@ -411,14 +446,162 @@ function drawRadioGroup(paper, x, y, name, elements)
 
 }
 
+// create an imput
+function drawInput(paper, x, y, width, name, status)
+{
+    let input = {
+        name: name,
+        value: '',
+        enabled: status
+    };
+
+    let text;
+    let element = paper.rect(x, y, width, 25).attr({fill: (input.enabled ? "#fff" : "#eee"), "stroke": "#5d5d5d", "stroke-width": 1});
+    let cover = paper.rect(x, y, width, 25).attr({fill: "#ffffff", stroke: "none", opacity: 0, cursor: ((input.enabled ? "text" : "default"))});
+    cover.click(function() 
+    {
+        if (input.enabled) {
+            customInput(width - 10, 19, x + 7, y + 2, input.value, paper).then((result) => {
+                input.setValue(result);                    
+            });
+        }
+    });
+
+    input.setValue = function(val) 
+    {    
+        // remove previous element 
+        if(typeof text === 'object' && typeof text.remove === "function") {
+            text.remove();                
+        }
+        // check if the new text is bigger then the input an trim if so
+        let newValDim = getTextDim(paper, val);
+        
+        let newText = (newValDim.width < width) ? val :  limitTextOnWidth(val, width, paper) + '...';
+        text = paper.text(x + 5, y + 12, newText).attr({"text-anchor": "start", "font-size": '13px', "font-family": 'Arial'});
+        // make it editable
+        text.click(function(){
+            if (input.enabled) {
+                customInput(width - 10, 19, x + 7, y + 2, input.value, paper).then((result) => {
+                    input.setValue(result);                    
+                });
+            }
+        });
+        // save full new value
+        input.value = val;
+        importOptions[name] = val;        
+    };
+
+    input.enable = function(){
+        input.enabled = true; 
+        element.attr({'fill' : '#ffff'});
+        cover.attr({'cursor': 'text'});
+    };
+    input.disable = function(){
+        input.enabled = false; 
+        element.attr({'fill' : '#eee'});
+        cover.attr({'cursor': 'default'});
+    };
+
+    return input;
+}
+
+// create an checkbox
+function drawCheckBox(paper, x, y, name, text)
+{
+    let checked = false;
+
+    let label = paper.text(x + 20, y + 6, text).attr({"text-anchor": 'start', "font-size": "13px", "font-family": "Arial", "cursor": "default"});
+    // the box        
+    let box = paper.rect(x, y, 12, 12).attr({fill: "#eeeeee", "stroke-width": 1, stroke: "#5d5d5d"});
+    // the checked 
+    let chk = paper.path([
+        ["M", x + 0.2*12, y + 0.3*12],
+        ["l", 0.15*12*2, 0.2*12*2],
+        ["l", 0.3*12*2, -0.45*12*2]
+    ]).attr({"stroke-width": 2}).hide();
+    
+    // the cover needs to be drawn last, to cover all other drawings (for click events)
+    let cover = paper.rect(x, y, 12, 12)
+        .attr({fill: "#fff", opacity: 0, cursor: "pointer"})
+        .click(function() {
+            
+            // the element
+            checked = !checked;
+            
+            if (checked) {
+                // the element is checked
+                box.attr({fill: "#97bd6c"});
+                chk.show();
+            } else {
+                // the element is unchecked
+                box.attr({fill: "#eeeeee"});
+                chk.hide();
+            }
+            // save value to main object
+            importOptions[name] = checked;
+        });
+    // return the value of the checkbox (true/false)
+    return checked;
+}
+
+// create a label
+function drawLabel(paper, x, y, label)
+{
+    paper.text(x, y, label).attr({"fill": "#000", "font-size": "13px", "font-family": "Arial", "text-anchor": "start"});
+}
+
 // Helper functions ====================
 // retun a text's width
-function getTextDim(paper, text, fSize, fFamily) 
+function getTextDim(paper, textDim) 
 {
     // temporary element to get the button's width
-    let labelT = paper.text(50, 50, text).attr({"text-anchor": "start", "font-size": '13px', "font-family": 'Arial'});
+    let labelT = paper.text(50, 50, textDim).attr({"text-anchor": "start", "font-size": '13px', "font-family": 'Arial'});
     let lBBox = labelT.getBBox();
     labelT.remove();   
 
     return {width: lBBox.width, height: lBBox.height};
+}
+
+// enable input editing
+function customInput(width, height, x, y, oldValue, paper) 
+{    
+    return new Promise((resolve, reject) => {
+        let container = paper.canvas.parentNode;    
+        let styles = "position: absolute; width: "+ (width) +"px; height: "+ (height) +"px; left: "+ x +"px; top: "+ y +"px; border: none; font-size: 13px; font-family: Arial ; background: #FFFFFF; z-index:9000;";
+        
+        let input = document.createElement("input");
+
+        input.setAttribute("style", styles);
+        input.setAttribute("id", "inputEdit");
+        input.value = oldValue;
+        container.appendChild(input);
+        input.focus();
+
+        input.addEventListener('keyup', (event) => {
+            if(event.keyCode === 13) {
+                input.blur();
+            }
+            if(event.keyCode === 27) {
+                resolve(oldValue);
+                input.blur();
+            }
+        });
+        input.addEventListener('blur', (event) => {
+            input.parentNode.removeChild(input);            
+            resolve(input.value);
+        });            
+    });
+}
+
+// limit a text to a fix width
+function limitTextOnWidth(text, width, paper)
+{
+    let textDim =  getTextDim(paper, text);
+    
+    while(textDim.width > (width - 13))
+    {
+        text = text.substring(0, text.length - 5);
+        textDim = getTextDim(paper, text);           
+    }
+    return text;
 }
