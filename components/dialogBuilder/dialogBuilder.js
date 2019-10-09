@@ -1,9 +1,10 @@
 const { dialog, BrowserWindow, ipcMain } = require('electron');
 
+// the list of windows / dialogs
 let windowsList = {};
 
 const dialogBuilder = {
-    
+    // get data from menu builder and try to create the window
     build: function(dialogID, data, parentWindow, lastState)
     {
         let dialogData;
@@ -15,7 +16,7 @@ const dialogBuilder = {
             dialog.showMessageBox(parentWindow, {type: "error", message: "Dialog data error!", title: "Error", buttons: ["OK"]});
             return;
         }
-
+        // we have the dialog data try to make the window
         if (dialogData !== void 0) {
             this.makeTheWindow(
                 dialogData.properties.title,
@@ -29,6 +30,10 @@ const dialogBuilder = {
         }
     },
 
+    // make the if not already build
+    // alldata - for objects
+    // lastState - if was already opened
+    // dialogID - the file name - used for saving the state
     makeTheWindow: function(name, windowWidth, windowHeight, parentWindow, allData, lastState, dialogID)
     {      
 
@@ -37,8 +42,6 @@ const dialogBuilder = {
         } else {
             let theWindow;
             theWindow = new BrowserWindow({
-                // x: 10,
-                // y: 10,
                 width: parseInt(windowWidth) + 40,
                 height: parseInt(windowHeight) + 50,
                 title: name,
@@ -47,12 +50,11 @@ const dialogBuilder = {
                 webPreferences: {
                     nodeIntegration: true
                 },
-                // resizable: false,
                 show: false,
             });
 
             // Open the DevTools.
-            theWindow.webContents.openDevTools();
+            // theWindow.webContents.openDevTools();
                     
             // and load the settings.html of the app.
             theWindow.loadFile('./components/dialogBuilder/dialogBuilder.html');
@@ -62,7 +64,6 @@ const dialogBuilder = {
                 theWindow = null;
             });
             
-        
             // when data is ready show window
             theWindow.once("show", () => {
                 theWindow.webContents.send('dialogCreated', {'dialogID': dialogID, 'data': allData, 'lastState': lastState});
@@ -87,6 +88,6 @@ ipcMain.on('dataFromR', (event, args) =>
             windowsList[win].webContents.send('dataFromR', args);
         }
     }
-})
+});
 
 module.exports = dialogBuilder;

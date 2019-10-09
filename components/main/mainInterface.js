@@ -34,7 +34,7 @@ ipcRenderer.on('changeWorkingDirectory', (event, args) => {
     comm.setWorkingDirectory(args);    
 });
 
-// show current dialog command
+// show current dialog command | update HTML element
 ipcRenderer.on('commandSyntax', (event, args) => {
     document.getElementById('command').innerHTML = args;
 });

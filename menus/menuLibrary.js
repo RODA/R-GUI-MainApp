@@ -25,6 +25,7 @@ const menuLibrary = {
         this.theSettings = theSettings;
     },
 
+    // import data from file
     mainAppImportFromFile: function(name)
     {
         return {
@@ -50,6 +51,7 @@ const menuLibrary = {
         };
     },
 
+    // open the settings dialog
     mainAppSettings: function(name)
     {
         return {
@@ -60,6 +62,7 @@ const menuLibrary = {
         };
     },
     
+    // quit the application
     mainAppExist: function(name) 
     {
         return {
@@ -71,6 +74,7 @@ const menuLibrary = {
         };
     },
 
+    // create a dialog
     menuForDialog: function(dialogID, dialogName)
     {
         return {
@@ -88,26 +92,6 @@ const menuLibrary = {
             }
         };
     },
-
-    // Testing purpose only
-    // mainAppSwitchLanguage: function(name)
-    // {
-    //     return {
-    //         // Just playing around
-    //         label : menuLibrary.i18next.t(name),
-    //         click(){
-    //             let newLang = 'ro';
-    //             if(menuLibrary.theLanguage.language == 'ro') {
-    //                 newLang = 'en';
-    //             } else if (menuLibrary.theLanguage.language == 'en') {
-    //                 newLang = 'ro';
-    //             }
-    //             menuLibrary.theLanguage.changeLanguage(newLang, (err, t) => {
-    //                 if (err) { console.log('something went wrong loading', err); }
-    //             });                          
-    //         }
-    //     };
-    // },
     
     // System -------------------------------------------------
     mainAppUndo: function(name)

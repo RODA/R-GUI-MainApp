@@ -3,6 +3,7 @@
 require('events').EventEmitter.prototype._maxListeners = 35;
 const EventEmitter = require('events');
 const { dialog } = require('electron').remote;
+const { ipcRenderer } = require('electron');
 // get current window for making dialogs modals
 const objectsWindow = require('electron').remote.getCurrentWindow();
 
@@ -11,9 +12,6 @@ const helpers = require("./helpers");
 const objectsHelpers = require("./objectsHelpers");
 const conditions = require('./conditions');
 
-const { ipcRenderer } = require('electron');
-
-// const mockupData = require('./objectsMockup');
 
 var objects = 
 {    
@@ -42,7 +40,7 @@ var objects =
     selectData: {},
 
     // create the main window & Raphael paper
-    makeDialog: function(dialogID, container, dataFromR) 
+    makeDialog: function(dialogID, container) 
     {            
         this.dialogID = dialogID;        
         if (((container.properties === void 0) == false) && helpers.hasSameProps(defaultSettings.dialog, container.properties)) 
@@ -60,9 +58,11 @@ var objects =
             }
         }
         
+        // build dialog command
         if(container.syntax !== void 0 && container.syntax.command != '') {
             this.makeCommand(container.syntax);
         }
+
         // listening for change event
         objects.events.on('iSpeak', function(data)
         {
@@ -76,7 +76,22 @@ var objects =
         });
 
         // register listener for executing the command
-        this.registerListenersForCommandExecution();   
+        objects.events.on('iSpeakButton', function(data)
+        {            
+            if (data.type == "run"){
+                // send the command to main
+                ipcRenderer.send('dialogRunCommand', objects.command);
+            } else if (data.type == "reset") {
+                dialog.showMessageBox(objectsWindow, {type: "question", message: "Are you sure you want to reset the dialog?", title: "Reset dialog", buttons: ["No", "Yes"]}, (response) => {
+                    if (response) {
+                      objects.changeDialogState(objects.dialogDefaultData, false);  
+                      // reset also state
+                      objects.dialogCurrentData = {};
+                      ipcRenderer.send('dialogCurrentStateUpdate', {name: objects.dialogID, changes: objects.dialogCurrentData});
+                    }
+                });
+            }
+        });
     },
 
     // create an object based on it's type
@@ -144,26 +159,6 @@ var objects =
         ipcRenderer.send('dialogCommandUpdate', command);
     },
 
-    // execute a command trigered by a button
-    registerListenersForCommandExecution: function()
-    {        
-        objects.events.on('iSpeakButton', function(data)
-        {            
-            if (data.type == "run"){
-                // send the command to main
-                ipcRenderer.send('dialogRunCommand', objects.command);
-            } else if (data.type == "reset") {
-                dialog.showMessageBox(objectsWindow, {type: "question", message: "Are you sure you want to reset the dialog?", title: "Reset dialog", buttons: ["No", "Yes"]}, (response) => {
-                    if (response) {
-                      objects.changeDialogState(objects.dialogDefaultData, false);  
-                      // reset also state
-                      objects.dialogCurrentData = {};
-                      ipcRenderer.send('dialogCurrentStateUpdate', {name: objects.dialogID, changes: objects.dialogCurrentData});
-                    }
-                });
-            }
-        });
-    },
     // change the dialog state - reset to default or update to old state
     changeDialogState: function(data, saveCurrent)
     {
@@ -194,19 +189,12 @@ var objects =
                 }
             }
         }
-
+        // save the state if we already have one
         if (saveCurrent) {
             objects.dialogCurrentData = data;
             ipcRenderer.send('dialogCurrentStateUpdate', {name: objects.dialogID, changes: objects.dialogCurrentData});
         }
     },
-
-    // shift key - container multiselect
-    keyPressedEvent: function(theKey, theStatus)
-    {
-        objects.events.emit('keyTriggered', {key: theKey, status: theStatus});
-    },
-
     // save elements current state - modify object.dialogCurrentData
     saveCurrentState: function(data)
     {
@@ -233,6 +221,12 @@ var objects =
                     break;
             }
         }
+    },
+
+    // shift key pressed event - container multiselect
+    keyPressedEvent: function(theKey, theStatus)
+    {
+        objects.events.emit('keyTriggered', {key: theKey, status: theStatus});
     },
 
     // new data from R - anounce objects
