@@ -1,4 +1,4 @@
-const { dialog, BrowserWindow } = require('electron');
+const { dialog, BrowserWindow, ipcMain } = require('electron');
 
 let windowsList = {};
 
@@ -78,5 +78,15 @@ const dialogBuilder = {
         }
     },
 };
+
+// announce all windows that we have data
+ipcMain.on('dataFromR', (event, args) => 
+{
+    for (let win in windowsList) {
+        if(!windowsList[win].isDestroyed()) {
+            windowsList[win].webContents.send('dataFromR', args);
+        }
+    }
+})
 
 module.exports = dialogBuilder;

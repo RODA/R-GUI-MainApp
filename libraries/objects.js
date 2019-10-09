@@ -77,8 +77,6 @@ var objects =
 
         // register listener for executing the command
         this.registerListenersForCommandExecution();   
-        // announce objects of the available data
-        this.incommingDataFromR(dataFromR);
     },
 
     // create an object based on it's type
@@ -240,15 +238,17 @@ var objects =
     // new data from R - anounce objects
     incommingDataFromR: function(data)
     {
-        // do we have dataframes
-        if (data.dataframes !== void 0) {
-            this.dataframes = data.dataframes;
-            objects.events.emit('containerData', this.dataframes);
-        }
-        // do we have R objects (martix, vectors, etc.)
-        if (data.selectData !== void 0) {
-            this.selectData = data.selectData;
-            objects.events.emit('selectData', this.selectData);
+        if (data !== void 0) {
+            // do we have dataframes
+            if (data.dataframes !== void 0) {
+                this.dataframes = data.dataframes;
+                objects.events.emit('containerData', this.dataframes);
+            }
+            // do we have R objects (martix, vectors, etc.)
+            if (data.selectData !== void 0) {
+                this.selectData = data.selectData;
+                objects.events.emit('selectData', this.selectData);
+            }
         }
     },
 

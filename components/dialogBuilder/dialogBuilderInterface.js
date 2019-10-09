@@ -13,3 +13,8 @@ ipcRenderer.on('dialogCreated', (event, args) =>
         objects.changeDialogState(args.lastState, true);
     }
 });
+
+
+ipcRenderer.on('dataFromR', (event, args) => {
+    objects.incommingDataFromR(args);
+});
