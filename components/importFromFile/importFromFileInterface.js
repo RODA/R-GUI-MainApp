@@ -2,15 +2,19 @@ const { ipcRenderer } = require('electron');
 const { BrowserWindow, dialog } = require('electron').remote;
 const EventEmitter = require('events');
 const fs = require('fs');
-const path = require('path');
+const upath = require("upath");
 
 const i18next = require("i18next");
 const Backend = require ('i18next-sync-fs-backend');
 const i18nextOptions = require("../../i18nextOptions");
 
-let importOptions = {};
+// TODO == show preview --- waiting for R
 
-ipcRenderer.on('settingsLoaded', (event, args) => {
+let importOptions = {};
+let cModify = new EventEmitter();
+
+// the window is redy - the data is loaded 
+ipcRenderer.on('dataLoaded', (event, args) => {
     
     let wWidth = parseInt(args.wWidth);
     let wHeight = parseInt(args.wHeight);
@@ -32,10 +36,10 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     paper.text(15, 85, i18next.t('Preview Data')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
     paper.rect(15, 95, wWidth - 30, wHeight - 350).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
 
-    drawLabel(paper, 20, wHeight - 223, 'Name');
+    drawLabel(paper, 20, wHeight - 223, i18next.t('Name'));
     drawInput(paper, 65, wHeight - 235, 150, 'dataset', true, 'dataset');
     
-    drawLabel(paper, 20, wHeight - 188, 'Skip');
+    drawLabel(paper, 20, wHeight - 188, i18next.t('Skip'));
     drawInput(paper, 65, wHeight - 200, 50, 'skip', true, '0');
 
     drawCheckBox(paper, 20, wHeight - 150, 'header', 'First row as names', true);
@@ -49,17 +53,17 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     
     paper.path("M490 " + (wHeight - 245) + "L490 " + ((wHeight - 245) + 180)).attr({stroke: "#ccc"});
 
-    drawLabel(paper, 520, wHeight - 223, 'NA values');
+    drawLabel(paper, 520, wHeight - 223, i18next.t('NA values'));
     let na = drawSelect(paper, 520, wHeight - 207, ['NA', '0', 'NULL', 'empty'], 'nastrings', 'NA');
-    na.setValue('Default');
+    na.setValue('NA');
 
-    drawLabel(paper, 520, wHeight - 165, 'Quotes');
+    drawLabel(paper, 520, wHeight - 165, i18next.t('Quotes'));
     let quote = drawSelect(paper, 520, wHeight - 150, ['Double', 'Single', 'None'], 'quote', 'Double');
-    quote.setValue('Default');
+    quote.setValue('Double');
 
-    drawLabel(paper, 650, wHeight - 223, 'Comment');
-    let comment = drawSelect(paper, 650, wHeight - 207, ['#', '%', '//', '\'', '!', ';', '--', '*', '||', '\"', '\\', '*>'], 'commentchar', '#');
-    comment.setValue('Default');
+    drawLabel(paper, 650, wHeight - 223, i18next.t('Comment'));
+    let comment = drawSelect(paper, 650, wHeight - 207, ['Disabled', '#', '%', '//', '\'', '!', ';', '--', '*', '||', '\"', '\\', '*>'], 'commentchar', '#');
+    comment.setValue('#');
     
     paper.path("M15 " + (wHeight - 55) + "L" + (wWidth - 15) + " " + (wHeight - 55)).attr({stroke: "#000"});
     
@@ -72,14 +76,15 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     // save button
     paper.rect(buttonsX, buttonsY, 75, 25).attr({fill: "#FFFFFF", "stroke": "#5d5d5d", "stroke-width": 1});
     paper.text(saveTxtPosX, buttonsY + 12, i18next.t('Import')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
-    paper.rect(buttonsX, buttonsY, 75, 25).attr({fill: "#FFFFFF", stroke: "none", "fill-opacity": 0, "cursor": "pointer"}).click(function saveSettings(){
-    
-        // let sendData = {'defaultLanguage': langCode(data.languages, language.value)};
-
-        // ipcRenderer.send('importFileFromText', sendData);
-        // window closes if setting succesfully saved.
-        console.log(importOptions);
-        
+    paper.rect(buttonsX, buttonsY, 75, 25).attr({fill: "#FFFFFF", stroke: "none", "fill-opacity": 0, "cursor": "pointer"}).click(function saveSettings()
+    {
+        let theCommand = makeCommand();
+        if (theCommand === '') {
+            dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {type: "info", message: i18next.t("No file selected! Please select a file first."), title: i18next.t("Error"), buttons: ["OK"]});
+        } else {
+            ipcRenderer.send('dialogRunCommand', theCommand);   
+            BrowserWindow.getFocusedWindow().close();
+        }
     });
     // get the text's width
     let cancelBox = getTextDim(paper, i18next.t('Cancel'));
@@ -92,10 +97,13 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     });
 });
 
-// ipcRenderer.on('settingsSaved', (event, args) => {
-//     BrowserWindow.getFocusedWindow().close();
-// });
+// on element change make the command and send it to the main window
+cModify.on('elementChanged', (event, args) => {
+    let theCommand = makeCommand();
+    ipcRenderer.send('dialogCommandUpdate', theCommand);
+});
 
+// Elements ==========================================================
 // make a select element
 function drawSelect(paper, x, y, list, name, defaultValue)
 {
@@ -173,7 +181,9 @@ function drawSelect(paper, x, y, list, name, defaultValue)
         }
         select.objSelected = paper.text(dataLeft+10, dataTop+12, data).attr({"text-anchor": "start",fill: "#000000", "font-size": "13px", "font-family": "Arial"});
         select.value = data;
-        select.selected = true;      
+        select.selected = true;
+        importOptions[name] = data;    
+        cModify.emit('elementChanged');
     });
     eventMe.on('deSelected', function(data) {
         if(typeof select.objSelected.remove === "function") {
@@ -181,6 +191,8 @@ function drawSelect(paper, x, y, list, name, defaultValue)
         }
         select.value = '';
         select.selected = false;
+        importOptions[name] = defaultValue;
+        cModify.emit('elementChanged');
     });
 
     const listSupport = {
@@ -303,9 +315,11 @@ function drawSelect(paper, x, y, list, name, defaultValue)
         if (val === '') {
             importOptions[name] = defaultValue;
             eventMe.emit('deSelected');
+            cModify.emit('elementChanged');
         } else if (list.includes(val)) {
-            eventMe.emit('selected', val);
             importOptions[name] = val;
+            eventMe.emit('selected', val);
+            cModify.emit('elementChanged');
         }
         // the position of the selected value if it exists
         let exist = null; 
@@ -335,7 +349,6 @@ function drawSelect(paper, x, y, list, name, defaultValue)
     select.setValue(defaultValue);
     return select;
 }
-
 // draw select file
 function selectFile(paper, wWidth, wHeight)
 {
@@ -368,6 +381,7 @@ function selectFile(paper, wWidth, wHeight)
                         }                        
                         name = paper.text(25, 48, filePath).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
                         importOptions.filePath = filePath;
+                        cModify.emit('elementChanged');
                     }
                 });
             }
@@ -375,7 +389,7 @@ function selectFile(paper, wWidth, wHeight)
     });
     
 }
-
+// draw radioGroup
 function drawRadioGroup(paper, x, y, name, label, elements, defaultValue, other)
 {
     let radio = {
@@ -444,6 +458,7 @@ function drawRadioGroup(paper, x, y, name, label, elements, defaultValue, other)
                 } else {
                     importOptions[name] = keyName;
                 }
+                cModify.emit('elementChanged');
             } else {
                 group[rList[i]].fill.hide();
             }
@@ -452,7 +467,6 @@ function drawRadioGroup(paper, x, y, name, label, elements, defaultValue, other)
 
     radio.setValue(defaultValue);
 }
-
 // create an imput
 function drawInput(paper, x, y, width, name, status, defaultValue)
 {
@@ -495,7 +509,8 @@ function drawInput(paper, x, y, width, name, status, defaultValue)
         });
         // save full new value
         input.value = val;
-        importOptions[name] = val;        
+        importOptions[name] = val;
+        cModify.emit('elementChanged');        
     };
 
     input.enable = function(){
@@ -515,7 +530,6 @@ function drawInput(paper, x, y, width, name, status, defaultValue)
     }
     return input;
 }
-
 // create an checkbox
 function drawCheckBox(paper, x, y, name, text, isChecked)
 {
@@ -554,6 +568,7 @@ function drawCheckBox(paper, x, y, name, text, isChecked)
             }
             // save value to main object
             importOptions[name] = checked;
+            cModify.emit('elementChanged');
         });
 
     // save value to main object
@@ -562,7 +577,6 @@ function drawCheckBox(paper, x, y, name, text, isChecked)
     // return the value of the checkbox (true/false)
     return checked;
 }
-
 // create a label
 function drawLabel(paper, x, y, label)
 {
@@ -570,36 +584,74 @@ function drawLabel(paper, x, y, label)
 }
 
 // Helper functions ====================
-
 // build the dialog command
 function makeCommand()
 {
-    let table = '{dataset} <- read.table(file, header = FALSE, quote = "\"", sep = "", dec = ".", na.strings = "NA", skip = 0, strip.white = FALSE, comment.char = "#")';
-    let csv = '{dataset} <- read.csv(file, header = TRUE, sep = ",", quote = "\"", dec = ".", comment.char = "", na.strings = "NA", skip = 0, strip.white = FALSE,)';
+    // let table = '{dataset} <- read.table(file, header = FALSE, quote = "\"", sep = "", dec = ".", na.strings = "NA", skip = 0, strip.white = FALSE, comment.char = "#")';
+    // let csv = '{dataset} <- read.csv(file, header = TRUE, sep = ",", quote = "\"", dec = ".", comment.char = "", na.strings = "NA", skip = 0, strip.white = FALSE,)';
+    let theCommand = '';
 
-
-
-    
-    let command = syntax.command;
-    // let previewCommand = objectsHelpers.updateCommand(command, syntax.defaultElements);
-    
-    // {name}
-    let regex = /({[a-z0-9]+})/g;
-    let elements = command.match(regex);
-    for(let i = 0; i < elements.length; i++) {
-        let name = elements[i].substring(1, elements[i].length-1);
-        let elementValue = objectsHelpers.getCommandElementValue(objects.objList, objects.radios, name);
-        // console.log(elementValue);
-        
-        command = objectsHelpers.updateCommand(command, syntax.defaultElements, name, elements[i], elementValue);
-        // previewCommand = previewCommand.replace(elements[i], elementValue);                       
+    // exit if no file selected
+    if(importOptions.filePath === "") {
+        return '';
     }
-    // update dialog comand
-    objects.command = command;        
-    // this.events.emit('commandUpdate', command);
-    ipcRenderer.send('dialogCommandUpdate', command);
-}
 
+    // reading with CSV
+    if (importOptions.sep === 'comma') {
+        theCommand = importOptions.dataset + ' <- read.csv(\'' + upath.normalize(importOptions.filePath) + '\'';
+    } 
+    // reading with table
+    else {
+        theCommand = importOptions.dataset + ' <- read.table(\'' + upath.normalize(importOptions.filePath) + '\'';
+    }
+    // do we have the firt row as header ?
+    if (!importOptions.header) {
+        theCommand += ', header = FALSE';
+    }
+    // setting the separator
+    if (importOptions.sep != 'comma' & importOptions.sep != 'space' & importOptions.sep != 'tab' & importOptions.sep != '') {
+        theCommand += ', sep = "' + importOptions.sep + '"';
+    }
+    // setting quote char
+    switch(importOptions.quote){
+        case 'Single':
+            theCommand += ', quote = "\'"';
+            break;
+        case 'None':
+            theCommand += ', quote = ""';
+            break;    
+    }
+    // setting the decimal
+    if (importOptions.dec === 'comma') {
+        theCommand += ', dec=","';
+    }
+    // setting NA values
+    if (importOptions.nastrings !== 'NA') {
+        theCommand += ', na.strings = "' + importOptions.nastrings + '"';
+    }
+    // setting skip
+    if (importOptions.skip !== '0') {
+        theCommand += ', skip = "' + importOptions.skip + '"';
+    }
+    // setting strip white | trim space
+    if (importOptions.stripwhite) {
+        theCommand += ', strip.white = TRUE';
+    }
+    // setting comment char
+    switch(importOptions.commentchar) {
+        case '#':
+            break;
+        case 'Disabled':
+            theCommand += ', comment.char =""';
+            break;
+        default:
+            theCommand += ', comment.char ="' + importOptions.commentchar + '"';
+    }
+    // closing the command
+    theCommand += ")";
+
+    return theCommand;    
+}
 // retun a text's width
 function getTextDim(paper, textDim) 
 {
@@ -610,7 +662,6 @@ function getTextDim(paper, textDim)
 
     return {width: lBBox.width, height: lBBox.height};
 }
-
 // enable input editing
 function customInput(width, height, x, y, oldValue, paper) 
 {    
@@ -641,7 +692,6 @@ function customInput(width, height, x, y, oldValue, paper)
         });            
     });
 }
-
 // limit a text to a fix width
 function limitTextOnWidth(text, width, paper)
 {

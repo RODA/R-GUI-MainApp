@@ -47,7 +47,7 @@ const loadFile = {
         
             // when data is ready show window
             loadFileWindow.once("show", () => {
-                loadFileWindow.webContents.send('settingsLoaded', {
+                loadFileWindow.webContents.send('dataLoaded', {
                     wWidth : loadFile.windowWidth - 10,
                     wHeight : loadFile.windowHeight - 30,
                     systemS: theSettings

@@ -46,7 +46,7 @@ const menuLibrary = {
                 
                 dialog.showOpenDialog(menuLibrary.theWindow, {title: menuLibrary.i18next.t('Select directory'), defaultPath: menuLibrary.theSettings.workingDirectory, properties: ['openDirectory']}, function getSelectedDirectoy(result){                 
                     if (result[0]) { 
-                        menuLibrary.theWindow.webContents.send('changeWorkingDirectory', upath.normalize(result[0]));
+                        menuLibrary.theWindow.webContents.send('dialogRunCommand', 'setwd("' +upath.normalize(result[0]) +'")');
                     }
                 });
             }

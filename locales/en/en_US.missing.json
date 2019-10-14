@@ -24,5 +24,14 @@
   "No functionality for this item!": "No functionality for this item!",
   "Error": "Error",
   "Testing": "Testing",
-  "Test data from R": "Test data from R"
+  "Test data from R": "Test data from R",
+  "Name": "Name",
+  "Skip": "Skip",
+  "NA values": "NA values",
+  "Quotes": "Quotes",
+  "Comment": "Comment",
+  "DataFromRTesting": "DataFromRTesting",
+  "No file selected! Please select a file first": {
+    "": "No file selected! Please select a file first."
+  }
 }

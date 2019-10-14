@@ -28,21 +28,18 @@ const comm = {
     // used for window resize event
     initial: true,
 
-    // set R working directory
-    setWorkingDirectory: function(dir)
+    // run a command
+    runRCommand: function(command)
     {
-        // invisible = true;
-        // ptyProcess.write('setwd("' + dir + '")\n');
-        ipcRenderer.send('dataFromR', mockupData);
+        ptyProcess.write(command + '\n');
     },
-    // check for dependencies
-    checkForRPackages: function(list)
+    // run a command without showing the output in the terminal
+    runRCommandInvisible: function(command)
     {
-        // console.log(JSON.stringify(list));
-           
-        // invisible = true;
-        // ptyProcess.write('\r');
+        invisible = true;
+        ptyProcess.write(command + '\n');
     },
+    
     // process invisible data
     processData: function(data) 
     {
@@ -75,8 +72,13 @@ const comm = {
             theWindow.on('resize', debounce(comm.resizeTerm, 500, false));
             this.initial = false;
         }
+    },
+    
+    // return current data received from R
+    getCurrentData: function()
+    {
+        return mockupData;
     }
-
 };
 
 

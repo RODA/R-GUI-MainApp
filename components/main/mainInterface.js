@@ -7,7 +7,7 @@ ipcRenderer.on('initializeApp', (event, args) => {
     // resize terminal according to window size
     comm.resizeTerm();    
     // check for R packages dependencies
-    comm.checkForRPackages(args); 
+    comm.runRCommandInvisible(args); 
 });
 
 Split(['#command', '#xterm'], {
@@ -30,11 +30,23 @@ ipcRenderer.on('openFile', (event, args) => {
 });
 
 // change working directory from menu
-ipcRenderer.on('changeWorkingDirectory', (event, args) => {    
-    comm.setWorkingDirectory(args);    
-});
+// ipcRenderer.on('runRCommandInvisible', (event, args) => {    
+//     comm.setWorkingDirectory(args);    
+// });
+
+
 
 // show current dialog command | update HTML element
 ipcRenderer.on('commandSyntax', (event, args) => {
     document.getElementById('command').innerHTML = args;
+});
+
+// dialog send initial data
+ipcRenderer.on('dialogCreated', (event, args) => {
+    let data = comm.getCurrentData();
+    ipcRenderer.send('dialogInitialData', {name: args.name, data: data});
+});
+// run a R commmand from a dialog
+ipcRenderer.on('dialogRunCommand', (event, args) => {
+    comm.runRCommand(args);
 });

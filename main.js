@@ -19,7 +19,8 @@ let theSettings = {
   workingDirectory: os.homedir(),
   dependencies: '',
   dialogs: {},
-  currentCommand: ''
+  currentCommand: '',
+  missingPackages: ''
 };
 
 // loading language from settings
@@ -107,8 +108,11 @@ app.on('activate', () => {
   }
 });
 
+// check for missing packages
 ipcMain.on('missingPackages', (event, args) => {   
   if (args.length > 0) {
+    // save the missing packages
+    theSettings.missingPackages = args;
     dialog.showMessageBox(mainWindow, {type: "warning", message: "Please install the folowing packages: "+ args +" and restart the application.", title: "Warning", buttons: ["OK"]});
   }
 }); 
@@ -124,7 +128,17 @@ ipcMain.on('dialogCurrentStateUpdate', (event, args) => {
   }
 });
 
+
+// event on dialog created - send data
+ipcMain.on('dialogCreated', (event, args) => {
+  mainWindow.webContents.send('dialogCreated', args);
+});
 // show the current dialog command
 ipcMain.on('dialogCommandUpdate', (event, args) => {
   mainWindow.webContents.send('commandSyntax', args);
 });
+// run a dialog's command
+ipcMain.on('dialogRunCommand', (event, args) => {
+  mainWindow.webContents.send('dialogRunCommand', args);
+});
+

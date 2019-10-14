@@ -11,9 +11,16 @@ ipcRenderer.on('dialogCreated', (event, args) =>
     if(args.lastState) {
         objects.changeDialogState(args.lastState, true);
     }
+    // trigger dialogCreated event for loading data
+    ipcRenderer.send('dialogCreated', {name: args.dialogID});
 });
 
 // load data received from R
-ipcRenderer.on('dataFromR', (event, args) => {
+ipcRenderer.on('dialogInitialData', (event, args) => {
     objects.incommingDataFromR(args);
+});
+
+// Update data received from R
+ipcRenderer.on('dataUpdateFromR', (event, args) => {
+    objects.incommingUpdateDataFromR(args);
 });

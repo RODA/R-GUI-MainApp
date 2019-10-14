@@ -75,17 +75,25 @@ const dialogBuilder = {
 
             theWindow.setMenu(null);
             
-            windowsList[name] = theWindow;
+            windowsList[dialogID] = theWindow;
         }
     },
 };
 
+// populate window with existing data
+ipcMain.on('dialogInitialData', (event, args) =>
+{
+    if (windowsList[args.name]) {
+        windowsList[args.name].webContents.send('dialogInitialData', args.data);
+    }
+});
+
 // announce all windows that we have data
-ipcMain.on('dataFromR', (event, args) => 
+ipcMain.on('dialogDataUpdate', (event, args) => 
 {
     for (let win in windowsList) {
         if(!windowsList[win].isDestroyed()) {
-            windowsList[win].webContents.send('dataFromR', args);
+            windowsList[win].webContents.send('dataUpdateFromR', args);
         }
     }
 });
