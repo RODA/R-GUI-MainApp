@@ -26,7 +26,6 @@ const dialogBuilder = {
                 // we have the dialog data try to make the window
                 if (dialogData !== void 0) {
                     let missing = this.checkForPackages(dialogData.properties.dependencies, missingPackages);
-
                     if (!missing) {
                         this.makeTheWindow(
                             dialogData.properties.title,
@@ -70,7 +69,7 @@ const dialogBuilder = {
             });
 
             // Open the DevTools.
-            // theWindow.webContents.openDevTools();
+            theWindow.webContents.openDevTools();
                     
             // and load the settings.html of the app.
             theWindow.loadFile('./components/dialogBuilder/dialogBuilder.html');
@@ -100,6 +99,9 @@ const dialogBuilder = {
     {
         let packages = dependencies.split(';');
         let resp = false;
+        // nothing missing
+        if (missing.length === 0) { return resp; }
+        
         for (let i = 0; i < packages.length; i++) {
             if (missing.includes(packages[i])) {
                 resp = true;

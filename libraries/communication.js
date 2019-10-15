@@ -36,12 +36,15 @@ const comm = {
 
         // TODO -- remove only for testing -- 
         // send message about the missing packages
-        ipcRenderer.send('missingPackages', ['abcdeFBA', 'ACNE', 'Emilian']);
+        // ipcRenderer.send('missingPackages', ['abcdeFBA', 'ACNE', 'Emilian']);
     },
     // run a command
     runRCommand: function(command)
     {
         ptyProcess.write(command + '\n');
+        
+        // TODO -- remove only for testing --
+        ipcRenderer.send('dialogDataUpdate', {dataframes: {"df1": ["v_1_1", "v_1_2", "v_1_3", "v_1_4", "v_1_5", "v_1_6", "v_1_7"]}});
     },
     // run a command without showing the output in the terminal
     runRCommandInvisible: function(command)
