@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist": "electron-builder"
   },
   "repository": {
     "type": "git",
@@ -24,13 +24,50 @@
   "homepage": "https://github.com/roda/R-GUI-MainApp#readme",
   "devDependencies": {
     "electron": "^6.0.10",
+    "electron-builder": "^21.2.0",
     "electron-rebuild": "^1.8.6"
+  },
+  "build": {
+    "appId": "r.gui.main.app",
+    "productName": "RGUIMainApp",
+    "directories": {
+      "output": "build/output"
+    },
+    "extraResources": [
+      "dialogs",
+      "locales"
+    ],
+    "extraFiles": [
+      "settings.json",
+      "./menus/menu.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": "default",
+      "icon": "build/icon.icns",
+      "type": "distribution",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "legalTrademarks": "MIT Licence"
+    },
+    "linux": {
+      "target": "deb",
+      "maintainer": "RODA",
+      "icon": "build/icon.png",
+      "category": "Development / Science"
+    }
   },
   "dependencies": {
     "i18next": "^17.0.16",
     "i18next-node-fs-backend": "^2.1.3",
     "i18next-sync-fs-backend": "^1.1.1",
-    "node-pty": "^0.9.0-beta26",
+    "node-pty": "^0.9.0-beta27",
     "raphael": "^2.3.0",
     "split.js": "^1.5.11",
     "upath": "^1.2.0",

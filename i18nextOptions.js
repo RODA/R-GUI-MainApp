@@ -22,9 +22,9 @@ const i18nextOptions = {
                 preload: [this.language],
                 backend:{
                     // path where resources get loaded from
-                    loadPath: './locales/{{ lng }}/{{ ns }}.json',
+                    loadPath: './resources/locales/{{ lng }}/{{ ns }}.json',
                     // path to post missing resources
-                    addPath: './locales/{{ lng }}/{{ ns }}.missing.json',
+                    addPath: './resources/locales/{{ lng }}/{{ ns }}.missing.json',
                     // jsonIndent to use when storing json files
                     jsonIndent: 2,
                 },

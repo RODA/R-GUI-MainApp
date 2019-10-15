@@ -11,6 +11,7 @@ const logging = require('./libraries/logging');
 
 // Setting ENVIROMENT
 process.env.NODE_ENV = 'development';
+// process.env.NODE_ENV = 'production';
 
 // the settings object - to be passed around - add here other properties
 let theSettings = {
@@ -87,6 +88,7 @@ function createMainWindow () {
     });
     // when data is ready show window
     mainWindow.once("show", () => {
+        // check for dependencies
         mainWindow.webContents.send('initializeApp', theSettings.dependencies);
     });
 }
@@ -113,7 +115,7 @@ ipcMain.on('missingPackages', (event, args) => {
   if (args.length > 0) {
     // save the missing packages
     theSettings.missingPackages = args;
-    dialog.showMessageBox(mainWindow, {type: "warning", message: "Please install the folowing packages: "+ args +" and restart the application.", title: "Warning", buttons: ["OK"]});
+    dialog.showMessageBox(mainWindow, {type: "warning", message: "The folowing packages: "+ args +" are missing or not install in R. Some dialogs will not work. Please install the packages and restart the application.", title: "Warning", buttons: ["OK"]});
   }
 }); 
 

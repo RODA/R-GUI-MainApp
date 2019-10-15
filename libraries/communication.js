@@ -5,8 +5,7 @@ const { ipcRenderer } = require('electron');
 const { BrowserWindow } = require('electron').remote;
 const fs = require('fs');
 
-// TODO -- to be removed
-// testing only
+// TODO -- to be removed testing only
 const mockupData = {
     dataframes: {
         "df1": ["v_1_1", "v_1_2", "v_1_3", "v_1_4", "v_1_5", "v_1_6" ],
@@ -23,11 +22,22 @@ const mockupData = {
 
 // we use this variable to send invisible data to R
 let invisible = false;
+let dataFromR;
 
 const comm = {
     // used for window resize event
     initial: true,
 
+    // start the app
+    initializeCommunication: function(dependencies)
+    {
+        // send function to communicate to r
+        // ptyProcess.write('');
+
+        // TODO -- remove only for testing -- 
+        // send message about the missing packages
+        ipcRenderer.send('missingPackages', ['abcdeFBA', 'ACNE', 'Emilian']);
+    },
     // run a command
     runRCommand: function(command)
     {
@@ -46,10 +56,8 @@ const comm = {
         // TODO -- parse data and emit different events
         // ipcRenderer.emit('backFromR', data);
         console.log('process');
-        
         // send message about the missing packages
         // ipcRenderer.send('missingPackages', 'QCA, abcdeFBA, ACNE');
-        
     },
     // resize the terminal with the window
     resizeTerm: function()
@@ -65,7 +73,7 @@ const comm = {
         ptyRows = newHeight;
 
         xterm.resize(newWidth, newHeight);
-        ptyProcess.resize(newWidth, newHeight);
+        // ptyProcess.resize(newWidth, newHeight); -- problem with xterm
 
         // add resize listener
         if (this.initial) {
@@ -111,7 +119,8 @@ let initializeXTerm = true;
 if (os.platform() === 'win32') {
     // shell = 'cmd.exe';
     // shell = 'bash.exe';
-    shell = 'powershell.exe';
+    // shell = 'powershell.exe';
+    shell = 'pwsh.exe';
     rShortcutOS = 'R.exe -q --no-save\r\n';
 } else {
     shell= 'bash';
@@ -119,13 +128,12 @@ if (os.platform() === 'win32') {
 }
 const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
-    cols: 80,
-    rows: 30,
+    cols: 500,
+    rows: 100,
     cwd: process.env.HOME,
     env: process.env,
-    // encoding: null
+    conptyInheritCursor: false
 });
-
 
 // Setup communication between xterm.js and node-pty
 xterm.onData(function sendData(data) {
@@ -133,27 +141,29 @@ xterm.onData(function sendData(data) {
 });
 
 let countP = 0;
-// // Setup communication between node-pty and xterm.js
+// Setup communication between node-pty and xterm.js
 ptyProcess.on('data', function (data) 
-{      
-    // console.log(typeof data);
-    // console.trace(data.toString());
+{
+    // console.log(data.replace(/[^ -~]+/g, ""));          
+    // console.log(data.replace(/[^\x20-\x7E]+/g, ''));  
+    console.log(data);
     
-    const prompter = data.charAt(6) === ">";
+    // process.stdout.write(data.toString('ascii'));          
+    // const prompter = data.charAt(6) === ">";
 
-    if (initializeXTerm) {
-        data = '';
-        if (prompter) {
-            xterm.write('\r\n');
-            xterm.write(' R-GUI-MainApp terminal\r\n');
-            xterm.write('\r\n');
-            xterm.write('> ');
-            // invisible = true;
-            // ptyProcess.write('1 + 1\n');
-            initializeXTerm = false;  
-        }
-        return;    
-    }
+    // if (initializeXTerm) {
+    //     data = '';
+    //     if (prompter) {
+    //         xterm.write('\r\n');
+    //         xterm.write(' R-GUI-MainApp terminal\r\n');
+    //         xterm.write('\r\n');
+    //         xterm.write('> ');
+    //         // invisible = true;
+    //         // ptyProcess.write('1 + 1\n');
+    //         initializeXTerm = false;  
+    //     }
+    //     return;    
+    // }
 
     // if (invisible) {
     //     if (prompter) countP++;
@@ -164,8 +174,8 @@ ptyProcess.on('data', function (data)
     //         comm.processData(data);
     //     }
     // } 
-    if (data !==' ') {
-        if (data.indexOf("Error: ") >= 0) {
+    if (data !=='') {
+        if (data.indexOf("Error ") >= 0) {
             // make line red
             xterm.write(colors.red(data));
         } else {

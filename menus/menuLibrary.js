@@ -1,6 +1,4 @@
 const { dialog } = require('electron');
-const fs = require('fs');
-const path = require('path');
 const upath = require("upath");
 
 
@@ -82,15 +80,15 @@ const menuLibrary = {
         return {
             label : menuLibrary.i18next.t(dialogName),
             click(){
-                fs.readFile(path.resolve('./dialogs/' + dialogID + '.json'), 'UTF8', (err, data) => {
-                    if ( err ) {
-                        dialog.showMessageBox(menuLibrary.theWindow, {type: "info", message: menuLibrary.i18next.t("No functionality for this item!"), title: menuLibrary.i18next.t("Error"), buttons: ["OK"]});
-                    } else {
-                        let lastState = menuLibrary.theSettings.dialogs[dialogID] ? menuLibrary.theSettings.dialogs[dialogID] : null;
-                        
-                        dialogBuilder.build(dialogID, data, menuLibrary.theWindow, lastState);                      
-                    }
-                });
+                // retrive the last state
+                let lastState = menuLibrary.theSettings.dialogs[dialogID] ? menuLibrary.theSettings.dialogs[dialogID] : null;
+                dialogBuilder.build(
+                    dialogID, 
+                    menuLibrary.theWindow, 
+                    menuLibrary.i18next,
+                    menuLibrary.theSettings.missingPackages,
+                    lastState
+                );  
             }
         };
     },

@@ -33,5 +33,7 @@
   "DataFromRTesting": "DataFromRTesting",
   "No file selected! Please select a file first": {
     "": "No file selected! Please select a file first."
-  }
+  },
+  "Dialog required package(s) missing!": "Dialog required package(s) missing!",
+  "Required package(s) are missing!": "Required package(s) are missing!"
 }

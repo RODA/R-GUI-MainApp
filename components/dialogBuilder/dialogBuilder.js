@@ -1,33 +1,49 @@
 const { dialog, BrowserWindow, ipcMain } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
 // the list of windows / dialogs
 let windowsList = {};
 
 const dialogBuilder = {
     // get data from menu builder and try to create the window
-    build: function(dialogID, data, parentWindow, lastState)
+    build: function(dialogID, parentWindow, i18next, missingPackages, lastState)
     {
-        let dialogData;
-        try {
-            dialogData = JSON.parse(data);
-        }
-        catch (error) {
-            // show message and return
-            dialog.showMessageBox(parentWindow, {type: "error", message: "Dialog data error!", title: "Error", buttons: ["OK"]});
-            return;
-        }
-        // we have the dialog data try to make the window
-        if (dialogData !== void 0) {
-            this.makeTheWindow(
-                dialogData.properties.title,
-                dialogData.properties.width,
-                dialogData.properties.height,
-                parentWindow,
-                dialogData, 
-                lastState,
-                dialogID
-            );
-        }
+        fs.readFile(path.resolve('./dialogs/' + dialogID + '.json'), 'UTF8', (err, data) => {
+            if ( err ) {
+                dialog.showMessageBox(parentWindow, {type: "info", message: i18next.t("No functionality for this item!"), title: menuLibrary.i18next.t("Error"), buttons: ["OK"]});
+            } 
+            else {    
+                let dialogData;
+                try {
+                    dialogData = JSON.parse(data);
+                }
+                catch (error) {
+                    // show message and return
+                    dialog.showMessageBox(parentWindow, {type: "error", message: i18next.t("Dialog data error!"), title: i18next.t("Error"), buttons: ["OK"]});
+                    return;
+                }
+                // we have the dialog data try to make the window
+                if (dialogData !== void 0) {
+                    let missing = this.checkForPackages(dialogData.properties.dependencies, missingPackages);
+
+                    if (!missing) {
+                        this.makeTheWindow(
+                            dialogData.properties.title,
+                            dialogData.properties.width,
+                            dialogData.properties.height,
+                            parentWindow,
+                            dialogData, 
+                            lastState,
+                            dialogID
+                        );
+                    } else {
+                        dialog.showMessageBox(parentWindow, {type: "error", message: i18next.t("Required package(s) are missing!"), title: i18next.t("Error"), buttons: ["OK"]});
+                        return;
+                    }
+                } 
+            }
+        });
     },
 
     // make the if not already build
@@ -78,6 +94,19 @@ const dialogBuilder = {
             windowsList[dialogID] = theWindow;
         }
     },
+
+    // check for required packages
+    checkForPackages: function(dependencies, missing)
+    {
+        let packages = dependencies.split(';');
+        let resp = false;
+        for (let i = 0; i < packages.length; i++) {
+            if (missing.includes(packages[i])) {
+                resp = true;
+            }
+        } 
+        return resp;
+    }
 };
 
 // populate window with existing data
