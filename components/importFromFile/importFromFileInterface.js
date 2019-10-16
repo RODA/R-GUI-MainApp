@@ -82,7 +82,7 @@ ipcRenderer.on('dataLoaded', (event, args) => {
         if (theCommand === '') {
             dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {type: "info", message: i18next.t("No file selected! Please select a file first."), title: i18next.t("Error"), buttons: ["OK"]});
         } else {
-            ipcRenderer.send('dialogRunCommand', theCommand);   
+            ipcRenderer.send('runCommand', theCommand);   
             BrowserWindow.getFocusedWindow().close();
         }
     });

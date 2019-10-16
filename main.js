@@ -88,8 +88,8 @@ function createMainWindow () {
     });
     // when data is ready show window
     mainWindow.once("show", () => {
-        // check for dependencies
-        mainWindow.webContents.send('initializeApp', theSettings.dependencies);
+        let appPath = path.resolve('./'); 
+        mainWindow.webContents.send('initializeApp', {dependencies: theSettings.dependencies, appPath: appPath});
     });
 }
 
@@ -140,7 +140,7 @@ ipcMain.on('dialogCommandUpdate', (event, args) => {
   mainWindow.webContents.send('commandSyntax', args);
 });
 // run a dialog's command
-ipcMain.on('dialogRunCommand', (event, args) => {
-  mainWindow.webContents.send('dialogRunCommand', args);
+ipcMain.on('runCommand', (event, args) => {
+  mainWindow.webContents.send('runCommand', args);
 });
 

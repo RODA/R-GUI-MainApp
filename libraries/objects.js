@@ -82,7 +82,7 @@ var objects =
         {            
             if (data.type == "run"){
                 // send the command to main
-                ipcRenderer.send('dialogRunCommand', objects.command);
+                ipcRenderer.send('runCommand', objects.command);
             } else if (data.type == "reset") {
                 dialog.showMessageBox(objectsWindow, {type: "question", message: "Are you sure you want to reset the dialog?", title: "Reset dialog", buttons: ["No", "Yes"]}, (response) => {
                     if (response) {

@@ -11,7 +11,7 @@ const dialogBuilder = {
     {
         fs.readFile(path.resolve('./dialogs/' + dialogID + '.json'), 'UTF8', (err, data) => {
             if ( err ) {
-                dialog.showMessageBox(parentWindow, {type: "info", message: i18next.t("No functionality for this item!"), title: menuLibrary.i18next.t("Error"), buttons: ["OK"]});
+                dialog.showMessageBox(parentWindow, {type: "info", message: i18next.t("No functionality for this item!"), title: i18next.t("Error"), buttons: ["OK"]});
             } 
             else {    
                 let dialogData;

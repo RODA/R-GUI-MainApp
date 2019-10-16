@@ -9,7 +9,7 @@
 
 * dialogCurrentStateUpdate -- This is used to save a dialog state so it can be restored on reopen.
 
-* dialogRunCommand -- This is used to send the dialog command to R
+* runCommand -- This is used to send the dialog command to R
 
 * dialogCommandUpdate -- This is used to send the R command to the main window for the preview
 

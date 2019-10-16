@@ -47,6 +47,10 @@ ipcRenderer.on('dialogCreated', (event, args) => {
     ipcRenderer.send('dialogInitialData', {name: args.name, data: data});
 });
 // run a R commmand from a dialog
-ipcRenderer.on('dialogRunCommand', (event, args) => {
+ipcRenderer.on('runCommand', (event, args) => {
     comm.runRCommand(args);
+});
+// run a R commmand from system | invisible
+ipcRenderer.on('runCommandInvisible', (event, args) => {
+    comm.runRCommandInvisible(args);
 });

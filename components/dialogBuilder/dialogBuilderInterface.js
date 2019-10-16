@@ -24,3 +24,15 @@ ipcRenderer.on('dialogInitialData', (event, args) => {
 ipcRenderer.on('dataUpdateFromR', (event, args) => {
     objects.incommingUpdateDataFromR(args);
 });
+
+// multiple select for container
+document.addEventListener("keydown", event => {
+    if (event.key === 'Shift') {
+        objects.keyPressedEvent(event.key, true);
+    }
+});
+document.addEventListener("keyup", event => {
+    if (event.key === 'Shift') {
+        objects.keyPressedEvent(event.key, false);
+    }
+});
