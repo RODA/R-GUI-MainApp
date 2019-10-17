@@ -63,19 +63,19 @@ env$RGUI_jsonify <- function(x, space = FALSE) {
                 nmsi <- names(xi)
                 if (is.null(nmsi)) {
                     # unnamed list, ex. theData
-                    result <- paste(result, "'", nms[i], "'", ": [", Recall(xi), "]",  sep = "")
+                    result <- paste(result, "\"", nms[i], "\"", ": [", Recall(xi), "]",  sep = "")
                 }
                 else {
                     if (is.null(xi)) {
-                        result <- paste(result, "'", nms[i], "'", ": undefined", sep = "")
+                        result <- paste(result, "\"", nms[i], "\"", ": undefined", sep = "")
                     }
                     else {
-                        result <- paste(result, "'", nms[i], "'", ": {", Recall(xi), "}",  sep = "")
+                        result <- paste(result, "\"", nms[i], "\"", ": {", Recall(xi), "}",  sep = "")
                     }
                 }
             }
             else {
-                result <- paste(result, "'", nms[i], "'", ": {}",  sep = "")
+                result <- paste(result, "'", nms[i], "\"", ": {}",  sep = "")
             }
         }
         else {
@@ -84,8 +84,8 @@ env$RGUI_jsonify <- function(x, space = FALSE) {
             collapse <- ", "
             prefix <- ""
             if (is.character(xi)) {
-                collapse <- "`, `"
-                prefix <- "`"
+                collapse <- '", "'
+                prefix <- '"'
             }
             
             if (is.logical(x[[i]])) {
@@ -94,7 +94,7 @@ env$RGUI_jsonify <- function(x, space = FALSE) {
             result <- paste(result,
                 ifelse (is.null(nms[i]), 
                     sprintf(ifelse(length(x[[i]]) > 1, " [ %s%s%s ]", "%s%s%s"), prefix, paste(x[[i]], collapse = collapse), prefix),
-                    sprintf(ifelse(length(x[[i]]) > 1, "'%s': [ %s%s%s ]", "'%s': %s%s%s"), nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
+                    sprintf(ifelse(length(x[[i]]) > 1, '"%s": [ %s%s%s ]', '"%s": %s%s%s'), nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
                 )
             )
 

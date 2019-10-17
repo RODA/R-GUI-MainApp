@@ -31,10 +31,6 @@
   "Quotes": "Quotes",
   "Comment": "Comment",
   "DataFromRTesting": "DataFromRTesting",
-  "No file selected! Please select a file first": {
-    "": "No file selected! Please select a file first."
-  },
-  "Dialog required package(s) missing!": "Dialog required package(s) missing!",
-  "Required package(s) are missing!": "Required package(s) are missing!",
-  "Testing data from R": "Testing data from R"
+  "Testing data from R": "Testing data from R",
+  "Required package(s) not installed QCA": "Required package(s) not installed QCA"
 }

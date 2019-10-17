@@ -3,17 +3,25 @@ const pty = require('node-pty');
 const Terminal = require('xterm').Terminal;
 const { ipcRenderer } = require('electron');
 const { BrowserWindow } = require('electron').remote;
+const logger = require('./logging');
 // const fs = require('fs');
 const commHelpers = require('./communicationHelpers');
 
 // TODO -- to be removed testing only
+
 const mockupData = {
-    dataframes: {
-        "df1": ["v_1_1", "v_1_2", "v_1_3", "v_1_4", "v_1_5", "v_1_6" ],
+    df: {
+        "df1": {colnames: ["v_1_1", "v_1_2", "v_1_3", "v_1_4", "v_1_5", "v_1_6" ],
+                rownames: [],
+                vdata: [[], [], ],
+                srow: 67,
+                scol: 23,
+                vrow: 17,
+                vcol: 9},
         "df2": ["v_2_1", "v_2_2", "v_2_3", "v_2_4", "v_2_5", "v_2_6" ],
         "df3": ["v_3_1", "v_3_2", "v_3_3", "v_3_4", "v_3_5", "v_3_6" ]
     },
-    selectData: {
+    select: {
         "dataframe": ["df1", "df2", "df3"],
         "matrix": ["m1", "m2", "m3"],
         "vector": ["v1", "v2", "v3"],
@@ -21,8 +29,10 @@ const mockupData = {
     }
 };
 
+let infoData = {};
+
 // we use this variable to send invisible data to R
-let invisible = false;
+let invisible = true;
 let dataFromR;
 
 const comm = {
@@ -34,9 +44,8 @@ const comm = {
     {
         invisible = true;
         // send function to communicate to r
-        ptyProcess.write('source("' + data.appPath + '/RGUI_call.R")\n');
         // send function to check for dependencies
-        ptyProcess.write('RGUI_call(list(dependencies = list(' + commHelpers.Rify({ x: data.dependencies}) + ')))\n');
+        ptyProcess.write('source("' + data.appPath + '/RGUI_call.R"); aa <- data.frame(A = 1:5); RGUI_call(list(dependencies = list(' + commHelpers.Rify({ x: data.dependencies}) + ')))\n');
     },
     // run a command
     runRCommand: function(command)
@@ -56,10 +65,35 @@ const comm = {
     // process invisible data
     processData: function(data) 
     {
-        // TODO -- parse data and emit different events
-        // ipcRenderer.emit('backFromR', data);
-        console.log('process');
-        console.log(data);
+        
+        
+        let rParsed = data.split('\n');
+        console.log(rParsed);
+        if (rParsed.length === 2 || !rParsed[0].indexOf('--no-save')) {
+            try{
+                rParsed = JSON.parse(rParsed[1]);
+            }
+            catch(error) {
+                logger.error('Could not parse data from R | ' + error);
+            }   
+        }        
+
+        if (rParsed !== void 0) 
+        {
+            // missing packages - first time only
+            if (rParsed.missing !== void 0) {
+                ipcRenderer.send('missingPackages', rParsed.missing);
+            }
+
+            
+
+
+        }
+        // console.log();
+
+
+        response = '';
+        invisible = false;
         // TODO -- remove only for testing -- 
         // send message about the missing packages
         // ipcRenderer.send('missingPackages', ['abcdeFBA', 'ACNE', 'QCA']);
@@ -121,6 +155,8 @@ xterm.open(document.getElementById('xterm'));
 let shell;
 let rShortcutOS = "";
 let initializeXTerm = true;
+let typing = false;
+let response = '';
 if (os.platform() === 'win32') {
     // shell = 'cmd.exe';
     // shell = 'bash.exe';
@@ -129,7 +165,7 @@ if (os.platform() === 'win32') {
     rShortcutOS = 'R.exe -q --no-save\r\n';
 } else {
     shell= 'bash';
-    rShortcutOS = 'R -q --no-save\r\n';
+    rShortcutOS = 'R -q --no-save\n';
 }
 const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
@@ -142,6 +178,7 @@ const ptyProcess = pty.spawn(shell, [], {
 
 // Setup communication between xterm.js and node-pty
 xterm.onData(function sendData(data) {
+    typing = true;
     ptyProcess.write(data);
 });
 
@@ -149,30 +186,39 @@ let countP = 0;
 // Setup communication between node-pty and xterm.js
 ptyProcess.on('data', function (data) 
 {
+    console.log(data);
+    
     const prompter = data.charAt(0) === ">";
-    if (initializeXTerm) {
-        data = '';
-        if (prompter) {
-            // xterm.write('\r\n');
-            // xterm.write(' R-GUI-MainApp terminal\r\n');
-            // xterm.write('\r\n');
-            // xterm.write('> ');
-            // invisible = true;
-            // ptyProcess.write('1 + 1\n');
-            initializeXTerm = false;  
-        }
-        return;    
-    }
+    // // 
+    // if (prompter) { 
+    //     countP++; 
+    // }
+
+    // if (initializeXTerm) {
+    //     data = '';
+    //     if (prompter) {
+    //         // xterm.write('\r\n');
+    //         // xterm.write(' R-GUI-MainApp terminal\r\n');
+    //         // xterm.write('\r\n');
+    //         // xterm.write('> ');
+    //         // invisible = true;
+    //         // ptyProcess.write('1 + 1\n');
+    //         initializeXTerm = false;  
+    //     }
+    //     return;    
+    // }
     
     // we should have only one line
+    // console.trace(invisible);
+    // console.log(prompter);
+    
     if (invisible) {
-        if (prompter) {
-            comm.processData(data);
-            invisible = false;
+        if (!prompter) {
+            response += data;
+        } else {
+            comm.processData(response);
         }
-        data = '';
-        return;
-    }
+    } else
     // send data to terminal 
     if (data !=='') {
         if (data.indexOf("Error ") >= 0) {
@@ -181,6 +227,9 @@ ptyProcess.on('data', function (data)
         } else {
             // write to terminal
             xterm.write(data);
+        }
+        if (prompter) {
+            comm.runRCommandInvisible(commHelpers.Rify())
         }
     }
 });

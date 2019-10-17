@@ -115,7 +115,7 @@ ipcMain.on('missingPackages', (event, args) => {
   if (args.length > 0) {
     // save the missing packages
     theSettings.missingPackages = args;
-    dialog.showMessageBox(mainWindow, {type: "warning", message: "The folowing packages: "+ args +" are missing or not install in R. Some dialogs will not work. Please install the packages and restart the application.", title: "Warning", buttons: ["OK"]});
+    // dialog.showMessageBox(mainWindow, {type: "warning", message: "The folowing packages: "+ args +" are missing or not install in R. Some dialogs will not work. Please install the packages and restart the application.", title: "Warning", buttons: ["OK"]});
   }
 }); 
 

@@ -26,7 +26,8 @@ const dialogBuilder = {
                 // we have the dialog data try to make the window
                 if (dialogData !== void 0) {
                     let missing = this.checkForPackages(dialogData.properties.dependencies, missingPackages);
-                    if (!missing) {
+                    
+                    if (missing.length === 0) {
                         this.makeTheWindow(
                             dialogData.properties.title,
                             dialogData.properties.width,
@@ -37,7 +38,7 @@ const dialogBuilder = {
                             dialogID
                         );
                     } else {
-                        dialog.showMessageBox(parentWindow, {type: "error", message: i18next.t("Required package(s) are missing!"), title: i18next.t("Error"), buttons: ["OK"]});
+                        dialog.showMessageBox(parentWindow, {type: "error", message: i18next.t( "Required package(s) not installed " + missing), title: i18next.t("Error"), buttons: ["OK"]});
                         return;
                     }
                 } 
@@ -96,15 +97,19 @@ const dialogBuilder = {
 
     // check for required packages
     checkForPackages: function(dependencies, missing)
-    {
+    {   
         let packages = dependencies.split(';');
-        let resp = false;
+        let resp = '';
+        let first = true;
+        
         // nothing missing
         if (missing.length === 0) { return resp; }
         
+        
         for (let i = 0; i < packages.length; i++) {
-            if (missing.includes(packages[i])) {
-                resp = true;
+            if (missing.includes(packages[i])) {       
+                resp += (first?'':', ') + packages[i];
+                first = false;
             }
         } 
         return resp;
