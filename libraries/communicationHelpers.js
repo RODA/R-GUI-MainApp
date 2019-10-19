@@ -31,7 +31,10 @@ const communicationHelpers = {
         if (this.missing(first)) first = true;
         let result = '';
         // console.log(obj)
-        if (obj instanceof Array) {
+        if (obj === null) {
+            result += "c()";
+        }
+        else if (obj instanceof Array) {
             if (obj.length > 1) result += 'c(';
             const objnum = this.isNumeric(obj)[0];
             result += (objnum ? '' : '"');

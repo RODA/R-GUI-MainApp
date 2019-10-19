@@ -3,6 +3,7 @@
 # do.call(options, list(width = 1000, help_type = "html"))
 
 
+
 # RGUI_call(list(
 #     library = list(package = "venn"),
 #     options = list(width = 1000, help_type = "html")
@@ -13,14 +14,18 @@ attach(NULL, name = "RGUI")
 env <- as.environment("RGUI")
 
 env$RGUI_first <- TRUE
+env$RGUI_formatted <- TRUE
 env$RGUI_hashes <- list()
+env$RGUI_objtype <- list()
 env$RGUI_visiblecols <- 8 # visible columns \
 env$RGUI_visiblerows <- 17 # visible rows   / from (size of) the data editor in the GUI
 
 
 env$RGUI_numhash <- function(x) {
-    mean(as.integer(charToRaw(paste(capture.output(.Internal(inspect(x))), collapse = ""))))
+    strobj <- paste(capture.output(.Internal(inspect(x))), collapse = "\n")
+    return(mean(as.integer(charToRaw(strobj))))
 }
+
 
 
 env$RGUI_possibleNumeric <- function(x) {
@@ -44,13 +49,16 @@ env$RGUI_possibleNumeric <- function(x) {
     return(!any(is.na(suppressWarnings(as.numeric(na.omit(x))))))
 }
 
-env$RGUI_jsonify <- function(x, space = FALSE) {
+env$RGUI_jsonify <- function(x, n = 2) {
     # x should ALWAYS  be a list
     # whose components are either:
     # - lists, when RGUI_jsonify() will be Recall()-ed recursively
     # or
     # - vectors
+    # the argument n helps indent the JSON output
 
+    indent <- paste(rep(" ", n*4), collapse = "")
+    followup <- paste(rep(" ", (n - 1)*4), collapse = "")
     nms <- names(x)
     result <- ""
     for (i in seq(length(x))) {
@@ -61,21 +69,22 @@ env$RGUI_jsonify <- function(x, space = FALSE) {
             
             if (length(xi) > 0) {
                 nmsi <- names(xi)
+
                 if (is.null(nmsi)) {
-                    # unnamed list, ex. theData
-                    result <- paste(result, "\"", nms[i], "\"", ": [", Recall(xi), "]",  sep = "")
+                    # unnamed list, ex. vdata
+                    result <- paste(result, "\"", nms[i], "\": [\n", indent, Recall(xi, n = n + 1), "\n", followup, "]",  sep = "")
                 }
                 else {
                     if (is.null(xi)) {
                         result <- paste(result, "\"", nms[i], "\"", ": undefined", sep = "")
                     }
                     else {
-                        result <- paste(result, "\"", nms[i], "\"", ": {", Recall(xi), "}",  sep = "")
+                        result <- paste(result, "\"", nms[i], "\"", ": {\n", indent, Recall(xi, n = n + 1), "\n", followup, "}",  sep = "")
                     }
                 }
             }
             else {
-                result <- paste(result, "'", nms[i], "\"", ": {}",  sep = "")
+                result <- paste(result, "\"", nms[i], "\"", ": {}",  sep = "")
             }
         }
         else {
@@ -91,25 +100,31 @@ env$RGUI_jsonify <- function(x, space = FALSE) {
             if (is.logical(x[[i]])) {
                 x[[i]] <- gsub("TRUE", "true", gsub("FALSE", "false", as.character(x[[i]])))
             }
+
+            x[[i]] <- gsub('"', '\\\\\"', x[[i]])
+            # check <- length(x[[i]]) > 1 | is.character(x)
             result <- paste(result,
                 ifelse (is.null(nms[i]), 
-                    sprintf(ifelse(length(x[[i]]) > 1, " [ %s%s%s ]", "%s%s%s"), prefix, paste(x[[i]], collapse = collapse), prefix),
-                    sprintf(ifelse(length(x[[i]]) > 1, '"%s": [ %s%s%s ]', '"%s": %s%s%s'), nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
-                )
-            )
+                    # sprintf(ifelse(check, "[%s%s%s]", "%s%s%s"), prefix, paste(x[[i]], collapse = collapse), prefix),
+                    # sprintf(ifelse(check, '"%s": [%s%s%s]', '"%s": %s%s%s'), nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
+                    sprintf("[%s%s%s]", prefix, paste(x[[i]], collapse = collapse), prefix),
+                    sprintf('"%s": [%s%s%s]', nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
+                ),
+            sep = "")
 
         }
 
         if (i < length(x)) {
-            result <- paste(result, ",", sep = "")
+            result <- paste(result, ",\n", followup, sep = "")
         }
     }
 
-    if (space) {
-        return(result)
-    }
-    
-    return(gsub(" ", "", result))
+    return(result)
+}
+
+env$RGUI_scrollvh <- function(...) {
+    env <- as.environment("RGUI")
+    # fie fac ceva cu ea, fie o sa intre in fata in lista de comenzi, pun informatiile in env si le folosesc mai tarziu
 }
 
 env$RGUI_scrollobj <- function(...) {
@@ -128,7 +143,7 @@ env$RGUI_scrollobj <- function(...) {
     names(tosend) <- names(scrollvh)
     
     for (n in names(scrollvh)) {
-        dimdata <- dim(globalenv()[[n]])
+        dimdata <- dim(.GlobalEnv[[n]])
         nrowd <- dimdata[1]
         ncold <- dimdata[2]
         
@@ -139,49 +154,28 @@ env$RGUI_scrollobj <- function(...) {
         ecol <- min(scol + x$RGUI_visiblecols, ncold)
         
         tosend[[n]] <- list(
-            theData = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
-            dataCoords = paste(srow, scol, erow, ecol, ncold, sep = "_"),
+            vdata = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
+            vcoords = paste(srow, scol, erow, ecol, ncold, sep = "_"),
             scrollvh = c(srow, scol) - 1
         )
     }
     
-    return(env$RGUI_jsonify(list(scrollData = tosend)))
+    return(env$RGUI_jsonify(list(scrolldata = tosend)))
 }
 
 # TO DO: replace scrollvh as an argument with scrollvh from env
-env$RGUI_infobjs <- function(objs) {
+env$RGUI_infobjs <- function(objtype) {
     env <- as.environment("RGUI")
     funargs <- lapply(match.call(), deparse)
-    type <- funargs$objs
     
-    if (!identical(type, "added") & !identical(type, "modified")) {
-        type <- "infobjs"
-    }
-
     visiblerows <- env$RGUI_visiblerows
     visiblecols <- env$RGUI_visiblecols
 
     toreturn <- list()
     
-    objtype <- unlist(lapply(.GlobalEnv, function(x) {
-        if (is.data.frame(x)) { # dataframes
-            return(1)
-        }
-        else if (is.list(x) & !is.data.frame(x)) { # lists but not dataframes
-            return(2)
-        }
-        else if (is.matrix(x)) { # matrices
-            return(3)
-        }
-        else if (is.vector(x) & !is.list(x)) { # vectors
-            return(4)
-        }
-        return(0)
-    }))
-
     if (any(objtype > 0)) {
         if (any(objtype == 1)) { # data frames
-            toreturn$dataframes <- lapply(names(objtype[objtype == 1]), function(n) {
+            toreturn$dataframe <- lapply(names(objtype[objtype == 1]), function(n) {
 
                 dscrollvh <- c(1, 1)
 
@@ -197,43 +191,42 @@ env$RGUI_infobjs <- function(objs) {
                 erow <- min(srow + visiblerows - 1, nrowd)
                 ecol <- min(scol + visiblecols - 1, ncold)
 
-
                 return(list(
                     nrows = nrowd,
                     ncols = ncold,
                     rownames = rownames(.GlobalEnv[[n]]),
                     colnames = colnames(.GlobalEnv[[n]]),
-                    numerics = as.vector(unlist(lapply(.GlobalEnv[[n]], env$RGUI_possibleNumeric))),
+                    numeric = as.vector(unlist(lapply(.GlobalEnv[[n]], env$RGUI_possibleNumeric))),
                     calibrated = as.vector(unlist(lapply(.GlobalEnv[[n]], function(x) {
                         all(na.omit(x) >= 0 & na.omit(x) <= 1)
                     }))),
                     binary = as.vector(unlist(lapply(.GlobalEnv[[n]], function(x) all(is.element(x, 0:1))))),
                     scrollvh = c(srow, scol) - 1, # for Javascript
-                    theData = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
-                    dataCoords = paste(srow, scol, erow, ecol, ncol(.GlobalEnv[[n]]), sep = "_")
+                    vdata = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
+                    vcoords = paste(srow, scol, erow, ecol, ncol(.GlobalEnv[[n]]), sep = "_")
                 ))
                 # scrollvh = c(srow, scol, min(visiblerows, nrow(x)), min(visiblecols, ncol(x))) - 1,
-                # dataCoords = paste(c(srow, scol, erow, ecol, ncol(x)) - 1, collapse="_")
+                # vcoords = paste(c(srow, scol, erow, ecol, ncol(x)) - 1, collapse="_")
             })
-            names(toreturn$dataframes) <- names(objtype[objtype == 1])
+            names(toreturn$dataframe) <- names(objtype[objtype == 1])
         }
 
         if (any(objtype == 2)) {
-            toreturn$lists <- list(names = names(objtype[objtype == 2]))
+            toreturn$list <- names(objtype[objtype == 2])
         }
 
         if (any(objtype == 3)) {
-            toreturn$matrices <- list(names = names(objtype[objtype == 3]))
+            toreturn$matrix <- names(objtype[objtype == 3])
         }
 
         if (any(objtype == 4)) {
-            toreturn$vectors <- list(names = names(objtype[objtype == 4]))
+            toreturn$vector <- names(objtype[objtype == 4])
         }
 
         toreturn <- list(toreturn)
-        names(toreturn) <- type
+        names(toreturn) <- funargs$objtype
 
-        return(env$RGUI_jsonify(toreturn))
+        return(toreturn)
     }
 }
 
@@ -279,45 +272,102 @@ env$RGUI_dependencies <- function(x) { # x contains the packages, as known by th
     return(env$RGUI_jsonify(list(missing = x[!installed])))
 }
 
-env$RGUI_scrollvh <- function(...) {
-    env <- as.environment("RGUI")
-    # fie fac ceva cu ea, fie o sa intre in fata in lista de comenzi, pun informatiile in env si le folosesc mai tarziu
-}
-
 env$RGUI_editorsize <- function(visiblerows, visiblecols) {
     env <- as.environment("RGUI")
     env$RGUI_visiblerows <- visiblerows
     env$RGUI_visiblecols <- visiblecols
 }
 
-env$RGUI_call <- function(commandlist) {
-    env <- as.environment("RGUI")
 
-    nms <- names(commandlist)
+
+env$RGUI_call <- function(commandlist = NULL) {
+    env <- as.environment("RGUI")
     result <- c()
-    
-    # those which have a first Capital letter (such as RGUI_Changes) are called by menus
-    for (n in nms) {
-        if (is.element(n, c("source", "options", "library"))) {
-            do.call(n, commandlist[[n]])
-        }
-        else {
-            result <- c(result, do.call(paste("RGUI", n, sep = "_"), commandlist[[n]]))
+
+    if (!is.null(commandlist)) {
+        nms <- names(commandlist)
+        
+        # those which have a first Capital letter (such as RGUI_Changes) are called by menus
+        for (n in nms) {
+            if (is.element(n, c("source", "options", "library"))) {
+                do.call(n, commandlist[[n]])
+            }
+            else {
+                result <- c(result, do.call(paste("RGUI", n, sep = "_"), commandlist[[n]]))
+            }
         }
     }
     
-    hashes <- lapply(globalenv(), env$RGUI_numhash)
-    added <- setdiff(names(hashes), names(env$RGUI_hashes))
-    deleted <- setdiff(names(env$RGUI_hashes), names(hashes))
-    common <- intersect(names(hashes), names(env$RGUI_hashes))
-    modified <- names(env$RGUI_hashes)[!is.element(env$RGUI_hashes[common], hashes[common])]
-    env$RGUI_hashes <- hashes
-    
-    if (length(added) > 0) result <- c(result, RGUI_infobjs(added))
-    if (length(modified) > 0) result <- c(result, RGUI_infobjs(modified))
-    if (length(deleted) > 0) result <- c(result, RGUI_jsonify(list(deleted = deleted)))
+    objtype <- lapply(.GlobalEnv, function(x) {
+        if (is.data.frame(x)) { # dataframes
+            return(1)
+        }
+        else if (is.list(x) & !is.data.frame(x)) { # lists but not dataframes
+            return(2)
+        }
+        else if (is.matrix(x)) { # matrices
+            return(3)
+        }
+        else if (is.vector(x) & !is.list(x)) { # vectors
+            return(4)
+        }
+        return(0)
+    })
 
-    
+    hashes <- lapply(.GlobalEnv, env$RGUI_numhash) # current objects
+    if (length(objtype) > 0) {
+        hashes <- hashes[objtype > 0]
+        objtype <- objtype[objtype > 0]
+    }
+    deleted <- FALSE
+    changed <- FALSE
+
+    if (length(hashes) > 0) {
+
+        if (length(env$RGUI_hashes) > 0) {
+            # deleted <- setdiff(names(env$RGUI_hashes), names(hashes))
+            deleted <- !is.element(names(env$RGUI_hashes), names(hashes))
+            common <- is.element(names(hashes), names(env$RGUI_hashes))
+            changed <- common & !is.element(hashes[common], env$RGUI_hashes[common])
+            added <- !is.element(names(hashes), names(env$RGUI_hashes))
+            changed <- changed | added
+        }
+        else {
+            changed <- rep(TRUE, length(hashes))
+        }
+    }
+    else {
+        if (length(env$RGUI_hashes) > 0) {
+            deleted <- rep(TRUE, length(env$RGUI_hashes))
+        }
+    }
+
+    if (any(changed)) {
+        changed <- objtype[changed]
+        result <- c(result, RGUI_jsonify(RGUI_infobjs(changed)))
+    }
+
+    if (any(deleted)) {
+        objdel <- env$RGUI_objtype[deleted]
+        deleted <- list()
+        if (any(objdel == 1)) {
+            deleted$dataframe <- names(objdel)[objdel == 1]
+        }
+        if (any(objdel == 2)) {
+            deleted$list <- names(objdel)[objdel == 2]
+        }
+        if (any(objdel == 3)) {
+            deleted$matrix <- names(objdel)[objdel == 3]
+        }
+        if (any(objdel == 4)) {
+            deleted$vector <- names(objdel)[objdel == 4]
+        }
+
+        result <- c(result, RGUI_jsonify(list(deleted = deleted)))
+    }
+
+    env$RGUI_hashes <- hashes # overwrite the hash information
+    env$RGUI_objtype <- objtype
     
     # temp <- tempfile()
     # utils::savehistory(file = temp) # only in Terminal, not working on MacOS
@@ -338,10 +388,16 @@ env$RGUI_call <- function(commandlist) {
     # unlink(temp)
 
     if (length(result) > 0) {
-        cat("{", paste(result, collapse = ", "), "}")
+        result <- paste("{\n    ", paste(result, collapse = ",\n    "), "\n}", sep = "")
+
+        if (!env$RGUI_formatted) {
+            result <- gsub("[[:space:]]", "", result)
+        }
+        
+        cat(result)
+
     }
 }
-
 
 
 rm(env)

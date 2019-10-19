@@ -10,26 +10,38 @@ const commHelpers = require('./communicationHelpers');
 // TODO -- to be removed testing only
 
 const mockupData = {
-    df: {
-        "df1": {colnames: ["v_1_1", "v_1_2", "v_1_3", "v_1_4", "v_1_5", "v_1_6" ],
-                rownames: [],
-                vdata: [[], [], ],
-                srow: 67,
-                scol: 23,
-                vrow: 17,
-                vcol: 9},
-        "df2": ["v_2_1", "v_2_2", "v_2_3", "v_2_4", "v_2_5", "v_2_6" ],
-        "df3": ["v_3_1", "v_3_2", "v_3_3", "v_3_4", "v_3_5", "v_3_6" ]
+    "dataframe": {
+        "df1": {"nrows": [1], // number of rows
+                "ncols": [1], // number of columns
+                "rownames": [],
+                "colnames": [],
+                "numeric": [], // true, false (for all columns)
+                "calibrated": [], // true, false (for all columns)
+                "binary": [], // true, false (for all columns)
+                "scrollvh": [], // length 2: start row and start column
+                "vdata": [[], [], ], // visible data
+                "vcoords": "" // sort of a useful hash for the visible data, something like: "1_1_17_8_50"
+                // "startrow_startcol_endrow_endcol_ncols"
+            },
     },
-    select: {
-        "dataframe": ["df1", "df2", "df3"],
-        "matrix": ["m1", "m2", "m3"],
-        "vector": ["v1", "v2", "v3"],
-        "list": ["l1", "l2", "l3"]
-    }
+    "list": [], // just the names of the objects
+    "matrix": [], // just the names of the objects
+    "vector": [], // just the names of the objects
 };
 
-let infoData = {};
+
+// number of visible rows and columns assume all cells have equal height and width
+// but this might change when further developing the data editor
+let infobjs = {
+    "vrows": 17, // visible rows in (from) the data editor
+    "vcols": 8, // visible columns
+    "active": "", // the name of the currently selected dataframe in the data editor
+    "dataframe": {},
+    "list": [],
+    "matrix": [],
+    "vector": []
+};
+
 
 // we use this variable to send invisible data to R
 let invisible = true;
