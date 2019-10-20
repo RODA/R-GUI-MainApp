@@ -49,7 +49,7 @@ env$RGUI_possibleNumeric <- function(x) {
     return(!any(is.na(suppressWarnings(as.numeric(na.omit(x))))))
 }
 
-env$RGUI_jsonify <- function(x, n = 2) {
+env$RGUI_jsonify <- function(x, n = 1) {
     # x should ALWAYS  be a list
     # whose components are either:
     # - lists, when RGUI_jsonify() will be Recall()-ed recursively
@@ -388,7 +388,7 @@ env$RGUI_call <- function(commandlist = NULL) {
     # unlink(temp)
 
     if (length(result) > 0) {
-        result <- paste("{\n    ", paste(result, collapse = ",\n    "), "\n}", sep = "")
+        result <- paste("{", paste(result, collapse = ",\n"), "}", sep = "")
 
         if (!env$RGUI_formatted) {
             result <- gsub("[[:space:]]", "", result)
@@ -399,5 +399,6 @@ env$RGUI_call <- function(commandlist = NULL) {
     }
 }
 
+aa <- data.frame(A = 1:5)
 
 rm(env)
