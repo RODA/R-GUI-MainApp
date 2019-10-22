@@ -283,7 +283,7 @@ env$RGUI_editorsize <- function(visiblerows, visiblecols) {
 
 
 
-env$RGUI_ping <- function() {
+env$RGUI_call <- function() {
     env <- as.environment("RGUI")
     
     objtype <- lapply(.GlobalEnv, function(x) {
