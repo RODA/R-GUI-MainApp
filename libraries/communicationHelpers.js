@@ -37,9 +37,9 @@ const communicationHelpers = {
         else if (obj instanceof Array) {
             if (obj.length > 1) result += 'c(';
             const objnum = this.isNumeric(obj)[0];
-            result += (objnum ? '' : '"');
-            result += obj.join((objnum ? ',' : '", "'));
-            result += (objnum ? '' : '"');
+            result += (objnum ? '' : '\"');
+            result += obj.join((objnum ? ', ' : '\", \"'));
+            result += (objnum ? '' : '\"');
             if (obj.length > 1) result += ')';
         }
         else if (obj instanceof Object) {
@@ -53,12 +53,12 @@ const communicationHelpers = {
                 }
             }
             else {
-                result += 'x = ""';
+                result += 'x = \"\"';
             }
             result += first?'':')';
         }
         else {
-            result += this.isNumeric(obj)? obj : ('"' + obj + '"');;
+            result += this.isNumeric(obj)? obj : ('\"' + obj + '\"');;
         }
         return(result.replace('false', 'FALSE').replace('true', 'TRUE'));
     }

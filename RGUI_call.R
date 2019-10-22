@@ -19,7 +19,7 @@ env$RGUI_hashes <- list()
 env$RGUI_objtype <- list()
 env$RGUI_visiblecols <- 8 # visible columns \
 env$RGUI_visiblerows <- 17 # visible rows   / from (size of) the data editor in the GUI
-
+env$RGUI_result <- c()
 
 env$RGUI_numhash <- function(x) {
     strobj <- paste(capture.output(.Internal(inspect(x))), collapse = "\n")
@@ -160,7 +160,7 @@ env$RGUI_scrollobj <- function(...) {
         )
     }
     
-    return(env$RGUI_jsonify(list(scrolldata = tosend)))
+    env$RGUI_result <- c(env$RGUI_result, env$RGUI_jsonify(list(scrolldata = tosend)))
 }
 
 # TO DO: replace scrollvh as an argument with scrollvh from env
@@ -226,16 +226,16 @@ env$RGUI_infobjs <- function(objtype) {
         toreturn <- list(toreturn)
         names(toreturn) <- funargs$objtype
 
-        return(toreturn)
+        env$RGUI_result <- c(env$RGUI_result, toreturn)
     }
 }
 
 
-env$RGUI_Changes <- function(x) {
+env$RGUI_ChangeLog <- function(x) {
     env <- as.environment("RGUI")
     # TODO: verify if file ChangeLog exists
     changes <- gsub("`", "'", readLines(system.file("ChangeLog", package = x)))
-    return(env$RGUI_jsonify(list(changes = changes)))
+    env$RGUI_result <- c(env$RGUI_result, env$RGUI_jsonify(list(changes = changes)))
 }
 
 env$RGUI_packages <- function(x) { # x contains the packages, as known by the webpage
@@ -257,7 +257,7 @@ env$RGUI_packages <- function(x) { # x contains the packages, as known by the we
             return(titles) # [1:2]
         })
         names(attached) <- packages
-        return(env$RGUI_jsonify(list(packages = attached)))
+        env$RGUI_result <- c(env$RGUI_result, env$RGUI_jsonify(list(packages = attached)))
     }
 }
 
@@ -269,7 +269,10 @@ env$RGUI_dependencies <- function(x) { # x contains the packages, as known by th
         }
         return(TRUE)
     }))
-    return(env$RGUI_jsonify(list(missing = x[!installed])))
+    
+    if (any(!installed)) {
+        env$RGUI_result <- c(env$RGUI_result, env$RGUI_jsonify(list(missing = x[!installed])))
+    }
 }
 
 env$RGUI_editorsize <- function(visiblerows, visiblecols) {
@@ -280,23 +283,8 @@ env$RGUI_editorsize <- function(visiblerows, visiblecols) {
 
 
 
-env$RGUI_call <- function(commandlist = NULL) {
+env$RGUI_call <- function() {
     env <- as.environment("RGUI")
-    result <- c()
-
-    if (!is.null(commandlist)) {
-        nms <- names(commandlist)
-        
-        # those which have a first Capital letter (such as RGUI_Changes) are called by menus
-        for (n in nms) {
-            if (is.element(n, c("source", "options", "library"))) {
-                do.call(n, commandlist[[n]])
-            }
-            else {
-                result <- c(result, do.call(paste("RGUI", n, sep = "_"), commandlist[[n]]))
-            }
-        }
-    }
     
     objtype <- lapply(.GlobalEnv, function(x) {
         if (is.data.frame(x)) { # dataframes
@@ -344,7 +332,7 @@ env$RGUI_call <- function(commandlist = NULL) {
 
     if (any(changed)) {
         changed <- objtype[changed]
-        result <- c(result, RGUI_jsonify(RGUI_infobjs(changed)))
+        env$RGUI_result <- c(env$RGUI_result, RGUI_jsonify(RGUI_infobjs(changed)))
     }
 
     if (any(deleted)) {
@@ -363,7 +351,7 @@ env$RGUI_call <- function(commandlist = NULL) {
             deleted$vector <- names(objdel)[objdel == 4]
         }
 
-        result <- c(result, RGUI_jsonify(list(deleted = deleted)))
+        env$RGUI_result <- c(env$RGUI_result, RGUI_jsonify(list(deleted = deleted)))
     }
 
     env$RGUI_hashes <- hashes # overwrite the hash information
@@ -387,18 +375,17 @@ env$RGUI_call <- function(commandlist = NULL) {
     # loadhistory(file = temp)
     # unlink(temp)
 
-    if (length(result) > 0) {
-        result <- paste("{", paste(result, collapse = ",\n"), "}", sep = "")
+    if (length(env$RGUI_result) > 0) {
+        env$RGUI_result <- paste("{", paste(env$RGUI_result, collapse = ",\n"), "}", sep = "")
 
         if (!env$RGUI_formatted) {
-            result <- gsub("[[:space:]]", "", result)
+            env$RGUI_result <- gsub("[[:space:]]", "", env$RGUI_result)
         }
         
-        cat(result)
-
+        cat(env$RGUI_result)
     }
-}
 
-aa <- data.frame(A = 1:5)
+    env$RGUI_result <- c() 
+}
 
 rm(env)
