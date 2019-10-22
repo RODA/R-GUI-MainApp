@@ -25,8 +25,8 @@ Split(['#command', '#xterm'], {
     }
 });
 
-ipcRenderer.on('openFile', (event, args) => {
-
+ipcRenderer.on('ptyData', (event, args) => {
+    comm.processData(args);
 });
 
 // change working directory from menu

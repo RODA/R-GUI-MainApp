@@ -1,7 +1,5 @@
 const { dialog } = require('electron');
 const upath = require("upath");
-
-
 const loadFile = require('../components/importFromFile/importFromFile');
 const settings = require('../components/settings/settings');
 const dialogBuilder = require('../components/dialogBuilder/dialogBuilder');
