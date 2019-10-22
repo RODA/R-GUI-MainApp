@@ -136,7 +136,7 @@ const helpers = {
 
     rev: function(obj) // reverse array
     {
-        return([...obj].reverse());
+        return [...obj].reverse();
     },
 
     // adapted from:
@@ -245,79 +245,26 @@ const helpers = {
         return(sorted);
     },
 
-    // taken from http://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
-    objectsEqual: function(x, y) {
-        'use strict';
-    
-        if (x === null || x === undefined || y === null || y === undefined) {
-            return(x === y);
-        }
-        // after this just checking type of one would be enough
-        if (x.constructor !== y.constructor) {
-            return (false);
-        }
-
-        // if they are functions, they should exactly refer to same one (because of closures)
-        if (x instanceof Function) {
-            return(x === y);
-        }
-
-        // if they are regexps, they should exactly refer to same one (it is hard to better equality check on current ES)
-        if (x instanceof RegExp) {
-            return(x === y);
-        }
-
-        if (x === y || x.valueOf() === y.valueOf()) {
-            return (true);
-        }
-
-        if (x instanceof Array && x.length !== y.length) {
-            return (false);
-        }
-    
-        // if they are dates, they must had equal valueOf
-        if (x instanceof Date) {
-            return (false);
-        }
-    
-        // if they are strictly equal, they both need to be object at least
-        if (!(x instanceof Object)) {
-            return (false);
-        }
-
-        if (!(y instanceof Object)) {
-            return (false);
-        }
-    
-        // recursive object equality check
-        let p = Object.keys(x);
-        return(Object.keys(y).every(function (i) {
-            return(p.indexOf(i) !== -1);
-        }) && p.every(function (i) {
-            return(this.objectsEqual(x[i], y[i]));
-        }));
-    },
-
     arraysEqual: function(a, b) {
         if (a === b) {
-            return (true);
+            return true;
         }
         
         if (a == null || b == null) {
-            return (false);
+            return false;
         }
 
         if (a.length != b.length) {
-            return (false);
+            return false;
         }
         
         for (let i = 0; i < a.length; ++i) {
             if (a[i] !== b[i]) {
-                return(false);
+                return false;
             }
         }
 
-        return(true);
+        return true;
     },
 
     getKeys: function(obj) {
@@ -368,7 +315,7 @@ const helpers = {
         }
         
         for (let i = 0; i < obj.length; i++) {
-            if (["number", "string"].indexOf(typeof(value)) < 0) {
+            if (!["number", "string"].includes(typeof(value))) {
                 return(null);
             }
 
@@ -398,7 +345,7 @@ const helpers = {
         }
         
         for (let i = 0; i < obj.length; i++) {
-            if (["number", "string"].indexOf(typeof(value)) < 0) {
+            if (!["number", "string"].includes(typeof(value))) {
                 return(null);
             }
 
@@ -411,77 +358,45 @@ const helpers = {
     },
 
     rep: function(rule, times) {
-        let result = new Array(times);
-        for (let i = 0; i < times; i++) {
-            result[i] = rule;
-        }
-        return(result);
+        return Array(times).fill(rule);
     },
 
     unique: function(obj) {
     
         if (obj instanceof Array) {
-            return([...new Set(obj)]);
+            return [...new Set(obj)];
         }
 
-        return(null);
-
-        // old code
-        // let uniques = new Array();
-        // for (let i = 0; i < obj.length; i++) {
-            
-        //     if (uniques.indexOf(obj[i]) < 0) {
-        //         uniques.push(obj[i]);
-        //     }
-            
-        // }
-        
-        // return(uniques);
-    },
-
-    min: function(obj) { // obj needs to be a vector, an array
-        let minval = null;
-        
-        if (!(obj instanceof Array)) {
-            return(minval);
+        if (["number", "string"].includes(typeof(obj))) {
+            return obj;
         }
-        
-        for (let i = 0; i < obj.length; i++) {
-            if (obj[i] !== null && this.isNumeric(obj[i])) {
-                if (minval === null) {
-                    minval = obj[i];
-                }
-                else {
-                    if (minval > obj[i]) {
-                        minval = obj[i];
-                    }
-                }
-            }
-        }
-        return(minval);
+
+        return null;
     },
 
     max: function(obj) {
-        let maxval = null;
-        
-        if (!(obj instanceof Array)) {
-            return(maxval);
+        if (!this.isNumeric(obj)) {
+            return null;
         }
-        
-        for (let i = 0; i < obj.length; i++) {
-            if (obj[i] !== null && this.isNumeric(obj[i])) {
-                if (maxval === null) {
-                    maxval = obj[i];
-                }
-                else {
-                    if (maxval < obj[i]) {
-                        maxval = obj[i];
-                    }
-                }
-            }
+
+        if (obj instanceof Array) {
+            return Math.min(...obj);
         }
-        return(maxval);
-    }, 
+
+        return obj;
+    },
+
+    max: function(obj) {
+        if (!this.isNumeric(obj)) {
+            return null;
+        }
+
+        if (obj instanceof Array) {
+            return Math.max(...obj);
+        }
+
+        return obj;
+    },
 
     paste: function(obj, options) {
         if (!(obj instanceof Array)) { // obj needs to be an array
@@ -574,7 +489,19 @@ const helpers = {
         }
         
         return(out);
-    }, 
+    },
+
+    intersect: function(x, y) {
+        return this.unique(x).filter(item => y.includes(item));
+    },
+
+    setdiff: function(x, y) {
+        return this.unique(x).filter(item => !y.includes(item));
+    },
+
+    union: function(x, y) {
+        return this.unique([...x, ...y]);
+    },
 
     Rify: function(obj, first) {
         if (this.missing(first)) {
