@@ -59,8 +59,9 @@ const comm = {
         // send function to check for dependencies
         ptyProcess.write([
             'source("' + data.appPath + '/RGUI_call.R")',
-            // 'aa <- data.frame(A = 1:5)',
+            'aa <- data.frame(A = 1:5)',
             'RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + ')',
+            'RGUI_call()',
             '' // just to make sure there is a final enter
         ].join("\n"));
     },
