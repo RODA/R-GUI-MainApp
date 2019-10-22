@@ -7,7 +7,7 @@ ipcRenderer.on('initializeApp', (event, args) => {
     // resize terminal according to window size
     comm.resizeTerm();    
     // check for R packages dependencies
-    comm.initializeCommunication(args); 
+    comm.initiateCommunication(args); 
 });
 
 Split(['#command', '#xterm'], {

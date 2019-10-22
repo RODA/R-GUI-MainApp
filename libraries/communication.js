@@ -80,7 +80,7 @@ const comm = {
         invisible = true;
         // send function to communicate to r
         // send function to check for dependencies
-        ipcRenderer.send([
+        ipcRenderer.send('toPtyData', [
             'source("' + data.appPath + '/RGUI_call.R")',
             'aa <- data.frame(A = 1:5)',
             'RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + ')',
