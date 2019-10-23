@@ -118,7 +118,6 @@ ipcMain.on('missingPackages', (event, args) => {
   if (args.length > 0) {
     // save the missing packages
     theSettings.missingPackages = args;
-    // dialog.showMessageBox(mainWindow, {type: "warning", message: "The folowing packages: "+ args +" are missing or not install in R. Some dialogs will not work. Please install the packages and restart the application.", title: "Warning", buttons: ["OK"]});
   }
 }); 
 
@@ -145,38 +144,4 @@ ipcMain.on('dialogCommandUpdate', (event, args) => {
 // run a dialog's command
 ipcMain.on('runCommand', (event, args) => {
   mainWindow.webContents.send('runCommand', args);
-});
-
-// terminal PTY
-let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
-process.env.TERM = 1;
-process.env.WINPTY_FLAG_PLAIN_OUTPUT = 1;
-const ptyProcess = pty.spawn(shell, ['-q', '--no-save', 'WINPTY_FLAG_PLAIN_OUTPUT'], {
-// const ptyProcess = pty.spawn(shell, [], {
-  name: 'xterm-color',
-  cols: 100,
-  rows: 400,
-  cwd: process.env.HOME,
-  env: process.env,
-});
-console.log(process.env);
-
-// send data from pty
-ptyProcess.on('data', function (data) {
-
-  let cleanData = data;
-  // cleanData = data.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-  // let cleanData = data.replace(/\u001b\[.*?m/g, '');
-  
-  if (cleanData.trim().length < 4) {
-    console.log(cleanData);
-  }
-  if (cleanData != '') {
-    mainWindow.webContents.send('ptyData', cleanData);
-  }
-
-});
-// send data to pty
-ipcMain.on('toPtyData', (event, args) => {
-  ptyProcess.write(args);
 });

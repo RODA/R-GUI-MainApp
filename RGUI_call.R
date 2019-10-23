@@ -383,6 +383,8 @@ env$RGUI_call <- function() {
         }
         
         cat(env$RGUI_result)
+        # we return an enter so we can detect the prompter
+        cat('\n\r')
     }
 
     env$RGUI_result <- c() 
