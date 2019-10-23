@@ -55,7 +55,7 @@ const helpers = {
     },
 
     missing: function(x) {
-        return(x === void 0);
+        return x === void 0;
     },
 
     isBoolean: function(obj) { 
@@ -94,44 +94,56 @@ const helpers = {
         //return !isNaN(parseFloat(obj)) && isFinite(obj);
         
     },
+
+    isScalar: function(x) {
+        if (typeof(x) === "number") {
+            // to prevent NaN being considered numeric
+            if (this.isNumeric(x)) return true;
+        }
+        else if (typeof(x) === "string") {
+            return true;
+        }
+
+        return false;
+    },
     
     // https://dev.to/duomly/13-useful-javascript-array-tips-and-tricks-you-should-know-2jfo
     array2object: function(obj)
     {
         if (obj instanceof Array){
-            return({...obj});
+            return {...obj};
         }
-        return(new Object);
+        return new Object;
     },
 
     sum: function(obj)
     {
         if (this.isNumeric(obj)) {
-            return(obj.reduce((x, y) => x + y));
+            return obj.reduce((x, y) => x*1 + y*1);
         }
-        return(null)
+        return null;
     },
 
     prod: function(obj) {
         if (this.isNumeric(obj)) {
-            return(obj.reduce((x, y) => x * y));
+            return obj.reduce((x, y) => x * y);
         }
-        return(null)
+        return null;
     },
 
     which: function(obj) {
         if (!(obj instanceof Array)) {
             return(null);
         }
-        let result = new Array(this.sum(obj));
+        let out = new Array(this.sum(obj));
         let index = 0;
         for (let i = 0; i < obj.length; i++) {
             if (obj[i]) {
-                result[index] = i;
+                out[index] = i;
                 index++;
             }
         }
-        return(result);
+        return out;
     },
 
     rev: function(obj) // reverse array
@@ -145,8 +157,6 @@ const helpers = {
         
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
-        
-        let clone;
         
         // Handle Date
         if (obj instanceof Date) {
@@ -215,6 +225,7 @@ const helpers = {
             if (!this.isNumeric(tmp1)) {
                 tmp2 = tmp2.toLowerCase();
             }
+
             for (j = i - 1; j >= 0; j--) {
                 tmp3 = sorted[j];
                 if (!this.isNumeric(tmp3)) {
@@ -239,10 +250,10 @@ const helpers = {
                     position += 1;
                 }
             }
-            return(cobj);
+            return cobj;
         }
         
-        return(sorted);
+        return sorted;
     },
 
     arraysEqual: function(a, b) {
@@ -269,7 +280,7 @@ const helpers = {
 
     getKeys: function(obj) {
         if (obj === null) return(Array());
-        return(Object.keys(obj));
+        return Object.keys(obj);
     },
 
     getTrueKeys: function(obj) { // get those keys which have a logical true
@@ -294,67 +305,57 @@ const helpers = {
 
     round: function(x, y) {
         y = Math.pow(10, y);
-        return(Math.round(x*y)/y);
+        return Math.round(x*y)/y;
     },
 
     all: function(obj, rule, value) {
-        if (!(obj instanceof Array)) {
-            return(null);
-        }
+        if (!(obj instanceof Array)) return null;
 
-        if (!this.isBoolean(obj)) {
-            return(null)
-        }
+        // this already knows it is an array because of the above
+        if (!this.isBoolean(obj)) return null;
 
         if (this.missing(rule) || this.missing(value)) {
             for (let i = 0; i < obj.length; i++) {
                 if (!obj[i]) return false;
             }
-
             return true;
+        }
+
+        if (!this.isScalar(value)) {
+            console.log("Value should be a scalar.");
+            return null;
         }
         
         for (let i = 0; i < obj.length; i++) {
-            if (!["number", "string"].includes(typeof(value))) {
-                return(null);
-            }
-
-            if (!eval("obj[i]" + rule + value)) {
-                return(false);
-            }
+            if (!eval("obj[i]" + rule + value)) return false;
         }
         
-        return(true);
+        return true;
     },
 
     any: function(obj, rule, value) {
-        if (!(obj instanceof Array)) {
-            return(null);
-        }
-        
-        if (!this.isBoolean(obj)) {
-            return(null)
-        }
+        if (!(obj instanceof Array)) return null;
+
+        // this already knows it is an array because of the above
+        if (!this.isBoolean(obj)) return null;
 
         if (this.missing(rule) || this.missing(value)) {
             for (let i = 0; i < obj.length; i++) {
                 if (obj[i]) return true;
             }
-
             return false;
+        }
+
+        if (!this.isScalar(value)) {
+            console.log("Value should be a scalar.");
+            return null;
         }
         
         for (let i = 0; i < obj.length; i++) {
-            if (!["number", "string"].includes(typeof(value))) {
-                return(null);
-            }
-
-            if (eval("obj[i]" + rule + value)) {
-                return(true);
-            }
+            if (eval("obj[i]" + rule + value)) return true;
         }
         
-        return(false);
+        return false;
     },
 
     rep: function(rule, times) {
@@ -362,50 +363,33 @@ const helpers = {
     },
 
     unique: function(obj) {
-    
-        if (obj instanceof Array) {
-            return [...new Set(obj)];
-        }
+        if (obj instanceof Array) return [...new Set(obj)];
 
-        if (["number", "string"].includes(typeof(obj))) {
-            return obj;
-        }
+        if (isScalar(obj)) return obj;
 
         return null;
     },
 
     max: function(obj) {
-        if (!this.isNumeric(obj)) {
-            return null;
-        }
+        if (!this.isNumeric(obj)) return null;
 
-        if (obj instanceof Array) {
-            return Math.min(...obj);
-        }
+        if (obj instanceof Array) return Math.min(...obj);
 
         return obj;
     },
 
     max: function(obj) {
-        if (!this.isNumeric(obj)) {
-            return null;
-        }
+        if (!this.isNumeric(obj)) return null;
 
-        if (obj instanceof Array) {
-            return Math.max(...obj);
-        }
+        if (obj instanceof Array) return Math.max(...obj);
 
         return obj;
     },
 
     paste: function(obj, options) {
-        if (!(obj instanceof Array)) { // obj needs to be an array
-            return("");
-        }
+        if (!(obj instanceof Array)) return("");
 
-        if (obj.length == 0) {
-            return("");
-        }
+        if (obj.length == 0) return("");
         
         if (this.missing(options)) {
             options = {};
@@ -431,7 +415,7 @@ const helpers = {
             }
         }
         
-        return(result);
+        return result;
     },
 
     reorder: function(obj, from, to) {
@@ -444,12 +428,12 @@ const helpers = {
         keys.splice(to, 0, keys.splice(from, 1)[0]);
         values.splice(to, 0, values.splice(from, 1)[0]);
         
-        let result = {};
+        let out = {};
         for (let i = 0; i < keys.length; i++) {
-            result[keys[i]] = values[i];
+            out[keys[i]] = values[i];
         }
         
-        return(result);
+        return out;
     },
 
     duplicated: function(obj) {
@@ -469,7 +453,7 @@ const helpers = {
             }
         }
 
-        return(out);
+        return out;
     },
 
     duplicates: function(obj) {
@@ -488,7 +472,7 @@ const helpers = {
             }
         }
         
-        return(out);
+        return out;
     },
 
     intersect: function(x, y) {
@@ -538,7 +522,7 @@ const helpers = {
         else {
             result += objnum ? obj : ('\"' + obj + '\"');;
         }
-        return(result.replace('false', 'FALSE').replace('true', 'TRUE'));
+        return result.replace('false', 'FALSE').replace('true', 'TRUE');
     },
 
 
