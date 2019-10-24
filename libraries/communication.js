@@ -42,8 +42,8 @@ let infobjs = {
 
 
 // we use this variable to send invisible data to R
-// let invisible = true;
-// let dataFromR;
+let invisible = true;
+let dataFromR;
 
 // Initialize xterm.js and attach it to the DOM
 const xterm = new Terminal({
@@ -70,25 +70,23 @@ xterm.onData( data => {
     ipcRenderer.send('toPtyData', data);
 });
 
-// global variables
-let responseGlobal = '';
-let invisibleGlobal = false;
-
 const comm = {
+    // used for window resize event
     initial: true,
 
     // start the app
-    // send function to communicate to r
-    // send function to check for dependencies
     initiateCommunication: function(data)
     {
-        invisibleGlobal = true;
-        ipcRenderer.send('toPtyData',
-            'source("' + data.appPath + '/RGUI_call.R");' + 
-            'aa <- data.frame(A = 1:5);' +
-            'RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + ');' +
-            'RGUI_call(); \n'
-        );
+        invisible = true;
+        // send function to communicate to r
+        // send function to check for dependencies
+        ipcRenderer.send('toPtyData', [
+            'source("' + data.appPath + '/RGUI_call.R")',
+            'aa <- data.frame(A = 1:5)',
+            'RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + ')',
+            'RGUI_call()',
+            '' // just to make sure there is a final enter
+        ].join("\n"));
     },
     
     // run a command
@@ -100,71 +98,41 @@ const comm = {
     // run a command without showing the output in the terminal
     runRCommandInvisible: function(command)
     {
-        invisibleGlobal = true;
+        invisible = true;
         ipcRenderer.send('toPtyData', command + '\n');
     },
     
     // process invisible data
     processData: function(data) 
-    {        
-        console.log(data);
-        
-        let prompter = data.charAt(0) === ">";
-        
-        if (invisibleGlobal) {
-            console.log(prompter);
-            
-            if (!prompter) {
-                responseGlobal += data;
-                // console.log(responseGlobal);
-                    
-            } else {       
-                                     
-                comm.processInvisible(responseGlobal);
-            }
-        } 
-        // send data to terminal 
-        else if (data !=='') 
-        {
-            if (data.indexOf("Error ") >= 0) {
-                // make line red
-                xterm.write(colors.red(data));
-            } else {
-                // write to terminal
-                xterm.write(data);
-            }
-            if (prompter) {
-                this.runRCommandInvisible('RGUI_call();')
-            }
-        }
-
-    },
-    processInvisible: function(data)
     {
-        console.log('here');
-        
-        console.log(data);
-        
+        // removing cursor
+        // data = data.replace('\u001b[?25l', '');
+        // data = data.replace('\u001b[?25h', '');
 
-        let rParsed = data.split('\n');
-        console.log(rParsed);
-        if (rParsed.length === 2 || !rParsed[0].indexOf('--no-save')) {
-            try{
-                rParsed = JSON.parse(rParsed[1]);
-            }
-            catch(error) {
-                logger.error('Could not parse data from R | ' + error);
-            }   
-        }        
-        if (rParsed !== void 0) 
-        {
-            // missing packages - first time only
-            if (rParsed.missing !== void 0) {
-                ipcRenderer.send('missingPackages', rParsed.missing);
-            }
-        }
-        responseGlobal = '';
-        invisibleGlobal = false;
+        // data = JSON.parse(data);
+
+        console.log(JSON.stringify(data));
+        
+        xterm.write(data);
+        // let rParsed = data.split('\n');
+        // console.log(rParsed);
+        // if (rParsed.length === 2 || !rParsed[0].indexOf('--no-save')) {
+        //     try{
+        //         rParsed = JSON.parse(rParsed[1]);
+        //     }
+        //     catch(error) {
+        //         logger.error('Could not parse data from R | ' + error);
+        //     }   
+        // }        
+        // if (rParsed !== void 0) 
+        // {
+        //     // missing packages - first time only
+        //     if (rParsed.missing !== void 0) {
+        //         ipcRenderer.send('missingPackages', rParsed.missing);
+        //     }
+        // }
+        // response = '';
+        // invisible = false;
     },
 
     // return current data received from R
@@ -287,10 +255,5 @@ module.exports = comm;
 //     }
 // });
 
-
-
-
-
- 
 
 

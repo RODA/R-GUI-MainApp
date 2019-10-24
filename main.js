@@ -16,6 +16,11 @@ const upath = require("upath");
 process.env.NODE_ENV = 'development';
 // process.env.NODE_ENV = 'production';
 
+// testing flags
+process.env.ELECTRON_NO_ATTACH_CONSOLE = false;
+process.env.WINPTY_FLAG_PLAIN_OUTPUT = true;
+process.env.WINPTY_FLAG_CONERR = true;
+
 // the settings object - to be passed around - add here other properties
 let theSettings = {
   language: 'en',
@@ -144,4 +149,43 @@ ipcMain.on('dialogCommandUpdate', (event, args) => {
 // run a dialog's command
 ipcMain.on('runCommand', (event, args) => {
   mainWindow.webContents.send('runCommand', args);
+});
+
+
+
+ipcMain.on('windowLoaded', (events, args) => {
+    // terminal PTY
+    let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
+    process.env.TERM = 1;
+    process.env.WINPTY_FLAG_PLAIN_OUTPUT = 1;
+    const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
+    // const ptyProcess = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 100,
+    rows: 40,
+    cwd: process.env.HOME,
+    env: process.env,
+    useConpty: true,
+    conptyInheritCursor: true
+    });
+
+    // send data to pty
+    ipcMain.on('toPtyData', (event, args) => {
+        ptyProcess.write(args);
+    });
+    // send data from pty
+    ptyProcess.on('data', function (data) {
+
+        let cleanData = data;
+        // cleanData = data.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+        // let cleanData = data.replace(/\u001b\[.*?m/g, '');
+
+        if (cleanData.trim().length < 4) {
+            console.log(cleanData);
+        }
+        if (cleanData != '') {
+            mainWindow.webContents.send('ptyData', cleanData);
+        }
+
+    });
 });
