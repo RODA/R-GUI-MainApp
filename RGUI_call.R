@@ -226,7 +226,7 @@ env$RGUI_infobjs <- function(objtype) {
         toreturn <- list(toreturn)
         names(toreturn) <- funargs$objtype
 
-        env$RGUI_result <- c(env$RGUI_result, toreturn)
+        env$RGUI_result <- c(env$RGUI_result, RGUI_jsonify(toreturn))
     }
 }
 
@@ -319,8 +319,7 @@ env$RGUI_call <- function() {
             changed <- common & !is.element(hashes[common], env$RGUI_hashes[common])
             added <- !is.element(names(hashes), names(env$RGUI_hashes))
             changed <- changed | added
-        }
-        else {
+        } else {
             changed <- rep(TRUE, length(hashes))
         }
     }
@@ -331,8 +330,11 @@ env$RGUI_call <- function() {
     }
 
     if (any(changed)) {
+        # it is important to overwrite "changed" because RGUI_infobjs()
+        # uses the name of the input object to create the JSON component
         changed <- objtype[changed]
-        env$RGUI_result <- c(env$RGUI_result, RGUI_jsonify(RGUI_infobjs(changed)))
+        # this will add directly in the RGUI_result
+        RGUI_infobjs(changed)
     }
 
     if (any(deleted)) {
