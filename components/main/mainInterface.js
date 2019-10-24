@@ -4,12 +4,15 @@ const comm = require('../../libraries/communication');
 
 
 ipcRenderer.on('initializeApp', (event, args) => {
-    // resize terminal according to window size
-    comm.resizeTerm();    
-    // check for R packages dependencies
-    comm.initiateCommunication(args); 
-
-    ipcRenderer.send('windowLoaded');
+    
+    // waiting for terminal to finish loading
+    setTimeout(function(){
+        // resize terminal according to window size
+        comm.resizeTerm();    
+        // check for R packages dependencies
+        comm.initiateCommunication(args); 
+    }, 200);
+    
 });
 
 Split(['#command', '#xterm'], {
@@ -26,16 +29,6 @@ Split(['#command', '#xterm'], {
         comm.resizeTerm();   
     }
 });
-
-ipcRenderer.on('ptyData', (event, args) => {
-    comm.processData(args);
-});
-
-// change working directory from menu
-// ipcRenderer.on('runRCommandInvisible', (event, args) => {    
-//     comm.setWorkingDirectory(args);    
-// });
-
 
 
 // show current dialog command | update HTML element

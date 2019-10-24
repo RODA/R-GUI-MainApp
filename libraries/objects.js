@@ -233,16 +233,16 @@ var objects =
 
     // new data from R - anounce objects
     incommingDataFromR: function(data)
-    {
+    {        
         if (data !== void 0) {
             // do we have dataframes
-            if (data.dataframes !== void 0) {
-                this.dataframes = data.dataframes;
+            if (data.dataframe !== void 0) {
+                this.dataframes = data.dataframe;
                 objects.events.emit('containerData', this.dataframes);
             }
             // do we have R objects (martix, vectors, etc.)
-            if (data.selectData !== void 0) {
-                this.selectData = data.selectData;
+            if (data.select !== void 0) {
+                this.selectData = data.select;
                 objects.events.emit('selectData', this.selectData);
             }
         }
@@ -284,6 +284,7 @@ var objects =
             objects.events.emit('selectData', this.selectData);
         }
     },
+    
     // Elements 
     // =================================================================
     
@@ -1790,7 +1791,7 @@ var objects =
         objects.events.on('selectData', function(data)
         {
             if(obj.dataSource === 'fromR') {
-                // specific data type
+                // specific data type                
                 if(data[obj.dataValue] !== void 0 && data[obj.dataValue].length > 0) {
                     listSupport.makeSupport(data[obj.dataValue].length);
                     // make the list with tha data

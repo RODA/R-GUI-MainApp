@@ -1,7 +1,11 @@
+// terminal
+const os = require('os');
+const pty = require('node-pty');
 const Terminal = require('xterm').Terminal;
 const { ipcRenderer } = require('electron');
 const { BrowserWindow } = require('electron').remote;
 const logger = require('./logging');
+const upath = require("upath");
 // const fs = require('fs');
 const commHelpers = require('./communicationHelpers');
 
@@ -29,21 +33,31 @@ const mockupData = {
 
 
 // number of visible rows and columns assume all cells have equal height and width
-// but this might change when further developing the data editor
+// but this mig`ht change when further developing the data editor
 let infobjs = {
     "vrows": 17, // visible rows in (from) the data editor
     "vcols": 8, // visible columns
     "active": "", // the name of the currently selected dataframe in the data editor
     "dataframe": {},
-    "list": [],
-    "matrix": [],
-    "vector": []
+    "select": {
+        "list": [],
+        "matrix": [],
+        "vector": []
+    }
 };
 
-
-// we use this variable to send invisible data to R
-let invisible = true;
-let dataFromR;
+    // terminal PTY
+let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
+const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
+    // const ptyProcess = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 100,
+    rows: 40,
+    cwd: process.env.HOME,
+    env: process.env,
+    useConpty: true,
+    conptyInheritCursor: true
+});
 
 // Initialize xterm.js and attach it to the DOM
 const xterm = new Terminal({
@@ -66,27 +80,58 @@ const xterm = new Terminal({
 
 xterm.open(document.getElementById('xterm'));
 // Setup communication between xterm.js and node-pty
-xterm.onData( data => {
-    ipcRenderer.send('toPtyData', data);
+xterm.onData( data => { ptyProcess.write(data); });
+
+// we use this variable to send invisible data to R
+let invisible = true;
+let response;
+
+ptyProcess.on('data', data => {
+    
+    // let prompter = data.charAt(6) === ">";
+    // let prompter = data.includes(">");
+    // console.log(data);
+    
+    xterm.write(data);
+
+    // if (invisible) {
+    //     if (!prompter) {
+    //         response += data;
+    //     } else {
+    //         comm.processData(response);
+    //     }
+    // } else
+    // // send data to terminal 
+    // if (data !=='') {
+    //     if (data.indexOf("Error ") >= 0) {
+    //         // make line red
+    //         xterm.write(colors.red(data));
+    //     } else {
+    //         // write to terminal
+    //         xterm.write(data);
+    //     }
+    //     if (prompter) {
+    //         comm.runRCommandInvisible(commHelpers.Rify());
+    //     }
+    // }
 });
+const mkd = require('./test.json');
+// const mkd = JSON.parse(testData);
+// console.log(mkd);
+
 
 const comm = {
     // used for window resize event
     initial: true,
 
     // start the app
+    // send function to communicate to r
+    // send function to check for dependencies
     initiateCommunication: function(data)
-    {
-        invisible = true;
-        // send function to communicate to r
-        // send function to check for dependencies
-        ipcRenderer.send('toPtyData', [
-            'source("' + data.appPath + '/RGUI_call.R")',
-            'aa <- data.frame(A = 1:5)',
-            'RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + ')',
-            'RGUI_call()',
-            '' // just to make sure there is a final enter
-        ].join("\n"));
+    {       
+        let commands = 'source("' + data.appPath + '/RGUI_call.R"); aa <- data.frame(A = 1:5); RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + '); RGUI_call();';
+        this.runRCommandInvisible(commands);
+        comm.processData(mkd);
     },
     
     // run a command
@@ -99,46 +144,108 @@ const comm = {
     runRCommandInvisible: function(command)
     {
         invisible = true;
-        ipcRenderer.send('toPtyData', command + '\n');
+        ptyProcess.write(command + '\n');
     },
     
     // process invisible data
     processData: function(data) 
     {
-        // removing cursor
-        // data = data.replace('\u001b[?25l', '');
-        // data = data.replace('\u001b[?25h', '');
+        // let obj = JSON.parse(data);
+        let obj = data;
 
-        // data = JSON.parse(data);
-
-        console.log(JSON.stringify(data));
-        
-        xterm.write(data);
-        // let rParsed = data.split('\n');
-        // console.log(rParsed);
-        // if (rParsed.length === 2 || !rParsed[0].indexOf('--no-save')) {
-        //     try{
-        //         rParsed = JSON.parse(rParsed[1]);
-        //     }
-        //     catch(error) {
-        //         logger.error('Could not parse data from R | ' + error);
-        //     }   
-        // }        
-        // if (rParsed !== void 0) 
-        // {
-        //     // missing packages - first time only
-        //     if (rParsed.missing !== void 0) {
-        //         ipcRenderer.send('missingPackages', rParsed.missing);
-        //     }
-        // }
-        // response = '';
-        // invisible = false;
+        // anounce missing packages || only when the app starts
+        if (obj.missing !== void 0) {
+            // do we have any?
+            if (obj.missing.length > 0) {
+                ipcRenderer.send('missingPackages', obj.missing);
+            }
+        }
+        // anything changed
+        if (obj.changed !== void 0) {
+            for( let key in obj.changed) {
+                // update / create data frame
+                if (key === 'dataframe') {
+                    for (let i in obj.changed[key]) {
+                        if (infobjs.dataframe[i] === void 0) {
+                            infobjs.dataframe[i] = {};
+                            infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
+                        } else {
+                            infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
+                        }
+                    }
+                }
+                // update / create list
+                if (key === 'list') {
+                    for (let i = 0; i < obj.changed[key].length; i++) {
+                        if (!infobjs.select.list[i].includes(obj.changed[key][i])) {
+                            infobjs.select.list.push(obj.changed[key][i]);
+                        }
+                    }
+                }
+                // update / create matrix
+                if (key === 'matrix') {
+                    for (let i = 0; i < obj.changed[key].length; i++) {
+                        if (!infobjs.select.matrix[i].includes(obj.changed[key][i])) {
+                            infobjs.select.matrix.push(obj.changed[key][i]);
+                        }
+                    }
+                }
+                // update / create vector
+                if (key === 'vector') {
+                    for (let i = 0; i < obj.changed[key].length; i++) {
+                        if (!infobjs.select.vector[i].includes(obj.changed[key][i])) {
+                            infobjs.select.vector.push(obj.changed[key][i]);
+                        }
+                    }
+                }
+            }
+        }
+        // is any element deleted ?
+        if (obj.deleted !== void 0) {
+            for( let key in obj.changed) {
+                // delete data frame
+                if (key === 'dataframe') {
+                    for (let i in obj.changed[key]) {
+                        if (infobjs.dataframe[i] !== void 0) {
+                            delete infobjs.dataframe[i];
+                        }
+                    }
+                }
+                // delete list
+                if (key === 'list') {
+                    for (let i = 0; i < obj.changed[key].length; i++) {
+                        let index = infobjs.select.list[i].indexOf(obj.changed[key][i]);
+                        if ( index != -1) {
+                            infobjs.select.list.splice(index, 1);
+                        }
+                    }
+                }
+                // delete matrix
+                if (key === 'matrix') {
+                    for (let i = 0; i < obj.changed[key].length; i++) {
+                        let index = infobjs.select.matrix[i].indexOf(obj.changed[key][i]);
+                        if ( index != -1) {
+                            infobjs.select.matrix.splice(index, 1);
+                        }
+                    }
+                }
+                // delete vector
+                if (key === 'vector') {
+                    for (let i = 0; i < obj.changed[key].length; i++) {
+                        let index = infobjs.select.vector[i].indexOf(obj.changed[key][i]);
+                        if ( index != -1) {
+                            infobjs.select.vector.splice(index, 1);
+                        }
+                    }
+                }
+            }
+        }
     },
 
-    // return current data received from R
+    // return current data
     getCurrentData: function()
     {
-        return mockupData;
+        return infobjs;
     },
 
     // Helpers ===========================================================
@@ -198,62 +305,3 @@ const comm = {
 };
 
 module.exports = comm;
-
-
-
-
-
-// let countP = 0;
-// Setup communication between node-pty and xterm.js
-// ptyProcess.on('data', function (data) 
-// {
-//     console.log(data);
-    
-//     const prompter = data.charAt(0) === ">";
-//     // // 
-//     // if (prompter) { 
-//     //     countP++; 
-//     // }
-
-//     // if (initializeXTerm) {
-//     //     data = '';
-//     //     if (prompter) {
-//     //         // xterm.write('\r\n');
-//     //         // xterm.write(' R-GUI-MainApp terminal\r\n');
-//     //         // xterm.write('\r\n');
-//     //         // xterm.write('> ');
-//     //         // invisible = true;
-//     //         // ptyProcess.write('1 + 1\n');
-//     //         initializeXTerm = false;  
-//     //     }
-//     //     return;    
-//     // }
-    
-//     // we should have only one line
-//     // console.trace(invisible);
-//     // console.log(prompter);
-    
-//     if (invisible) {
-//         if (!prompter) {
-//             response += data;
-//         } else {
-//             comm.processData(response);
-//         }
-//     } else
-//     // send data to terminal 
-//     if (data !=='') {
-//         if (data.indexOf("Error ") >= 0) {
-//             // make line red
-//             xterm.write(colors.red(data));
-//         } else {
-//             // write to terminal
-//             xterm.write(data);
-//         }
-//         if (prompter) {
-//             comm.runRCommandInvisible(commHelpers.Rify())
-//         }
-//     }
-// });
-
-
-
