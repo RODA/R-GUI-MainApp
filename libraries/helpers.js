@@ -106,6 +106,14 @@ const helpers = {
 
         return false;
     },
+
+    isTrue: function(x) {
+        return x === true;
+    },
+
+    isFalse: function(x) {
+        return x === false;
+    },
     
     // https://dev.to/duomly/13-useful-javascript-array-tips-and-tricks-you-should-know-2jfo
     array2object: function(obj)
@@ -308,54 +316,30 @@ const helpers = {
         return Math.round(x*y)/y;
     },
 
-    all: function(obj, rule, value) {
+    all: function(obj, fun) {
         if (!(obj instanceof Array)) return null;
 
-        // this already knows it is an array because of the above
-        if (!this.isBoolean(obj)) return null;
+        if (this.missing(fun)) return obj.every(this.isTrue);
 
-        if (this.missing(rule) || this.missing(value)) {
-            for (let i = 0; i < obj.length; i++) {
-                if (!obj[i]) return false;
-            }
-            return true;
-        }
-
-        if (!this.isScalar(value)) {
-            console.log("Value should be a scalar.");
+        if (typeof fun !== "function") {
+            console.log("Argument fun should be a function.");
             return null;
         }
-        
-        for (let i = 0; i < obj.length; i++) {
-            if (!eval("obj[i]" + rule + value)) return false;
-        }
-        
-        return true;
+
+        return obj.every(fun);
     },
 
-    any: function(obj, rule, value) {
+    any: function(obj, fun) {
         if (!(obj instanceof Array)) return null;
 
-        // this already knows it is an array because of the above
-        if (!this.isBoolean(obj)) return null;
+        if (this.missing(fun)) return obj.some(this.isTrue);
 
-        if (this.missing(rule) || this.missing(value)) {
-            for (let i = 0; i < obj.length; i++) {
-                if (obj[i]) return true;
-            }
-            return false;
-        }
-
-        if (!this.isScalar(value)) {
-            console.log("Value should be a scalar.");
+        if (typeof fun !== "function") {
+            console.log("Argument fun should be a function.");
             return null;
         }
         
-        for (let i = 0; i < obj.length; i++) {
-            if (eval("obj[i]" + rule + value)) return true;
-        }
-        
-        return false;
+        return obj.some(fun);
     },
 
     rep: function(rule, times) {
