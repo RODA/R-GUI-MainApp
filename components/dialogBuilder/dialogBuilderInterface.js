@@ -16,7 +16,7 @@ ipcRenderer.on('dialogCreated', (event, args) =>
 });
 
 // load data received from R
-ipcRenderer.on('dialogInitialData', (event, args) => {
+ipcRenderer.on('dialogIncomingData', (event, args) => {
     objects.incommingDataFromR(args);
 });
 

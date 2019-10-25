@@ -5,12 +5,14 @@ const comm = require('../../libraries/communication');
 
 ipcRenderer.on('initializeApp', (event, args) => {
     
+    
+    
     // waiting for terminal to finish loading
     setTimeout(function(){
         // resize terminal according to window size
         comm.resizeTerm();    
         // check for R packages dependencies
-        comm.initiateCommunication(args); 
+        comm.initiateCommunication(args);   
     }, 200);
     
 });
@@ -36,11 +38,6 @@ ipcRenderer.on('commandSyntax', (event, args) => {
     document.getElementById('command').innerHTML = args;
 });
 
-// dialog send initial data
-ipcRenderer.on('dialogCreated', (event, args) => {
-    let data = comm.getCurrentData();
-    ipcRenderer.send('dialogInitialData', {name: args.name, data: data});
-});
 // run a R commmand from a dialog
 ipcRenderer.on('runCommand', (event, args) => {
     comm.runRCommand(args);
@@ -48,4 +45,10 @@ ipcRenderer.on('runCommand', (event, args) => {
 // run a R commmand from system | invisible
 ipcRenderer.on('runCommandInvisible', (event, args) => {
     comm.runRCommandInvisible(args);
+});
+
+// dialog send initial data
+ipcRenderer.on('dialogCreated', (event, args) => {
+    let data = comm.getCurrentData();
+    ipcRenderer.send('dialogIncomingData', {name: args.name, data: data});
 });

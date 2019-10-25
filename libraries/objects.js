@@ -248,42 +248,42 @@ var objects =
         }
     },
     // update current data 
-    incommingUpdateDataFromR: function(data)
-    {
-        // TODO --- container does not save selected value to be fixed; add also for selects to set the value again
-        console.log(data);
-        console.log(objects.dialogCurrentData);
-        console.log(objects.containersList);
+    // incommingUpdateDataFromR: function(data)
+    // {
+    //     // TODO --- container does not save selected value to be fixed; add also for selects to set the value again
+    //     console.log(data);
+    //     console.log(objects.dialogCurrentData);
+    //     console.log(objects.containersList);
         
-        if (data.dataframes !== void 0) {
-            for ( let key in data.dataframes) {
-                if (this.dataframes[key] === void 0) {
-                    this.dataframes[key] = {};
-                }
-                this.dataframes[key] = data.dataframes[key];
-            }
-            objects.events.emit('containerData', this.dataframes);
+    //     if (data.dataframes !== void 0) {
+    //         for ( let key in data.dataframes) {
+    //             if (this.dataframes[key] === void 0) {
+    //                 this.dataframes[key] = {};
+    //             }
+    //             this.dataframes[key] = data.dataframes[key];
+    //         }
+    //         objects.events.emit('containerData', this.dataframes);
 
 
-            for (let i = 0;i < objects.containersList.length; i++) {
-                // reseting values
-                console.log(objects.dialogCurrentData[objects.containersList[i]]);
+    //         for (let i = 0;i < objects.containersList.length; i++) {
+    //             // reseting values
+    //             console.log(objects.dialogCurrentData[objects.containersList[i]]);
                 
-                // if (objects.dialogCurrentData[objects.containersList[i]] !== void 0) {
-                //     objects.dialogCurrentData[objects.containersList[i]].setValue(objects.dialogCurrentData[objects.containersList[i]].value);
-                // }
-            }
-        } 
-        else if (data.selectData !== void 0) {
-            for ( let key in data.selectData) {
-                if (this.selectData[key] === void 0) {
-                    this.selectData[key] = {};
-                }
-                this.selectData[key] = data.selectData[key];
-            }
-            objects.events.emit('selectData', this.selectData);
-        }
-    },
+    //             // if (objects.dialogCurrentData[objects.containersList[i]] !== void 0) {
+    //             //     objects.dialogCurrentData[objects.containersList[i]].setValue(objects.dialogCurrentData[objects.containersList[i]].value);
+    //             // }
+    //         }
+    //     } 
+    //     else if (data.selectData !== void 0) {
+    //         for ( let key in data.selectData) {
+    //             if (this.selectData[key] === void 0) {
+    //                 this.selectData[key] = {};
+    //             }
+    //             this.selectData[key] = data.selectData[key];
+    //         }
+    //         objects.events.emit('selectData', this.selectData);
+    //     }
+    // },
     
     // Elements 
     // =================================================================

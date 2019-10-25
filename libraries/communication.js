@@ -1,16 +1,121 @@
-// terminal
 const os = require('os');
 const pty = require('node-pty');
 const Terminal = require('xterm').Terminal;
+const chalk = require('chalk')
 const { ipcRenderer } = require('electron');
 const { BrowserWindow } = require('electron').remote;
 const logger = require('./logging');
 const upath = require("upath");
-// const fs = require('fs');
 const commHelpers = require('./communicationHelpers');
+const stripAnsi = require('strip-ansi');
+
+
+// we use this variable to send invisible data to R
+let invisible = true;
+let response;
+
+// Initialize xterm.js and attach it to the DOM
+const xterm = new Terminal({
+    fontSize: 13,
+    tabStopWidth: 4,
+    cursorBlink: true,
+    cursorStyle: 'bar',
+    cols: 10,
+    rows: 10,
+    lineHeight: 1,
+    // rendererType: 'dom',
+    theme: {
+        background: '#f8f8f8',
+        foreground: '#000080',
+        cursor: '#ff0000',
+        cursorAccent: '#ff0000',
+        selection: 'rgba(193, 221, 255, 0.5)'
+    }
+});
+
+xterm.open(document.getElementById('xterm'));
+// Setup communication between xterm.js and node-pty
+xterm.onData( data => { 
+    console.log(' --- to pty ---');
+    console.log(data);
+    ptyProcess.write(data);
+});
+
+// terminal PTY
+let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
+let ptyEnv = {
+    TERM: 'xterm-256color',
+    WINPTY_FLAG_PLAIN_OUTPUT: '1',
+    SHELL: shell,
+    USER: process.env.USERNAME,
+    PATH: process.env.PATH,
+    PWD: process.env.PWD,
+    SHLVL: '1',
+    HOME: process.env.HOME,
+    LOGNAME: process.env.USERNAME,
+    _: process.env._
+};
+
+const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
+    // const ptyProcess = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 100,
+    rows: 40,
+    cwd: process.env.HOME,
+    env: ptyEnv,
+    handleFlowControl: false,
+    useConpty: false,
+    conptyInheritCursor: false,
+});
+
+// console.log(process.env);
+
+ptyProcess.on('data', (data) => {
+
+//   console.log(' --- send pty ---');
+//   console.log(JSON.stringify(data));
+
+// let cleanData = stripAnsi(data);
+// console.log(cleanData);
+
+// console.log(JSON.stringify(data));
+
+// console.log(data.includes('>'));
+
+  // let prompter = data.charAt(6) === ">";
+  let prompter = data.includes(">");
+  // console.log(data);
+//   xterm.write(data);
+
+  if (invisible) {
+      if (!prompter) {
+          // clean response and add
+          response += stripAnsi(data).trim();
+      } else {
+            response += stripAnsi(data).trim();
+            comm.processData(response);
+      }
+  } else
+  // send data to terminal 
+  if (data !=='') {
+      if (data.indexOf("Error ") >= 0) {
+          // make line red
+          xterm.write(chalk.red(data));
+      } else {
+          // write to terminal
+          xterm.write(data);
+      }
+      if (prompter) {
+          comm.runRCommandInvisible(commHelpers.Rify());
+      }
+  }
+});
+ptyProcess.on('exit', (code, signal) => {
+  ptyProcess.kill();
+});
+
 
 // TODO -- to be removed testing only
-
 const mockupData = {
     "dataframe": {
         "df1": {"nrows": [], // number of rows
@@ -46,79 +151,10 @@ let infobjs = {
     }
 };
 
-    // terminal PTY
-let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
-const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
-    // const ptyProcess = pty.spawn(shell, [], {
-    name: 'xterm-color',
-    cols: 100,
-    rows: 40,
-    cwd: process.env.HOME,
-    env: process.env,
-    useConpty: true,
-    conptyInheritCursor: true
-});
 
-// Initialize xterm.js and attach it to the DOM
-const xterm = new Terminal({
-    fontSize: 13,
-    tabStopWidth: 4,
-    cursorBlink: true,
-    cursorStyle: 'bar',
-    cols: 10,
-    rows: 10,
-    lineHeight: 1,
-    // rendererType: 'dom',
-    theme: {
-        background: '#f8f8f8',
-        foreground: '#000080',
-        cursor: '#ff0000',
-        cursorAccent: '#ff0000',
-        selection: 'rgba(193, 221, 255, 0.5)'
-    }
-});
-
-xterm.open(document.getElementById('xterm'));
-// Setup communication between xterm.js and node-pty
-xterm.onData( data => { ptyProcess.write(data); });
-
-// we use this variable to send invisible data to R
-let invisible = true;
-let response;
-
-ptyProcess.on('data', data => {
-    
-    // let prompter = data.charAt(6) === ">";
-    // let prompter = data.includes(">");
-    // console.log(data);
-    
-    xterm.write(data);
-
-    // if (invisible) {
-    //     if (!prompter) {
-    //         response += data;
-    //     } else {
-    //         comm.processData(response);
-    //     }
-    // } else
-    // // send data to terminal 
-    // if (data !=='') {
-    //     if (data.indexOf("Error ") >= 0) {
-    //         // make line red
-    //         xterm.write(colors.red(data));
-    //     } else {
-    //         // write to terminal
-    //         xterm.write(data);
-    //     }
-    //     if (prompter) {
-    //         comm.runRCommandInvisible(commHelpers.Rify());
-    //     }
-    // }
-});
 const mkd = require('./test.json');
 // const mkd = JSON.parse(testData);
 // console.log(mkd);
-
 
 const comm = {
     // used for window resize event
@@ -131,7 +167,7 @@ const comm = {
     {       
         let commands = 'source("' + data.appPath + '/RGUI_call.R"); aa <- data.frame(A = 1:5); RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + '); RGUI_call();';
         this.runRCommandInvisible(commands);
-        comm.processData(mkd);
+        // comm.processData(mkd);
     },
     
     // run a command
@@ -150,96 +186,114 @@ const comm = {
     // process invisible data
     processData: function(data) 
     {
-        // let obj = JSON.parse(data);
-        let obj = data;
-
-        // anounce missing packages || only when the app starts
-        if (obj.missing !== void 0) {
-            // do we have any?
-            if (obj.missing.length > 0) {
-                ipcRenderer.send('missingPackages', obj.missing);
+        try {
+            var jsonData = this.getJsonText(data);
+            console.log(jsonData);
+            
+            if (jsonData) {
+                let obj = JSON.parse(jsonData);  
+            
+                // anounce missing packages || only when the app starts
+                if (obj.missing !== void 0) {
+                    // do we have any?
+                    if (obj.missing.length > 0) {
+                        ipcRenderer.send('missingPackages', obj.missing);
+                    }
+                }
+                // anything changed
+                if (obj.changed !== void 0) {
+                    for( let key in obj.changed) {
+                        // update / create data frame
+                        if (key === 'dataframe') {
+                            for (let i in obj.changed[key]) {
+                                if (infobjs.dataframe[i] === void 0) {
+                                    infobjs.dataframe[i] = {};
+                                    // infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
+                                    infobjs.dataframe[i] = obj.changed[key][i];
+                                } else {
+                                    // infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
+                                    infobjs.dataframe[i] = obj.changed[key][i];
+                                }
+                            }
+                        }
+                        // update / create list
+                        if (key === 'list') {
+                            for (let i = 0; i < obj.changed[key].length; i++) {
+                                if (!infobjs.select.list[i].includes(obj.changed[key][i])) {
+                                    infobjs.select.list.push(obj.changed[key][i]);
+                                }
+                            }
+                        }
+                        // update / create matrix
+                        if (key === 'matrix') {
+                            for (let i = 0; i < obj.changed[key].length; i++) {
+                                if (!infobjs.select.matrix[i].includes(obj.changed[key][i])) {
+                                    infobjs.select.matrix.push(obj.changed[key][i]);
+                                }
+                            }
+                        }
+                        // update / create vector
+                        if (key === 'vector') {
+                            for (let i = 0; i < obj.changed[key].length; i++) {
+                                if (!infobjs.select.vector[i].includes(obj.changed[key][i])) {
+                                    infobjs.select.vector.push(obj.changed[key][i]);
+                                }
+                            }
+                        }
+                    }
+                }
+                // is any element deleted ?
+                if (obj.deleted !== void 0) {
+                    for( let key in obj.changed) {
+                        // delete data frame
+                        if (key === 'dataframe') {
+                            for (let i in obj.changed[key]) {
+                                if (infobjs.dataframe[i] !== void 0) {
+                                    delete infobjs.dataframe[i];
+                                }
+                            }
+                        }
+                        // delete list
+                        if (key === 'list') {
+                            for (let i = 0; i < obj.changed[key].length; i++) {
+                                let index = infobjs.select.list[i].indexOf(obj.changed[key][i]);
+                                if ( index != -1) {
+                                    infobjs.select.list.splice(index, 1);
+                                }
+                            }
+                        }
+                        // delete matrix
+                        if (key === 'matrix') {
+                            for (let i = 0; i < obj.changed[key].length; i++) {
+                                let index = infobjs.select.matrix[i].indexOf(obj.changed[key][i]);
+                                if ( index != -1) {
+                                    infobjs.select.matrix.splice(index, 1);
+                                }
+                            }
+                        }
+                        // delete vector
+                        if (key === 'vector') {
+                            for (let i = 0; i < obj.changed[key].length; i++) {
+                                let index = infobjs.select.vector[i].indexOf(obj.changed[key][i]);
+                                if ( index != -1) {
+                                    infobjs.select.vector.splice(index, 1);
+                                }
+                            }
+                        }
+                    }
+                }  
             }
+            
         }
-        // anything changed
-        if (obj.changed !== void 0) {
-            for( let key in obj.changed) {
-                // update / create data frame
-                if (key === 'dataframe') {
-                    for (let i in obj.changed[key]) {
-                        if (infobjs.dataframe[i] === void 0) {
-                            infobjs.dataframe[i] = {};
-                            infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
-                        } else {
-                            infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
-                        }
-                    }
-                }
-                // update / create list
-                if (key === 'list') {
-                    for (let i = 0; i < obj.changed[key].length; i++) {
-                        if (!infobjs.select.list[i].includes(obj.changed[key][i])) {
-                            infobjs.select.list.push(obj.changed[key][i]);
-                        }
-                    }
-                }
-                // update / create matrix
-                if (key === 'matrix') {
-                    for (let i = 0; i < obj.changed[key].length; i++) {
-                        if (!infobjs.select.matrix[i].includes(obj.changed[key][i])) {
-                            infobjs.select.matrix.push(obj.changed[key][i]);
-                        }
-                    }
-                }
-                // update / create vector
-                if (key === 'vector') {
-                    for (let i = 0; i < obj.changed[key].length; i++) {
-                        if (!infobjs.select.vector[i].includes(obj.changed[key][i])) {
-                            infobjs.select.vector.push(obj.changed[key][i]);
-                        }
-                    }
-                }
-            }
+        catch(e){
+            console.log(' -- no json --');
+            console.log(data);
+            console.log(jsonData);
+            console.log(e);
         }
-        // is any element deleted ?
-        if (obj.deleted !== void 0) {
-            for( let key in obj.changed) {
-                // delete data frame
-                if (key === 'dataframe') {
-                    for (let i in obj.changed[key]) {
-                        if (infobjs.dataframe[i] !== void 0) {
-                            delete infobjs.dataframe[i];
-                        }
-                    }
-                }
-                // delete list
-                if (key === 'list') {
-                    for (let i = 0; i < obj.changed[key].length; i++) {
-                        let index = infobjs.select.list[i].indexOf(obj.changed[key][i]);
-                        if ( index != -1) {
-                            infobjs.select.list.splice(index, 1);
-                        }
-                    }
-                }
-                // delete matrix
-                if (key === 'matrix') {
-                    for (let i = 0; i < obj.changed[key].length; i++) {
-                        let index = infobjs.select.matrix[i].indexOf(obj.changed[key][i]);
-                        if ( index != -1) {
-                            infobjs.select.matrix.splice(index, 1);
-                        }
-                    }
-                }
-                // delete vector
-                if (key === 'vector') {
-                    for (let i = 0; i < obj.changed[key].length; i++) {
-                        let index = infobjs.select.vector[i].indexOf(obj.changed[key][i]);
-                        if ( index != -1) {
-                            infobjs.select.vector.splice(index, 1);
-                        }
-                    }
-                }
-            }
-        }
+        console.log(infobjs);
+        // invisible = false;
+        // response = '';
     },
 
     // return current data
@@ -249,6 +303,17 @@ const comm = {
     },
 
     // Helpers ===========================================================
+    //return a json seq from string
+    getJsonText: function(theString)
+    {
+        let start = theString.indexOf('{');
+        let end = theString.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+            return theString.slice(start, end+1);
+        }else {
+            return false;
+        }
+    },
     // resize the terminal with the window
     resizeTerm: function()
     {
@@ -286,21 +351,6 @@ const comm = {
             timeout = setTimeout(later, wait);
             if (callNow) func.apply(context, args);
         };
-    },
-    // change command color for XTerm
-    colors: {
-        magenta: function(line) {
-            return("\u001b[35m" + line + "\u001b[0m");
-        },
-        blue: function(line) {
-            return("\u001b[34m" + line + "\u001b[0m");
-        },
-        red: function(line) {
-            return("\u001b[31m" + line + "\u001b[0m");
-        },
-        bold: function(line) {
-            return("\u001b[1m" + line + "\u001b[0m");
-        }
     }
 };
 
