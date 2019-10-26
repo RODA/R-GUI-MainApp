@@ -14,7 +14,7 @@ attach(NULL, name = "RGUI")
 env <- as.environment("RGUI")
 
 env$RGUI_first <- TRUE
-env$RGUI_formatted <- TRUE
+env$RGUI_formatted <- FALSE
 env$RGUI_hashes <- list()
 env$RGUI_objtype <- list()
 env$RGUI_visiblecols <- 8 # visible columns \
@@ -57,8 +57,8 @@ env$RGUI_jsonify <- function(x, n = 1) {
     # - vectors
     # the argument n helps indent the JSON output
 
-    indent <- paste(rep(" ", n*4), collapse = "")
-    followup <- paste(rep(" ", (n - 1)*4), collapse = "")
+    # indent <- paste(rep(" ", n*4), collapse = "")
+    # followup <- paste(rep(" ", (n - 1)*4), collapse = "")
     nms <- names(x)
     result <- ""
     for (i in seq(length(x))) {
@@ -72,28 +72,32 @@ env$RGUI_jsonify <- function(x, n = 1) {
 
                 if (is.null(nmsi)) {
                     # unnamed list, ex. vdata
-                    result <- paste(result, "\"", nms[i], "\": [\n", indent, Recall(xi, n = n + 1), "\n", followup, "]",  sep = "")
+                    # result <- paste(result, "\"", nms[i], "\": [\n", indent, Recall(xi, n = n + 1), "\n", followup, "]",  sep = "")
+                    result <- paste(result, "\"", nms[i], "\":[","", Recall(xi, n = n + 1), "", "", "]",  sep = "")
                 }
                 else {
                     if (is.null(xi)) {
-                        result <- paste(result, "\"", nms[i], "\"", ": undefined", sep = "")
+                        result <- paste(result, "\"", nms[i], "\"", ":undefined", sep = "")
                     }
                     else {
-                        result <- paste(result, "\"", nms[i], "\"", ": {\n", indent, Recall(xi, n = n + 1), "\n", followup, "}",  sep = "")
+                        # result <- paste(result, "\"", nms[i], "\"", ": {\n", indent, Recall(xi, n = n + 1), "\n", followup, "}",  sep = "")
+                        result <- paste(result, "\"", nms[i], "\"",":{", "", Recall(xi, n = n + 1), "", "", "}",  sep = "")
                     }
                 }
             }
             else {
-                result <- paste(result, "\"", nms[i], "\"", ": {}",  sep = "")
+                result <- paste(result, "\"", nms[i], "\"", ":{}",  sep = "")
             }
         }
         else {
             # xi is a vector
 
-            collapse <- ", "
+            # collapse <- ", "
+            collapse <- ","
             prefix <- ""
             if (is.character(xi)) {
-                collapse <- '", "'
+                # collapse <- '", "'
+                collapse <- '","'
                 prefix <- '"'
             }
             
@@ -102,20 +106,22 @@ env$RGUI_jsonify <- function(x, n = 1) {
             }
 
             x[[i]] <- gsub('"', '\\\\\"', x[[i]])
+            
             # check <- length(x[[i]]) > 1 | is.character(x)
             result <- paste(result,
                 ifelse (is.null(nms[i]), 
                     # sprintf(ifelse(check, "[%s%s%s]", "%s%s%s"), prefix, paste(x[[i]], collapse = collapse), prefix),
                     # sprintf(ifelse(check, '"%s": [%s%s%s]', '"%s": %s%s%s'), nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
-                    sprintf("[%s%s%s]", prefix, paste(x[[i]], collapse = collapse), prefix),
-                    sprintf('"%s": [%s%s%s]', nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
+                    sprintf("[%s%s%s]", prefix, paste(x[[i]], sep = "", collapse = collapse), prefix),
+                    sprintf('"%s":[%s%s%s]', nms[i], prefix, paste(x[[i]], sep = "", collapse = collapse), prefix)
                 ),
             sep = "")
 
         }
 
         if (i < length(x)) {
-            result <- paste(result, ",\n", followup, sep = "")
+            # result <- paste(result, ",\n", followup, sep = "")
+            result <- paste(result, ",", "", sep = "")
         }
     }
 
@@ -378,15 +384,17 @@ env$RGUI_call <- function() {
     # unlink(temp)
 
     if (length(env$RGUI_result) > 0) {
-        env$RGUI_result <- paste("{", paste(env$RGUI_result, collapse = ",\n"), "}", sep = "")
+        # env$RGUI_result <- paste("{", paste(env$RGUI_result, collapse = ",\n"), "}", sep = "")
+        env$RGUI_result <- paste("{", paste(env$RGUI_result, collapse = ","), "}", sep = "")
 
-        if (!env$RGUI_formatted) {
-            env$RGUI_result <- gsub("[[:space:]]", "", env$RGUI_result)
-        }
+        # if (!env$RGUI_formatted) {
+        #     env$RGUI_result <- gsub("[[:space:]]", "", env$RGUI_result)
+        # }
         
-        cat(env$RGUI_result)
         # we return an enter so we can detect the prompter
-        cat('\n\r')
+        # cat(' startR ' + env$RGUI_result + ' endR ')
+        cat(paste(c('startR', env$RGUI_result, 'endR'), sep = " "))
+        cat('\n');
     }
 
     env$RGUI_result <- c() 
