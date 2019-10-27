@@ -9,26 +9,13 @@ const upath = require("upath");
 const commHelpers = require('./communicationHelpers');
 const stripAnsi = require('strip-ansi');
 
-// Initialize xterm.js and attach it to the DOM
-const xterm = new Terminal({
-    fontSize: 13,
-    tabStopWidth: 4,
-    cursorBlink: true,
-    cursorStyle: 'bar',
-    cols: 10,
-    rows: 10,
-    lineHeight: 1,
-    // rendererType: 'dom',
-    theme: {
-        background: '#f8f8f8',
-        foreground: '#000080',
-        cursor: '#ff0000',
-        cursorAccent: '#ff0000',
-        selection: 'rgba(193, 221, 255, 0.5)'
-    }
-});
+// console.log(process.env);
+// we use this variable to send invisible data to R
+var invisible = false;
+var runFromVisible = false;
+var response = '';
+let typing = false;
 
-xterm.open(document.getElementById('xterm'));
 
 // terminal PTY
 let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
@@ -49,8 +36,8 @@ let ptyEnv = {
 const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
     // const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
-    cols: 100,
-    rows: 40,
+    cols: 500,
+    rows: 50,
     cwd: process.env.HOME,
     env: ptyEnv,
     handleFlowControl: true,
@@ -58,13 +45,36 @@ const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
     conptyInheritCursor: false
 });
 
-// console.log(process.env);
-// we use this variable to send invisible data to R
-var invisible = false;
-var runFromVisible = false;
-var response = '';
-let typing = false;
+// Initialize xterm.js and attach it to the DOM
+const xterm = new Terminal({
+    fontSize: 13,
+    tabStopWidth: 4,
+    cursorBlink: true,
+    cursorStyle: 'bar',
+    cols: 10,
+    rows: 10,
+    lineHeight: 1,
+    // rendererType: 'dom',
+    theme: {
+        background: '#f8f8f8',
+        foreground: '#000080',
+        cursor: '#ff0000',
+        cursorAccent: '#ff0000',
+        selection: 'rgba(193, 221, 255, 0.5)'
+    }
+});
 
+xterm.open(document.getElementById('xterm'));
+// Setup communication between xterm.js and node-pty
+xterm.onData( data => { 
+    ptyProcess.write(data);
+});
+xterm.onKey( (e) => {
+    // on command call RGUI_call()
+    if (e.key === '\r' && e.domEvent.keyCode === 13) {
+        // comm.runRCommandInvisible('RGUI_call()');       
+    }
+});
 // process.stdout.write(chalk.red('Emilian'));
 
 ptyProcess.on('data', (data) => {
@@ -73,20 +83,10 @@ ptyProcess.on('data', (data) => {
     // console.log(stripAnsi(data).replace(/[\r\n]+/g,"").trim());
     console.log(data);
 
-    let prompter = data.charAt(0) === ">";
-    // let prompter = data.includes(">");
-
-    if (invisible && !typing) {
-        if (!prompter) {
-            // clean response and add
-            response += data;
-        } else {
-            response += data;          
-            comm.processData(response);
-            response = '';
-        }
-        // console.log('invisible');
-        
+    if (invisible && !typing) 
+    {
+        response += data;          
+        comm.processData(response);    
     } else
     // send data to terminal 
     if (data !=='') {
@@ -95,33 +95,18 @@ ptyProcess.on('data', (data) => {
             xterm.write(chalk.red(data));
         } else {
             // write to terminal
-            xterm.write(chalk.green(data));
-            
-        }
-        console.log(prompter);
-        
-        if (prompter) {
-            runFromVisible = true;
-            comm.runRCommandInvisible('RGUI_call()');
+            xterm.write(data);
         }
     }    
 });
+
 ptyProcess.on('exit', (code, signal) => {
   ptyProcess.kill();
 });
 
-// Setup communication between xterm.js and node-pty
-xterm.onData( data => { 
-    typing = true;
-    ptyProcess.write(data);
-});
 
-xterm.onKey( (e) => {
-    if (e.key === '' && e.domEvent.code === 'Enter') {
-        typing = false;
-        console.log(e);
-    }
-});
+
+
 // TODO -- to be removed testing only
 const mockupData = {
     "dataframe": {
@@ -196,18 +181,20 @@ const comm = {
     {
         let jsonData = this.getJsonText(data);
 
-        if (!jsonData && runFromVisible) {
-            console.log('nu e');
-            
-            runFromVisible = false;
-            invisible = false;
-            return;
-        }
-
-        try {
-            if (jsonData) {
+        if (!jsonData) {
+            if (data && data.includes('#no data#')) 
+            {
+                invisible = false;
+                response = '';
+                return;
+            }
+        } else {
+            try {
                 let obj = JSON.parse(jsonData);  
                 // anounce missing packages || only when the app starts
+                console.log('--------------------------- changed ------------------------------');
+                console.log(Object.keys(obj.changed));
+                console.log('--------------------------- changed ------------------------------');
                 if (obj.missing !== void 0) {
                     // do we have any?
                     if (obj.missing.length > 0) {
@@ -218,7 +205,6 @@ const comm = {
                 if (obj.changed !== void 0) {
                     for( let key in obj.changed) {
                         // update / create data frame
-                        console.log(key);
                         
                         if (key === 'dataframe') {
                             for (let i in obj.changed[key]) {
@@ -238,7 +224,9 @@ const comm = {
                         // update / create list
                         if (key === 'list') {
                             for (let i = 0; i < obj.changed[key].length; i++) {
-                                if (!infobjs.select.list[i].includes(obj.changed[key][i])) {
+                                if (infobjs.select.list.length === 0) {
+                                    infobjs.select.list.push(obj.changed[key][i]);
+                                } else if (!infobjs.select.list[i].includes(obj.changed[key][i])){
                                     infobjs.select.list.push(obj.changed[key][i]);
                                 }
                             }
@@ -246,7 +234,9 @@ const comm = {
                         // update / create matrix
                         if (key === 'matrix') {
                             for (let i = 0; i < obj.changed[key].length; i++) {
-                                if (!infobjs.select.matrix[i].includes(obj.changed[key][i])) {
+                                if (infobjs.select.matrix.length === 0) {
+                                    infobjs.select.matrix.push(obj.changed[key][i]);
+                                } else if (!infobjs.select.matrix[i].includes(obj.changed[key][i])){
                                     infobjs.select.matrix.push(obj.changed[key][i]);
                                 }
                             }
@@ -254,7 +244,9 @@ const comm = {
                         // update / create vector
                         if (key === 'vector') {
                             for (let i = 0; i < obj.changed[key].length; i++) {
-                                if (!infobjs.select.vector[i].includes(obj.changed[key][i])) {
+                                if (infobjs.select.vector.length === 0) {
+                                    infobjs.select.vector.push(obj.changed[key][i]);
+                                } else if (!infobjs.select.vector[i].includes(obj.changed[key][i])){
                                     infobjs.select.vector.push(obj.changed[key][i]);
                                 }
                             }
@@ -302,12 +294,15 @@ const comm = {
                     }
                 }  
                 invisible = false;
-                ptyProcess.write('\n');
+                response = '';
+                // send update to dialogs
+                ipcRenderer.send('dialogIncomingData', {name: null, data: infobjs});
             }
-        }
-        catch(e){
-            console.log(e);
-            console.log(jsonData);
+            catch(e){
+                console.log(e);
+                console.log(jsonData);
+                invisible = false;
+            }
         }
     },
 
@@ -330,9 +325,12 @@ const comm = {
         if (start !== -1 && end !== -1) {
             newString = cleanString.slice(start+7, end-1);
             // clean string
+            console.log(newString);
+            
             newString = newString.replace(/[^\x20-\x7E]+/g, "");
             newString = newString.replace(/\[0K/g, "");
-            newString = newString.replace(/\[\?25l/g, "");
+            newString = newString.replace(/\[[0-9]+G/g, "");
+            newString = newString.replace(/\[\?25(h|l)/gmu, "");
             return newString;
         }else {
             return false;

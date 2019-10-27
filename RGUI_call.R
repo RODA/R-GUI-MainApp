@@ -73,7 +73,7 @@ env$RGUI_jsonify <- function(x, n = 1) {
                 if (is.null(nmsi)) {
                     # unnamed list, ex. vdata
                     # result <- paste(result, "\"", nms[i], "\": [\n", indent, Recall(xi, n = n + 1), "\n", followup, "]",  sep = "")
-                    result <- paste(result, "\"", nms[i], "\":[","", Recall(xi, n = n + 1), "", "", "]",  sep = "")
+                    result <- paste(result, "\"", nms[i], "\":[","", Recall(xi, n = n + 1), "", "", "]",  sep = '')
                 }
                 else {
                     if (is.null(xi)) {
@@ -94,12 +94,12 @@ env$RGUI_jsonify <- function(x, n = 1) {
 
             # collapse <- ", "
             collapse <- ","
-            prefix <- ""
-            if (is.character(xi)) {
-                # collapse <- '", "'
-                collapse <- '","'
-                prefix <- '"'
-            }
+            prefix <- ''
+            # if (is.character(xi)) {
+            #     # collapse <- '", "'
+            #     collapse <- ","
+            #     prefix <- '\"'
+            # }
             
             if (is.logical(x[[i]])) {
                 x[[i]] <- gsub("TRUE", "true", gsub("FALSE", "false", as.character(x[[i]])))
@@ -112,8 +112,8 @@ env$RGUI_jsonify <- function(x, n = 1) {
                 ifelse (is.null(nms[i]), 
                     # sprintf(ifelse(check, "[%s%s%s]", "%s%s%s"), prefix, paste(x[[i]], collapse = collapse), prefix),
                     # sprintf(ifelse(check, '"%s": [%s%s%s]', '"%s": %s%s%s'), nms[i], prefix, paste(x[[i]], collapse = collapse), prefix)
-                    sprintf("[%s%s%s]", prefix, paste(x[[i]], sep = "", collapse = collapse), prefix),
-                    sprintf('"%s":[%s%s%s]', nms[i], prefix, paste(x[[i]], sep = "", collapse = collapse), prefix)
+                    sprintf("[%s%s%s]", prefix, paste('', x[[i]], '', sep = '\"', collapse = collapse), prefix),
+                    sprintf('"%s":[%s%s%s]', nms[i], prefix, paste('', x[[i]], '', sep = '\"', collapse = collapse), prefix)
                 ),
             sep = "")
 
@@ -395,6 +395,8 @@ env$RGUI_call <- function() {
         # cat(' startR ' + env$RGUI_result + ' endR ')
         cat(paste(c('startR', env$RGUI_result, 'endR'), sep = " "))
         cat('\n');
+    } else {
+        cat('#no data#');
     }
 
     env$RGUI_result <- c() 
