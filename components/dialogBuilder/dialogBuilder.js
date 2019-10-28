@@ -119,12 +119,15 @@ const dialogBuilder = {
 // populate window with existing data
 ipcMain.on('dialogIncomingData', (event, args) =>
 {
+    // console.log('receiving data dialogBuilder');
+    // console.log(args.data.dataframe);
+    
     if (args.name !== null && windowsList[args.name]) {
         windowsList[args.name].webContents.send('dialogIncomingData', args.data);
-    } else {
-        for (let i = 0; i < windowsList.length; i++) {
-            if (!windowsList[i].isDestroyed()){
-                windowsList[args.name].webContents.send('dialogIncomingData', args.data);
+    } else {        
+        for (let window in windowsList) {            
+            if (!windowsList[window].isDestroyed()){
+                windowsList[window].webContents.send('dialogIncomingData', args.data);
             }
         }
     }

@@ -199,7 +199,7 @@ var objects =
     },
     // save elements current state - modify object.dialogCurrentData
     saveCurrentState: function(data)
-    {
+    {        
         if (data.name && data.status) {
             
             objects.dialogCurrentData[data.name] = {visible: objects.objList[data.name].visible};
@@ -215,7 +215,12 @@ var objects =
                     objects.dialogCurrentData[data.name].checked = objects.objList[data.name].checked;
                     break;
                 case 'value':
-                    objects.dialogCurrentData[data.name].value = objects.objList[data.name].value;
+                    if (Array.isArray(objects.objList[data.name].value)) {
+                        objects.dialogCurrentData[data.name].value = [];
+                    } else {
+                        objects.dialogCurrentData[data.name].value = '';
+                    }
+                    objects.dialogCurrentData[data.name].value = objects.objList[data.name].value; 
                     break;
                 case 'select':
                 case 'deselect':
@@ -223,6 +228,9 @@ var objects =
                     break;
             }
         }
+        console.log(objects.dialogCurrentData);
+        console.log(objects.objList[data.name]);
+        
     },
 
     // shift key pressed event - container multiselect
@@ -233,7 +241,7 @@ var objects =
 
     // new data from R - anounce objects
     incommingDataFromR: function(data)
-    {        
+    {   
         if (data !== void 0) {
             // do we have dataframes
             if (data.dataframe !== void 0) {
@@ -599,7 +607,7 @@ var objects =
 
     // the container element
     container: function(obj, type)
-    {
+    {       
         // return if the received object is not corect;
         if(!helpers.hasSameProps(defaultSettings[type], obj)) { return false; }
 
@@ -616,11 +624,12 @@ var objects =
             value: [],
             shiftKey: false,
             data: {}, 
-            listLength: 0
+            listLength: 0,
+            variableType: obj.variableType.toLowerCase()
         };
-        
+
         // save default values
-        objects.dialogDefaultData[obj.name] = {visible: container.visible, value: container.value, enabled: container.enabled};
+        objects.dialogDefaultData[obj.name] = {visible: container.visible, value: [], enabled: container.enabled};
         // save the name
         objects.containersList.push(obj.name);
 
@@ -695,7 +704,7 @@ var objects =
         {
             if(obj.name != data.name){
                 container.data = (data.data === void 0) ? data : data.data;                
-                if (container.type === 'dataSet' && data.name === void 0) {
+                if (container.type === 'dataSet' && data.name === void 0) {                    
                     container.makeDataSetList(data);
                 } else if (container.type === 'variable' && container.parent == data.name) { // variable container and triggered by dataSet container
                     container.makeVarialeSetList(data);
@@ -716,6 +725,7 @@ var objects =
         let bg = [];
         let cover = [];
         let listLength = 0;
+        let selectedDataset = '';
 
         // on click element
         let elClicked = function() {             
@@ -772,7 +782,7 @@ var objects =
                     
                     if(!isOn) {
                         // save|add the name of the selected
-                        if(container.type === 'variable') {
+                        if(container.type === 'variable') {                            
                             container.value.push(valueName);
                             selectedElementsList.push(position);
                         } else {
@@ -802,12 +812,12 @@ var objects =
                     // something selected / deselected 
                 }     
                 objects.events.emit('containerData', {name: container.name, data: container.data, selected: container.value});            
-                objects.events.emit('iSpeak', {name: container.name, status: container.value});            
+                objects.events.emit('iSpeak', {name: container.name, status: 'value'});            
             }
         };
         // dataSet list
         container.makeDataSetList = function(data)
-        {
+        {            
             // get dataframes
             let list = Object.keys(data);
 
@@ -820,7 +830,7 @@ var objects =
             
             let position = 15;
             // populate the list
-            for(let i = 0; i < list.length; i++) {
+            for(let i = 0; i < list.length; i++) {                
                 bg[i] = newPaper.rect(3 , position-10, obj.width - 5, 25).attr({fill: "#79a74c", "opacity": 0, "cursor": "pointer", stroke: 0});
                 txt[i] = newPaper.text(11, position+3, list[i]).attr({"text-anchor": "start", "font-size": objects.fontSize, "font-family": objects.fontFamily, fill: container.enabled ? '#000000' : '#848484'});
                 // save the name of the
@@ -835,14 +845,34 @@ var objects =
             for(let i = 0; i < cover.length; i++) {
                  cover[i].click(elClicked);
             }
+            // TODO -- check if okay
+            // set the value if there is any data
+            if (objects.dialogCurrentData[container.name] !== void 0) {
+                container.setValue(objects.dialogCurrentData[container.name].value);
+            }
         };
         // variable list
         container.makeVarialeSetList = function(data)
-        {           
+        {
+            // data.data (we have some datasets)
+            if (Object.keys(data.data).length === 0 ){
+                return;
+            }
+        
+            // reseting current selection if the element exists
+            // not just opened and is different
+            if (selectedDataset !== '' && selectedDataset !== data.selected[0]) {
+                if (objects.dialogCurrentData[container.name] !== void 0) {
+                    objects.dialogCurrentData[container.name].value.length = 0;
+                }
+            }
+            // set the current selected dataset
+            selectedDataset = data.selected[0];
+            
             // get dataframes
             let list = [];
             for (let i = 0; i < data.selected.length; i++) {
-                list.push(data.data[data.selected[i]]);
+                list.push(data.data[data.selected[i]].colnames);
             }
             // level one array
             list = list.flat(list.length);            
@@ -878,24 +908,51 @@ var objects =
                     position += 25;
                 }         
 
+                // TODO -- check if okay
+                // set the value if there is any data
+                if (objects.dialogCurrentData[container.name] !== void 0) {                                       
+                    container.setValue(objects.dialogCurrentData[container.name].value);
+                }   
+                
                 // add click events for elements
                 for(let i = 0; i < cover.length; i++) {
-                    cover[i].click(elClicked);
-                }       
+                    if (data.data[selectedDataset][container.variableType][i] == 'true') {
+                        cover[i].click(elClicked);
+                    } else {
+                        cover[i].attr({cursor: 'default'});                        
+                        bg[i].attr({fill: "#eeeeee", opacity: 1, "cursor": "default"});
+                    }
+                }  
             }     
         };
 
         // the container's properties
-        container.setValue = function(val){ // more like a clear selected values for dataSet containers - variable do not have data without dataSets
-            if (container.type === 'dataSet') {
-                container.value.length = 0;
-                selectedElementsList.length = 0;
-                for(let i = 0; i < container.listLength; i++) {
-                    cover[i].data('clicked', 0);
-                    bg[i].attr({opacity: 0});
+        container.setValue = function(val) { // more like a clear selected values for dataSet containers - variable do not have data without dataSets
+            
+                if (val.length === 0) {
+                    container.value.length = 0;
+                    selectedElementsList.length = 0;
+                    for(let i = 0; i < container.listLength; i++) {
+                        cover[i].data('clicked', 0);
+                        bg[i].attr({opacity: 0});
+                    }
+                    if (container.type === 'dataSet') {
+                        objects.events.emit('containerData', {name: container.name, data: container.data, selected: []});
+                    }
+                } else {
+                    container.value = val;
+                    for(let i = 0; i < container.listLength; i++) {
+                        if (val.includes(cover[i].data('elName'))) {
+                            cover[i].data('clicked', 1);
+                            bg[i].attr({opacity: 1});
+                            selectedElementsList.push(i);
+                        }
+                    }
+                    if (container.type === 'dataSet') {
+                    // TODO -- check if we need to emit the current state event
+                        objects.events.emit('containerData', {name: container.name, data: container.data, selected: val});
+                    }
                 }
-                objects.events.emit('containerData', {name: container.name, data: container.data, selected: []});
-            }
         };   
         container.show = function() {
             // container.element.show();

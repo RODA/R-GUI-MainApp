@@ -296,6 +296,7 @@ const comm = {
                 invisible = false;
                 response = '';
                 // send update to dialogs
+                console.log('sending data');
                 ipcRenderer.send('dialogIncomingData', {name: null, data: infobjs});
             }
             catch(e){
