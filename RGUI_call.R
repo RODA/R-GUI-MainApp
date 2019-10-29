@@ -102,7 +102,7 @@ env$RGUI_jsonify <- function(x, n = 1) {
             # xi is a vector
             collapse <- ", "
             prefix <- ""
-            if (!env$RGUI_possibleNumeric(xi)) {
+            if (!env$RGUI_possibleNumeric(xi) & !inherits(xi, "Date")) {
                 collapse <- '", "'
                 prefix <- '"'
             }
