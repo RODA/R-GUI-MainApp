@@ -202,14 +202,15 @@ env$RGUI_infobjs <- function(objtype) {
                 ecol <- min(scol + visiblecols - 1, ncold)
 
                 type <- sapply(.GlobalEnv[[n]], function(x) {
-                    numv <- env$RGUI_possibleNumeric(x)
-                    chav <- is.character(x) & !num
-                    facv <- is.factor(x) & !num
+                    datv <- !inherits(x, "Date")
+                    numv <- env$RGUI_possibleNumeric(x) & !datv
+                    chav <- is.character(x) & !numv
+                    facv <- is.factor(x) & !numv
                     if (numv) x <- env$RGUI_asNumeric(x)
                     calv <- ifelse(numv, all(na.omit(x) >= 0 & na.omit(x) <= 1), FALSE)
                     binv <- ifelse(numv, all(is.element(x, 0:1)), FALSE)
                     
-                    return(c(numv, calv, binv, chav, facv))
+                    return(c(numv, calv, binv, chav, facv, datv))
                 })
 
                 return(list(
@@ -222,6 +223,7 @@ env$RGUI_infobjs <- function(objtype) {
                     binary = as.vector(type[3, ]),
                     character = as.vector(type[4, ]),
                     factor = as.vector(type[5, ]),
+                    date = as.vector(type[6, ]),
                     scrollvh = c(srow, scol) - 1, # for Javascript
                     vdata = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
                     vcoords = paste(srow, scol, erow, ecol, ncol(.GlobalEnv[[n]]), sep = "_")
