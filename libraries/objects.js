@@ -916,7 +916,7 @@ var objects =
                 
                 // add click events for elements
                 for(let i = 0; i < cover.length; i++) {
-                    if (data.data[selectedDataset][container.variableType][i] == 'true') {
+                    if (data.data[selectedDataset][container.variableType][i]) {
                         cover[i].click(elClicked);
                     } else {
                         cover[i].attr({cursor: 'default'});                        

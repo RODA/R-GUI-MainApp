@@ -18,6 +18,7 @@ ipcRenderer.on('initializeApp', (event, args) => {
 });
 
 Split(['#command', '#xterm'], {
+    gutterSize: 1,
     elementStyle: (dimension, size, gutterSize) => ({
         'flex-basis': `calc(${size}% - ${gutterSize}px)`,
     }),
