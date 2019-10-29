@@ -202,10 +202,14 @@ env$RGUI_infobjs <- function(objtype) {
                 ecol <- min(scol + visiblecols - 1, ncold)
 
                 type <- sapply(.GlobalEnv[[n]], function(x) {
-                    num <- env$RGUI_possibleNumeric(x)
-                    cal <- ifelse(num, all(na.omit(x) >= 0 & na.omit(x) <= 1), FALSE)
-                    bin <- ifelse(num, all(is.element(x, 0:1)), FALSE)
-                    return(c(num, cal, bin))
+                    numv <- env$RGUI_possibleNumeric(x)
+                    chav <- is.character(x) & !num
+                    facv <- is.factor(x) & !num
+                    if (numv) x <- env$RGUI_asNumeric(x)
+                    calv <- ifelse(numv, all(na.omit(x) >= 0 & na.omit(x) <= 1), FALSE)
+                    binv <- ifelse(numv, all(is.element(x, 0:1)), FALSE)
+                    
+                    return(c(numv, calv, binv, chav, facv))
                 })
 
                 return(list(
@@ -216,6 +220,8 @@ env$RGUI_infobjs <- function(objtype) {
                     numeric = as.vector(type[1, ]),
                     calibrated = as.vector(type[2, ]),
                     binary = as.vector(type[3, ]),
+                    character = as.vector(type[4, ]),
+                    factor = as.vector(type[5, ]),
                     scrollvh = c(srow, scol) - 1, # for Javascript
                     vdata = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
                     vcoords = paste(srow, scol, erow, ecol, ncol(.GlobalEnv[[n]]), sep = "_")
@@ -399,7 +405,7 @@ env$RGUI_call <- function() {
             env$RGUI_result <- gsub("[[:space:]]", "", env$RGUI_result)
         }
         
-        cat(env$RGUI_result)
+        cat("startR", env$RGUI_result, "endR")
         # we return an enter so we can detect the prompter
         cat('\n\r')
     }
