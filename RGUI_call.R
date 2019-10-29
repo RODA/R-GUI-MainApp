@@ -49,6 +49,16 @@ env$RGUI_possibleNumeric <- function(x) {
     return(!any(is.na(suppressWarnings(as.numeric(na.omit(x))))))
 }
 
+env$RGUI_asNumeric <- function (x) {
+    if (is.numeric(x)) {
+        return(x)
+    }
+    if (is.factor(x)) {
+        return(suppressWarnings(as.numeric(levels(x)))[x])
+    }
+    return(suppressWarnings(as.numeric(as.character(x))))
+}
+
 env$RGUI_jsonify <- function(x, n = 1) {
     # x should ALWAYS  be a list
     # whose components are either:
@@ -191,19 +201,21 @@ env$RGUI_infobjs <- function(objtype) {
                 erow <- min(srow + visiblerows - 1, nrowd)
                 ecol <- min(scol + visiblecols - 1, ncold)
 
+                type <- sapply(.GlobalEnv[[n]], function(x) {
+                    num <- env$RGUI_possibleNumeric(x)
+                    cal <- ifelse(num, all(na.omit(x) >= 0 & na.omit(x) <= 1), FALSE)
+                    bin <- ifelse(num, all(is.element(x, 0:1)), FALSE)
+                    return(c(num, cal, bin))
+                })
+
                 return(list(
                     nrows = nrowd,
                     ncols = ncold,
                     rownames = rownames(.GlobalEnv[[n]]),
                     colnames = colnames(.GlobalEnv[[n]]),
-                    numeric = as.vector(unlist(lapply(.GlobalEnv[[n]], env$RGUI_possibleNumeric))),
-                    calibrated = as.vector(unlist(lapply(.GlobalEnv[[n]], function(x) {
-                        if (is.factor(x)) {
-                            x <- as.character(x)
-                        }
-                        all(na.omit(x) >= 0 & na.omit(x) <= 1)
-                    }))),
-                    binary = as.vector(unlist(lapply(.GlobalEnv[[n]], function(x) all(is.element(x, 0:1))))),
+                    numeric = as.vector(type[1, ]),
+                    calibrated = as.vector(type[2, ]),
+                    binary = as.vector(type[3, ]),
                     scrollvh = c(srow, scol) - 1, # for Javascript
                     vdata = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
                     vcoords = paste(srow, scol, erow, ecol, ncol(.GlobalEnv[[n]]), sep = "_")
