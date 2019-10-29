@@ -202,7 +202,7 @@ env$RGUI_infobjs <- function(objtype) {
                 ecol <- min(scol + visiblecols - 1, ncold)
 
                 type <- sapply(.GlobalEnv[[n]], function(x) {
-                    datv <- !inherits(x, "Date")
+                    datv <- inherits(x, "Date")
                     numv <- env$RGUI_possibleNumeric(x) & !datv
                     chav <- is.character(x) & !numv
                     facv <- is.factor(x) & !numv
