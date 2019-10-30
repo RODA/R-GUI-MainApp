@@ -15,6 +15,7 @@ var invisible = false;
 var runFromVisible = false;
 var response = '';
 let keyboardEnter = false;
+let initial = true;
 
 
 // terminal PTY
@@ -69,12 +70,12 @@ xterm.open(document.getElementById('xterm'));
 xterm.onData( data => { 
     ptyProcess.write(data);
 });
-// xterm.onKey( (e) => {
-//     // on command call RGUI_call()
-//     if (e.key === '\r' && e.domEvent.keyCode === 13) {
-//         keyboardEnter = true;   
-//     }
-// });
+xterm.onKey( (e) => {
+    // on command call RGUI_call()
+    if (e.key === '\r' && e.domEvent.keyCode === 13) {
+        keyboardEnter = true;   
+    }
+});
 // process.stdout.write(chalk.red('Emilian'));
 
 ptyProcess.on('data', (data) => {
@@ -86,27 +87,17 @@ ptyProcess.on('data', (data) => {
     const prompter = data.charAt(0) === '>';
     const dl = data.length;
 
-    if(prompter){
-        if (dl == 4) {
-            data = '';
-        } else {
-            if (dl == 2) {
-                if(keyboardEnter) {
-                    invisible = true;
-                    ptyProcess.write('RGUI_call()');
-                    keyboardEnter = false;
-                }
-            }
-        }
-    }
-
     if (invisible) 
     {
         if (!prompter) {
             response += data;          
         } else {
-            comm.processData(response); 
-            invisible = false;   
+            // console.log('processing');
+            comm.processData(response);
+            if(initial){
+                xterm.write(data);
+                initial = false;
+            }
         }
     } else
     // send data to terminal 
@@ -117,12 +108,16 @@ ptyProcess.on('data', (data) => {
         } else {
             // write to terminal
             xterm.write(data);
+            
+            if(prompter && dl == 2)
+            {
+                if(keyboardEnter) {
+                    invisible = true;
+                    ptyProcess.write('RGUI_call()\n');
+                    keyboardEnter = false;
+                }
+            }
         }
-    }
-
-    if(prompter) {
-        invisible = true;
-        ptyProcess.write('RGUI_call()\n');
     }
 });
 
@@ -183,7 +178,7 @@ const comm = {
     // send function to check for dependencies
     initiateCommunication: function(data)
     {       
-        let commands = 'source("' + data.appPath + '/RGUI_call.R"); aa <- data.frame(A = 1:5); RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + '); \n';
+        let commands = 'source("' + data.appPath + '/RGUI_call.R"); aa <- data.frame(A = 1:5); RGUI_dependencies(' + commHelpers.Rify(data.dependencies) + '); RGUI_call(); \n';
         invisible = true;
         ptyProcess.write(commands);
     },
@@ -192,15 +187,14 @@ const comm = {
     runRCommand: function(command)
     {
         invisible = false;
-        ptyProcess.write(command);
-        // keyboardEnter = true;
+        ptyProcess.write(command + '\n');
+        keyboardEnter = true;
     },
     
     // run a command without showing the output in the terminal
     runRCommandInvisible: function(command)
     {
         invisible = true;
-        typing = false;
         ptyProcess.write(command + '\n');
     },
     
@@ -208,14 +202,14 @@ const comm = {
     processData: function(data) 
     {
         let jsonData = this.getJsonText(data);
-
-        if (!jsonData) {
+        console.log('processing');
+        if (jsonData) {
             try {
+                response = '';
+                invisible = false;
+
                 let obj = JSON.parse(jsonData);  
-                // // anounce missing packages || only when the app starts
-                // console.log('--------------------------- changed ------------------------------');
-                // console.log(Object.keys(obj.changed));
-                // console.log('--------------------------- changed ------------------------------');
+
                 if (obj.missing !== void 0) {
                     // do we have any?
                     if (obj.missing.length > 0) {
@@ -315,17 +309,20 @@ const comm = {
                     }
                 }  
 
-                response = '';
                 // send update to dialogs
-                console.log('sending data');
+                // console.log('sending data');
                 ipcRenderer.send('dialogIncomingData', {name: null, data: infobjs});
             }
             catch(e){
                 console.log(e);
                 console.log(jsonData);
             }
+        } else {
+            if (data.includes('#nodata#')) {
+                invisible = '';
+                response = '';
+            }
         }
-        invisible = false;
     },
 
     // return current data
@@ -347,7 +344,7 @@ const comm = {
         if (start !== -1 && end !== -1) {
             newString = cleanString.slice(start+7, end-1);
             // clean string
-            console.log(newString);
+            // console.log(newString);
             
             newString = newString.replace(/[^\x20-\x7E]+/g, "");
             newString = newString.replace(/\[0K/g, "");

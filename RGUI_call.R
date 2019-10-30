@@ -409,7 +409,9 @@ env$RGUI_call <- function() {
         
         cat("startR", env$RGUI_result, "endR")
         # we return an enter so we can detect the prompter
-        cat('\n\r')
+        # cat('\r\n')
+    } else {
+        cat('#nodata#')
     }
 
     env$RGUI_result <- c() 
