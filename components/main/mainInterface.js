@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, webFrame } = require('electron');
 const Split = require('split.js');
 const comm = require('../../libraries/communication');
 
@@ -18,7 +18,7 @@ ipcRenderer.on('initializeApp', (event, args) => {
 });
 
 Split(['#command', '#xterm'], {
-    gutterSize: 1,
+    gutterSize: 3,
     elementStyle: (dimension, size, gutterSize) => ({
         'flex-basis': `calc(${size}% - ${gutterSize}px)`,
     }),
@@ -52,4 +52,18 @@ ipcRenderer.on('runCommandInvisible', (event, args) => {
 ipcRenderer.on('dialogCreated', (event, args) => {
     let data = comm.getCurrentData();
     ipcRenderer.send('dialogIncomingData', {name: args.name, data: data});
+});
+
+// add zoom
+document.addEventListener('keydown', function pageZoom(event){
+    if(event.ctrlKey && event.shiftKey && event.key == '+') {
+        let zF = webFrame.getZoomFactor();
+        webFrame.setZoomFactor(parseInt(zF+1));
+        comm.resizeTerm();   
+    }
+    if(event.ctrlKey && event.key == '-') {
+        let zF = webFrame.getZoomFactor();
+        webFrame.setZoomFactor(parseInt(zF-1));
+        comm.resizeTerm();   
+    }      
 });

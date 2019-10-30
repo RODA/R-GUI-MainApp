@@ -37,7 +37,7 @@ let ptyEnv = {
 const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
     // const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
-    cols: 500,
+    cols: 80,
     rows: 50,
     cwd: process.env.HOME,
     env: ptyEnv,
@@ -94,10 +94,10 @@ ptyProcess.on('data', (data) => {
         } else {
             // console.log('processing');
             comm.processData(response);
-            if(initial){
-                xterm.write(data);
-                initial = false;
-            }
+//            if(initial){
+//                xterm.write(data);
+//                initial = false;
+//            }
         }
     } else
     // send data to terminal 
@@ -359,14 +359,23 @@ const comm = {
     resizeTerm: function()
     {
         let theWindow = BrowserWindow.getFocusedWindow(); 
-        let size = theWindow.getSize(); 
-        let commandHeight = document.getElementById('command').offsetHeight;
+        //let size = theWindow.getSize(); 
+        let termDiv = document.getElementById('xterm');
+        let computed = window.getComputedStyle(termDiv);
+        
+        let width = Math.max(0, parseInt(computed.getPropertyValue('width')));
+        let height = parseInt(computed.getPropertyValue('height'));
+        //let commandHeight = document.getElementById('command').offsetHeight;        
 
-        let newWidth = Math.floor((size[0] - 65) / 7) - 1;
-        let newHeight = Math.floor((size[1] - (83 + commandHeight)) / 15) - 1;
+        let newWidth = (Math.max(2, Math.floor(width)) / 7) - 1;
+        let newHeight = (Math.max(1, Math.floor(height)) / 15) - 1;
 
-        ptyCols = newWidth;
-        ptyRows = newHeight;
+        //ptyCols = newWidth;
+        //ptyRows = newHeight;
+
+        console.log(newWidth);
+        console.log(newHeight);
+        
 
         xterm.resize(newWidth, newHeight);
         // ptyProcess.resize(newWidth, newHeight); -- problem with xterm
