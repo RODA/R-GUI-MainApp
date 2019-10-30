@@ -227,10 +227,7 @@ var objects =
                     objects.dialogCurrentData[data.name].selected = objects.objList[data.name].selected;
                     break;
             }
-        }
-        console.log(objects.dialogCurrentData);
-        console.log(objects.objList[data.name]);
-        
+        }        
     },
 
     // shift key pressed event - container multiselect
@@ -255,6 +252,7 @@ var objects =
             }
         }
     },
+    // TODO -- to verify and delete
     // update current data 
     // incommingUpdateDataFromR: function(data)
     // {
@@ -913,7 +911,7 @@ var objects =
                 if (objects.dialogCurrentData[container.name] !== void 0) {                                       
                     container.setValue(objects.dialogCurrentData[container.name].value);
                 }   
-                
+
                 // add click events for elements
                 for(let i = 0; i < cover.length; i++) {
                     if (data.data[selectedDataset][container.variableType][i] == 'true') {
