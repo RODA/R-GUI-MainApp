@@ -25,7 +25,10 @@ const dialogBuilder = {
                 }
                 // we have the dialog data try to make the window
                 if (dialogData !== void 0) {
-                    let missing = this.checkForPackages(dialogData.properties.dependencies, missingPackages);
+                    let missing = [];
+                    if (dialogData.properties.dependencies !== void 0) {
+                        missing = this.checkForPackages(dialogData.properties.dependencies, missingPackages);
+                    }
                     
                     if (missing.length === 0) {
                         this.makeTheWindow(
@@ -98,6 +101,8 @@ const dialogBuilder = {
     // check for required packages
     checkForPackages: function(dependencies, missing)
     {   
+        console.log(dependencies);
+        
         let packages = dependencies.split(';');
         let resp = '';
         let first = true;

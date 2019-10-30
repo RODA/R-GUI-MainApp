@@ -49,6 +49,16 @@ env$RGUI_possibleNumeric <- function(x) {
     return(!any(is.na(suppressWarnings(as.numeric(na.omit(x))))))
 }
 
+env$RGUI_asNumeric <- function (x) {
+    if (is.numeric(x)) {
+        return(x)
+    }
+    if (is.factor(x)) {
+        return(suppressWarnings(as.numeric(levels(x)))[x])
+    }
+    return(suppressWarnings(as.numeric(as.character(x))))
+}
+
 env$RGUI_jsonify <- function(x, n = 1) {
     # x should ALWAYS  be a list
     # whose components are either:
@@ -92,7 +102,7 @@ env$RGUI_jsonify <- function(x, n = 1) {
             # xi is a vector
             collapse <- ", "
             prefix <- ""
-            if (!env$RGUI_possibleNumeric(xi)) {
+            if (!env$RGUI_possibleNumeric(xi) || inherits(xi, "Date")) {
                 collapse <- '", "'
                 prefix <- '"'
             }
@@ -191,19 +201,29 @@ env$RGUI_infobjs <- function(objtype) {
                 erow <- min(srow + visiblerows - 1, nrowd)
                 ecol <- min(scol + visiblecols - 1, ncold)
 
+                type <- sapply(.GlobalEnv[[n]], function(x) {
+                    datv <- inherits(x, "Date")
+                    numv <- env$RGUI_possibleNumeric(x) & !datv
+                    chav <- is.character(x) & !numv
+                    facv <- is.factor(x) & !numv
+                    if (numv) x <- env$RGUI_asNumeric(x)
+                    calv <- ifelse(numv, all(na.omit(x) >= 0 & na.omit(x) <= 1), FALSE)
+                    binv <- ifelse(numv, all(is.element(x, 0:1)), FALSE)
+                    
+                    return(c(numv, calv, binv, chav, facv, datv))
+                })
+
                 return(list(
                     nrows = nrowd,
                     ncols = ncold,
                     rownames = rownames(.GlobalEnv[[n]]),
                     colnames = colnames(.GlobalEnv[[n]]),
-                    numeric = as.vector(unlist(lapply(.GlobalEnv[[n]], env$RGUI_possibleNumeric))),
-                    calibrated = as.vector(unlist(lapply(.GlobalEnv[[n]], function(x) {
-                        if (is.factor(x)) {
-                            x <- as.character(x)
-                        }
-                        all(na.omit(x) >= 0 & na.omit(x) <= 1)
-                    }))),
-                    binary = as.vector(unlist(lapply(.GlobalEnv[[n]], function(x) all(is.element(x, 0:1))))),
+                    numeric = as.vector(type[1, ]),
+                    calibrated = as.vector(type[2, ]),
+                    binary = as.vector(type[3, ]),
+                    character = as.vector(type[4, ]),
+                    factor = as.vector(type[5, ]),
+                    date = as.vector(type[6, ]),
                     scrollvh = c(srow, scol) - 1, # for Javascript
                     vdata = unname(as.list(.GlobalEnv[[n]][seq(srow, erow), seq(scol, ecol), drop = FALSE])),
                     vcoords = paste(srow, scol, erow, ecol, ncol(.GlobalEnv[[n]]), sep = "_")
@@ -387,9 +407,11 @@ env$RGUI_call <- function() {
             env$RGUI_result <- gsub("[[:space:]]", "", env$RGUI_result)
         }
         
-        cat(env$RGUI_result)
+        cat("startR", env$RGUI_result, "endR")
         # we return an enter so we can detect the prompter
-        cat('\n\r')
+        # cat('\r\n')
+    } else {
+        cat('#nodata#')
     }
 
     env$RGUI_result <- c() 
