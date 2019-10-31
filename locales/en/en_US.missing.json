@@ -36,5 +36,10 @@
   "Required package(s) not installed QCA, Emilian": "Required package(s) not installed QCA, Emilian",
   "New dialog": "New dialog",
   "Container Testing": "Container Testing",
-  "ContainerTesting": "ContainerTesting"
+  "ContainerTesting": "ContainerTesting",
+  "View": "View",
+  "Zoom In": "Zoom In",
+  "Zoom Oot": "Zoom Oot",
+  "Zoom Reset": "Zoom Reset",
+  "Zoom Out": "Zoom Out"
 }

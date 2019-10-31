@@ -95,27 +95,39 @@ const menuLibrary = {
     // System -------------------------------------------------
     mainAppUndo: function(name)
     {
-        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+Z", selector: "undo:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+Z", role: "undo" };
     },
     mainAppRedo: function(name)
     {
-        return { label: menuLibrary.i18next.t(name), accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "Shift+CmdOrCtrl+Z", role: "redo" };
     },
     mainAppCut: function(name)
     {
-        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+X", selector: "cut:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+X", role: "cut" };
     },
     mainAppCopy: function(name)
     {
-        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+C", selector: "copy:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+C", role: "copy" };
     },
     mainAppPaste: function(name)
     {
-        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+V", selector: "paste:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+V", role: "paste" };
     },
     mainAppSelectAll: function(name)
     {
-        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+A", selector: "selectAll:" };
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+A", role: "selectAll" };
+    },
+    mainAppZoomIn: function(name)
+    {
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+=", role: "zoomIn" };
+    },
+    mainAppZoomOut: function(name)
+    {
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+-", role: "zoomOut" };
+    },
+    mainAppZoomReset: function(name)
+    {
+        return { label: menuLibrary.i18next.t(name), accelerator: "CmdOrCtrl+0", role: "resetZoom" };
     },
     separator: function(name)
     {

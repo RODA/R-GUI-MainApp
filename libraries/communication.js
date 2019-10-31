@@ -361,19 +361,18 @@ const comm = {
     resizeTerm: function()
     {
         let theWindow = BrowserWindow.getFocusedWindow(); 
-        //let size = theWindow.getSize(); 
+        let size = theWindow.getSize(); 
         let termDiv = document.getElementById('xterm');
         let computed = window.getComputedStyle(termDiv);
         let pageContainer = window.getComputedStyle(document.getElementById('pageContainer'));
         let commandHeight = window.getComputedStyle(document.getElementById('command'));   
 
-        let width = Math.max(0, parseInt(computed.getPropertyValue('width')));
-        let height = parseInt(pageContainer.getPropertyValue('height')) - parseInt(commandHeight.getPropertyValue('height')) - 30;
-
-
-        let newWidth = Math.max(2, (Math.floor(width / 7)  - 9));
-        let newHeight = Math.max(1, (Math.floor(height / 15) - 2));
-
+        let width = Math.max(0, parseInt(computed.getPropertyValue('width'))) - xterm._core.viewport.scrollBarWidth - 15;
+        let height = parseInt(pageContainer.getPropertyValue('height')) - parseInt(commandHeight.getPropertyValue('height')) - 15;
+        
+        let newWidth = Math.max(2, (Math.floor(width / xterm._core._renderService.dimensions.actualCellWidth)  - 0));
+        let newHeight = Math.max(1, (Math.floor(height / xterm._core._renderService.dimensions.actualCellHeight) - 1));
+        
         xterm.resize(newWidth, newHeight);
         ptyProcess.resize(newWidth, newHeight);
 
