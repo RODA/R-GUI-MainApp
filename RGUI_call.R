@@ -382,23 +382,23 @@ env$RGUI_call <- function() {
     env$RGUI_hashes <- hashes # overwrite the hash information
     env$RGUI_objtype <- objtype
     
-    # temp <- tempfile()
-    # utils::savehistory(file = temp) # only in Terminal, not working on MacOS
-    # history <- readLines(temp)
-    # lhistory <- length(history)
+    temp <- tempfile()
+    utils::savehistory(file = temp) # only in Terminal, not working on MacOS
+    history <- readLines(temp)
+    lhistory <- length(history)
 
-    # if (env$RGUI_first) {
-    #     env$RGUI_first <- FALSE
+    if (env$RGUI_first) {
+        env$RGUI_first <- FALSE
         
-    #     if (lhistory == 1) {
-    #         lhistory <- 2
-    #     }
-    #     history[lhistory - 1] <- "library(QCA)"
-    # }
+        if (lhistory == 1) {
+            lhistory <- 2
+        }
+        history[lhistory - 1] <- "library(QCA)"
+    }
     
-    # writeLines(history[seq(lhistory - 1)], con = temp)
-    # loadhistory(file = temp)
-    # unlink(temp)
+    writeLines(history[seq(lhistory - 1)], con = temp)
+    loadhistory(file = temp)
+    unlink(temp)
 
     if (length(env$RGUI_result) > 0) {
         env$RGUI_result <- paste("{", paste(env$RGUI_result, collapse = ",\n"), "}", sep = "")
