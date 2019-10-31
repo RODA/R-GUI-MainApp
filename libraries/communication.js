@@ -37,7 +37,7 @@ let ptyEnv = {
 const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
     // const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
-    cols: 500,
+    cols: 80,
     rows: 50,
     cwd: process.env.HOME,
     env: ptyEnv,
@@ -68,6 +68,7 @@ const xterm = new Terminal({
 xterm.open(document.getElementById('xterm'));
 // Setup communication between xterm.js and node-pty
 xterm.onData( data => { 
+    invisible = false;
     ptyProcess.write(data);
 });
 xterm.onKey( (e) => {
@@ -94,10 +95,10 @@ ptyProcess.on('data', (data) => {
         } else {
             // console.log('processing');
             comm.processData(response);
-            if(initial){
-                xterm.write(data);
-                initial = false;
-            }
+//            if(initial){
+//                xterm.write(data);
+//                initial = false;
+//            }
         }
     } else
     // send data to terminal 
@@ -319,10 +320,11 @@ const comm = {
             }
         } else {
             if (data.includes('#nodata#')) {
-                invisible = '';
+                invisible = false;
                 response = '';
             }
         }
+        invisible = false;
     },
 
     // return current data
@@ -359,17 +361,21 @@ const comm = {
     resizeTerm: function()
     {
         let theWindow = BrowserWindow.getFocusedWindow(); 
-        let size = theWindow.getSize(); 
-        let commandHeight = document.getElementById('command').offsetHeight;
+        //let size = theWindow.getSize(); 
+        let termDiv = document.getElementById('xterm');
+        let computed = window.getComputedStyle(termDiv);
+        let pageContainer = window.getComputedStyle(document.getElementById('pageContainer'));
+        let commandHeight = window.getComputedStyle(document.getElementById('command'));   
 
-        let newWidth = Math.floor((size[0] - 65) / 7) - 1;
-        let newHeight = Math.floor((size[1] - (83 + commandHeight)) / 15) - 1;
+        let width = Math.max(0, parseInt(computed.getPropertyValue('width')));
+        let height = parseInt(pageContainer.getPropertyValue('height')) - parseInt(commandHeight.getPropertyValue('height')) - 30;
 
-        ptyCols = newWidth;
-        ptyRows = newHeight;
+
+        let newWidth = Math.max(2, (Math.floor(width / 7)  - 9));
+        let newHeight = Math.max(1, (Math.floor(height / 15) - 2));
 
         xterm.resize(newWidth, newHeight);
-        // ptyProcess.resize(newWidth, newHeight); -- problem with xterm
+        ptyProcess.resize(newWidth, newHeight);
 
         // add resize listener
         if (this.initial) {

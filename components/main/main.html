@@ -33,24 +33,21 @@
       .gutter.gutter-vertical {
           flex-shrink: 0;
           cursor: ns-resize;
-          background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
-          border-left: 1px solid #000000;
-          border-right: 1px solid #000000;
       }
       #command {
         flex-shrink: 0;
         box-sizing: border-box;
         padding: 15px;
-        border: 1px solid #000000;
       }
       #xterm {
         background-color: #f8f8f8;
-        border: 1px solid #000000;
+        box-sizing: border-box;
+        padding: 15px 15px;
       }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="container" id="pageContainer">
       <div id="command">
         <h1 id="welcome">Welcome to the R GUI MainApp</h1>
       </div>
