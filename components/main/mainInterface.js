@@ -56,14 +56,18 @@ ipcRenderer.on('dialogCreated', (event, args) => {
 
 // add zoom
 document.addEventListener('keydown', function pageZoom(event){
-    if(event.ctrlKey && event.shiftKey && event.key == '+') {
+    if( (event.ctrlKey && event.shiftKey && event.key == '+') || (event.ctrlKey && event.key == '+')) {
         let zF = webFrame.getZoomFactor();
         webFrame.setZoomFactor(parseInt(zF+1));
-        comm.resizeTerm();   
+        setTimeout(() => {
+            comm.resizeTerm();   
+        }, 0);
     }
     if(event.ctrlKey && event.key == '-') {
         let zF = webFrame.getZoomFactor();
         webFrame.setZoomFactor(parseInt(zF-1));
-        comm.resizeTerm();   
+        setTimeout(() => {
+            comm.resizeTerm();   
+        }, 0);
     }      
 });

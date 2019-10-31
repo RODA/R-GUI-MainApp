@@ -68,6 +68,7 @@ const xterm = new Terminal({
 xterm.open(document.getElementById('xterm'));
 // Setup communication between xterm.js and node-pty
 xterm.onData( data => { 
+    invisible = false;
     ptyProcess.write(data);
 });
 xterm.onKey( (e) => {
@@ -319,10 +320,11 @@ const comm = {
             }
         } else {
             if (data.includes('#nodata#')) {
-                invisible = '';
+                invisible = false;
                 response = '';
             }
         }
+        invisible = false;
     },
 
     // return current data
@@ -362,23 +364,18 @@ const comm = {
         //let size = theWindow.getSize(); 
         let termDiv = document.getElementById('xterm');
         let computed = window.getComputedStyle(termDiv);
-        
+        let pageContainer = window.getComputedStyle(document.getElementById('pageContainer'));
+        let commandHeight = window.getComputedStyle(document.getElementById('command'));   
+
         let width = Math.max(0, parseInt(computed.getPropertyValue('width')));
-        let height = parseInt(computed.getPropertyValue('height'));
-        //let commandHeight = document.getElementById('command').offsetHeight;        
+        let height = parseInt(pageContainer.getPropertyValue('height')) - parseInt(commandHeight.getPropertyValue('height')) - 30;
 
-        let newWidth = (Math.max(2, Math.floor(width)) / 7) - 1;
-        let newHeight = (Math.max(1, Math.floor(height)) / 15) - 1;
 
-        //ptyCols = newWidth;
-        //ptyRows = newHeight;
-
-        console.log(newWidth);
-        console.log(newHeight);
-        
+        let newWidth = Math.max(2, (Math.floor(width / 7)  - 9));
+        let newHeight = Math.max(1, (Math.floor(height / 15) - 2));
 
         xterm.resize(newWidth, newHeight);
-        // ptyProcess.resize(newWidth, newHeight); -- problem with xterm
+        ptyProcess.resize(newWidth, newHeight);
 
         // add resize listener
         if (this.initial) {
