@@ -147,3 +147,8 @@ ipcMain.on('dialogCommandUpdate', (event, args) => {
 ipcMain.on('runCommand', (event, args) => {
   mainWindow.webContents.send('runCommand', args);
 });
+// import data from file - send command to receive data for preview
+ipcMain.on('sendComandForPreviewData', (event, args) => {
+  mainWindow.webContents.send('sendComandForPreviewData', args);
+});
+

@@ -48,6 +48,12 @@ ipcRenderer.on('runCommandInvisible', (event, args) => {
     comm.runRCommandInvisible(args);
 });
 
+// run a R commmand from system | invisible
+ipcRenderer.on('sendComandForPreviewData', (event, args) => {
+    let data = comm.sendComandForPreviewData(args);
+    ipcRenderer.send('importDataForPreview', data);
+});
+
 // dialog send initial data
 ipcRenderer.on('dialogCreated', (event, args) => {
     let data = comm.getCurrentData();

@@ -8,10 +8,10 @@ const i18next = require("i18next");
 const Backend = require ('i18next-sync-fs-backend');
 const i18nextOptions = require("../../i18nextOptions");
 
-// TODO == show preview --- waiting for R
-
 let importOptions = {};
 let cModify = new EventEmitter();
+let headerNames;
+let paper;
 
 // the window is redy - the data is loaded 
 ipcRenderer.on('dataLoaded', (event, args) => {
@@ -26,7 +26,7 @@ ipcRenderer.on('dataLoaded', (event, args) => {
     i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV, false));    
 
     // create paper and background
-    let paper = Raphael('paperImportFromFile', wWidth, wHeight);
+    paper = Raphael('paperImportFromFile', wWidth, wHeight);
     paper.rect(0, 0, wWidth, wHeight).attr({fill: '#FFFFFF', stroke: '#FFFFFF'});
 
     // create the browse file
@@ -42,8 +42,11 @@ ipcRenderer.on('dataLoaded', (event, args) => {
     drawLabel(paper, 20, wHeight - 188, i18next.t('Skip'));
     drawInput(paper, 65, wHeight - 200, 50, 'skip', true, '0');
 
-    drawCheckBox(paper, 20, wHeight - 150, 'header', 'First row as names', true);
-    drawCheckBox(paper, 20, wHeight - 120, 'stripwhite', 'Trim spaces', false);
+    // header row
+    headerNames = Object.assign({}, drawCheckBox);
+    headerNames.make(paper, 20, wHeight - 150, 'header', 'First row as names', true);
+
+    drawCheckBox.make(paper, 20, wHeight - 120, 'stripwhite', 'Trim spaces', false);
 
     paper.path("M240 " + (wHeight - 245) + "L240 " + ((wHeight - 245) + 180)).attr({stroke: "#ccc"});
     drawRadioGroup(paper, 270, wHeight - 223, 'sep', 'Delimiter', ['comma', 'space', 'tab', 'other'], 'comma', true);
@@ -100,7 +103,47 @@ ipcRenderer.on('dataLoaded', (event, args) => {
 // on element change make the command and send it to the main window
 cModify.on('elementChanged', (event, args) => {
     let theCommand = makeCommand();
-    ipcRenderer.send('dialogCommandUpdate', theCommand);
+    if (theCommand !== '') {
+        ipcRenderer.send('dialogCommandUpdate', theCommand);
+        // ipcRenderer.send('runCommandInvisible', theCommand);
+        ipcRenderer.send('sendComandForPreviewData', theCommand);
+    }
+});
+// draw the import preview
+ipcRenderer.on('importDataForPreview', (event, args) => {
+
+    let headerRow = args.colnames;
+    let rows = args.vdata;
+    let previewData = paper.set();
+
+    if(Array.isArray(headerRow)) {
+        // do not show more than 10 column
+        let count = headerRow.length < 8 ? headerRow.length : 7;  
+        for (let index = 0; index < count; index++) {
+            previewData.push(paper.rect(20 + index*100, 105, 98, 20).attr({fill: "#d6d6d6", stroke: "none"}));
+            // make text fit 100px cell width
+            let txt = headerRow[index].length > 11 ? headerRow[index].substring(0,9) + '...' : headerRow[index];            
+            previewData.push(paper.text(25 + index*100, 115, txt).attr({"text-anchor": "start", "font-size": "14px", fill: "black"}));
+        }
+    }
+
+    if(Array.isArray(rows)) {
+        // do not show more than 7 column
+        let count = rows.length < 8 ? rows.length : 7;  
+        for (let index = 0; index < count; index++) {
+            if (Array.isArray(rows[index])) {
+                // do not show more than 7 rows
+                let count2 = rows[index].length < 8 ? rows[index].length : 7;  
+                for (let j = 0; j < count2; j++) {
+                    previewData.push(paper.rect(20 + j*100, 130 + index*23, 98, 20).attr({fill: "#f8f8f8", stroke: "none"}));
+                    // make text fit 100px cell width
+                    let txt = rows[index][j].length > 11 ? rows[index][j].substring(0,9) + '...' : rows[index][j];            
+                    previewData.push(paper.text(25 + j*100, 140 + index*23, txt).attr({"text-anchor": "start", "font-size": "14px", fill: "black"}));    
+                }
+            }
+        }
+    }
+
 });
 
 // Elements ==========================================================
@@ -184,6 +227,10 @@ function drawSelect(paper, x, y, list, name, defaultValue)
         select.selected = true;
         importOptions[name] = data;    
         cModify.emit('elementChanged');
+        // hide list
+        listSupport.hide();
+        select.element.downsign.show();
+        select.element.upsign.hide();
     });
     eventMe.on('deSelected', function(data) {
         if(typeof select.objSelected.remove === "function") {
@@ -193,6 +240,10 @@ function drawSelect(paper, x, y, list, name, defaultValue)
         select.selected = false;
         importOptions[name] = defaultValue;
         cModify.emit('elementChanged');
+        // hide list
+        listSupport.hide();
+        select.element.downsign.show();
+        select.element.upsign.hide();
     });
 
     const listSupport = {
@@ -531,52 +582,81 @@ function drawInput(paper, x, y, width, name, status, defaultValue)
     return input;
 }
 // create an checkbox
-function drawCheckBox(paper, x, y, name, text, isChecked)
-{
-    let checked = isChecked;
+let drawCheckBox = {
 
-    let label = paper.text(x + 20, y + 6, text).attr({"text-anchor": 'start', "font-size": "13px", "font-family": "Arial", "cursor": "default"});
-    // the box        
-    let box = paper.rect(x, y, 12, 12).attr({fill: (checked ? '#97bd6c': "#eeeeee"), "stroke-width": 1, stroke: "#5d5d5d"});
-    // the checked 
-    let chk = paper.path([
-        ["M", x + 0.2*12, y + 0.3*12],
-        ["l", 0.15*12*2, 0.2*12*2],
-        ["l", 0.3*12*2, -0.45*12*2]
-    ]).attr({"stroke-width": 2});
+    checked: false,
+    label: {},
+    box: {},
+    chk: {},
+    cover: {},
+    name: '',
 
-    if (!checked) {
-        chk.hide();
-    }
-    
-    // the cover needs to be drawn last, to cover all other drawings (for click events)
-    let cover = paper.rect(x, y, 12, 12)
-        .attr({fill: "#fff", opacity: 0, cursor: "pointer"})
-        .click(function() {
+    make: function (paper, x, y, name, text, isChecked)
+    {
+        this.checked = isChecked;
+        this.name = name;
+
+        this.label = paper.text(x + 20, y + 6, text).attr({"text-anchor": 'start', "font-size": "13px", "font-family": "Arial", "cursor": "default"});
+        // the box        
+        this.box = paper.rect(x, y, 12, 12).attr({fill: (this.checked ? '#97bd6c': "#eeeeee"), "stroke-width": 1, stroke: "#5d5d5d"});
+        // the checked 
+        this.chk = paper.path([
+            ["M", x + 0.2*12, y + 0.3*12],
+            ["l", 0.15*12*2, 0.2*12*2],
+            ["l", 0.3*12*2, -0.45*12*2]
+        ]).attr({"stroke-width": 2});
+
+        if (!this.checked) {
+            this.chk.hide();
+        }
+        
+        // the cover needs to be drawn last, to cover all other drawings (for click events)
+        let thisObj = this;
+        this.cover = paper.rect(x, y, 12, 12)
+            .attr({fill: "#fff", opacity: 0, cursor: "pointer"})
+            .click(function() {
+                console.log('inside');
+                
+                // the element
+                thisObj.checked = !thisObj.checked;
+                
+                if (thisObj.checked) {
+                    // the element is checked
+                    thisObj.box.attr({fill: "#97bd6c"});
+                    thisObj.chk.show();
+                } else {
+                    // the element is unchecked
+                    thisObj.box.attr({fill: "#eeeeee"});
+                    thisObj.chk.hide();
+                }
+                // save value to main object
+                importOptions[name] = thisObj.checked;
+                cModify.emit('elementChanged');
+            });
+
+        // save value to main object
+        importOptions[name] = this.checked;
+
+        // return the value of the checkbox (true/false)
+        return this.checked;
+    },
+    setValue: function(val) {
+        if (this.checked !== val) {
             
-            // the element
-            checked = !checked;
-            
-            if (checked) {
-                // the element is checked
-                box.attr({fill: "#97bd6c"});
-                chk.show();
-            } else {
-                // the element is unchecked
-                box.attr({fill: "#eeeeee"});
-                chk.hide();
-            }
-            // save value to main object
-            importOptions[name] = checked;
+            this.checked = val;
+            importOptions[this.name] = this.checked;
             cModify.emit('elementChanged');
-        });
-
-    // save value to main object
-    importOptions[name] = checked;
-
-    // return the value of the checkbox (true/false)
-    return checked;
-}
+            
+            if (val) {
+                this.box.attr({fill: "#97bd6c"});
+                this.chk.show();
+            } else {
+                this.box.attr({fill: "#eeeeee"});
+                this.chk.hide();
+            }
+        }        
+    }
+};
 // create a label
 function drawLabel(paper, x, y, label)
 {
@@ -601,13 +681,17 @@ function makeCommand()
         theCommand = importOptions.dataset + ' <- read.csv(\'' + upath.normalize(importOptions.filePath) + '\'';
     } 
     // reading with table
-    else {
+    else {      
         theCommand = importOptions.dataset + ' <- read.table(\'' + upath.normalize(importOptions.filePath) + '\'';
     }
     // do we have the firt row as header ?
-    if (!importOptions.header) {
+    if (!importOptions.header && importOptions.sep === 'comma') {
         theCommand += ', header = FALSE';
     }
+    if (importOptions.header && importOptions.sep !== 'comma') {
+        theCommand += ', header = TRUE';
+    }
+
     // setting the separator
     if (importOptions.sep != 'comma' & importOptions.sep != 'space' & importOptions.sep != 'tab' & importOptions.sep != '') {
         theCommand += ', sep = "' + importOptions.sep + '"';

@@ -334,6 +334,18 @@ const comm = {
         
         return infobjs;
     },
+    // For testing only
+    sendComandForPreviewData: function(args)
+    {
+        // return {
+        //     colnames: ["a.b.c.d"],
+        //     vdata: [["1,2,3,4","5,6,7,8","9,10,11,12","13,14,15,16"]]
+        // };
+        return {
+            colnames: ["asdvafs dfsdvsrgs", "b", "c","d"],
+            vdata: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,16]]
+        };
+    },
 
     // Helpers ===========================================================
     //return a json seq from string
@@ -361,25 +373,27 @@ const comm = {
     resizeTerm: function()
     {
         let theWindow = BrowserWindow.getFocusedWindow(); 
-        let size = theWindow.getSize(); 
-        let termDiv = document.getElementById('xterm');
-        let computed = window.getComputedStyle(termDiv);
-        let pageContainer = window.getComputedStyle(document.getElementById('pageContainer'));
-        let commandHeight = window.getComputedStyle(document.getElementById('command'));   
+        if( theWindow !== null) {
+            let size = theWindow.getSize(); 
+            let termDiv = document.getElementById('xterm');
+            let computed = window.getComputedStyle(termDiv);
+            let pageContainer = window.getComputedStyle(document.getElementById('pageContainer'));
+            let commandHeight = window.getComputedStyle(document.getElementById('command'));   
 
-        let width = Math.max(0, parseInt(computed.getPropertyValue('width'))) - xterm._core.viewport.scrollBarWidth - 15;
-        let height = parseInt(pageContainer.getPropertyValue('height')) - parseInt(commandHeight.getPropertyValue('height')) - 15;
-        
-        let newWidth = Math.max(2, (Math.floor(width / xterm._core._renderService.dimensions.actualCellWidth)  - 0));
-        let newHeight = Math.max(1, (Math.floor(height / xterm._core._renderService.dimensions.actualCellHeight) - 1));
-        
-        xterm.resize(newWidth, newHeight);
-        ptyProcess.resize(newWidth, newHeight);
+            let width = Math.max(0, parseInt(computed.getPropertyValue('width'))) - xterm._core.viewport.scrollBarWidth - 15;
+            let height = parseInt(pageContainer.getPropertyValue('height')) - parseInt(commandHeight.getPropertyValue('height')) - 15;
+            
+            let newWidth = Math.max(2, (Math.floor(width / xterm._core._renderService.dimensions.actualCellWidth)  - 0));
+            let newHeight = Math.max(1, (Math.floor(height / xterm._core._renderService.dimensions.actualCellHeight) - 1));
+            
+            xterm.resize(newWidth, newHeight);
+            ptyProcess.resize(newWidth, newHeight);
 
-        // add resize listener
-        if (this.initial) {
-            theWindow.on('resize', this.debounce(comm.resizeTerm, 500, false));
-            this.initial = false;
+            // add resize listener
+            if (this.initial) {
+                theWindow.on('resize', this.debounce(comm.resizeTerm, 500, false));
+                this.initial = false;
+            }
         }
     },
     // for resizing the terminal

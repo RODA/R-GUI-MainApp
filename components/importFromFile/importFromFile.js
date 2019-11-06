@@ -63,4 +63,11 @@ const loadFile = {
     }
 };
 
+
+ipcMain.on('importDataForPreview', (event, args) => {
+    if(loadFileWindow !== void 0 && !loadFileWindow.isDestroyed()) {
+        loadFileWindow.webContents.send('importDataForPreview', args);
+    }
+});
+
 module.exports = loadFile;
