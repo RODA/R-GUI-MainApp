@@ -303,6 +303,22 @@ env$RGUI_editorsize <- function(visiblerows, visiblecols) {
     env$RGUI_visiblecols <- visiblecols
 }
 
+env$RGUI_import <- function(objlist) {
+    env <- as.environment("RGUI")
+    objlist[[2]] <- pipe(paste("cut -f1-7 -d','", objlist[[2]]))
+    obj <- call(objlist[[1]], objlist[-1])
+
+    dscrollvh <- c(1, 1)
+
+    imported <- list(
+        rownames = rownames(obj),
+        colnames = colnames(obj),
+        vdata = unname(as.list(obj))
+    )
+
+    env$RGUI_result <- c(env$RGUI_result, RGUI_jsonify(list(imported = imported)))
+}
+
 
 
 env$RGUI_call <- function() {
