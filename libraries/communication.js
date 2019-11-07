@@ -34,7 +34,7 @@ let ptyEnv = {
     _: process.env._
 };
 
-const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
+const ptyProcess = pty.spawn(shell, ['-q'], { //, '--no-save'
     // const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-color',
     cols: 80,
@@ -103,7 +103,7 @@ ptyProcess.on('data', (data) => {
     } else
     // send data to terminal 
     if (data !=='') {
-        if (data.indexOf("Error: ") >= 0) {
+        if (data.includes("Error")) {
             // make line red
             xterm.write(chalk.red(data));
         } else {
@@ -113,9 +113,11 @@ ptyProcess.on('data', (data) => {
             if(prompter && dl == 2)
             {
                 if(keyboardEnter) {
-                    invisible = true;
-                    ptyProcess.write('RGUI_call()\n');
-                    keyboardEnter = false;
+                    setTimeout( () => {
+                        invisible = true;
+                        ptyProcess.write('RGUI_call()\n');
+                        keyboardEnter = false;
+                    }, 1);
                 }
             }
         }
@@ -337,14 +339,14 @@ const comm = {
     // For testing only
     sendComandForPreviewData: function(args)
     {
-        // return {
-        //     colnames: ["a.b.c.d"],
-        //     vdata: [["1,2,3,4","5,6,7,8","9,10,11,12","13,14,15,16"]]
-        // };
         return {
-            colnames: ["asdvafs dfsdvsrgs", "b", "c","d"],
-            vdata: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,16]]
+            colnames: ["a.b.c.d"],
+            vdata: [["1,2,3,4","5,6,7,8","9,10,11,12","13,14,15,16"]]
         };
+        // return {
+        //     colnames: ["asdvafs dfsdvsrgs", "b", "c","d"],
+        //     vdata: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,16]]
+        // };
     },
 
     // Helpers ===========================================================
