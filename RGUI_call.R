@@ -13,7 +13,6 @@
 attach(NULL, name = "RGUI") 
 env <- as.environment("RGUI")
 
-env$RGUI_first <- TRUE
 env$RGUI_formatted <- FALSE
 env$RGUI_hashes <- list()
 env$RGUI_objtype <- list()
@@ -386,15 +385,6 @@ env$RGUI_call <- function() {
     utils::savehistory(file = temp) # only in Terminal, not working on MacOS
     history <- readLines(temp)
     lhistory <- length(history)
-
-    if (env$RGUI_first) {
-        env$RGUI_first <- FALSE
-        
-        if (lhistory == 1) {
-            lhistory <- 2
-        }
-        history[lhistory - 1] <- "library(QCA)"
-    }
     
     writeLines(history[seq(lhistory - 1)], con = temp)
     loadhistory(file = temp)
