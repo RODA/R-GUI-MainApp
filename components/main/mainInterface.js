@@ -1,7 +1,7 @@
 const { ipcRenderer, webFrame } = require('electron');
 const Split = require('split.js');
 const comm = require('../../libraries/communication');
-const commHelpers = require('./communicationHelpers');
+const commHelpers = require('../../libraries/communicationHelpers');
 
 
 ipcRenderer.on('initializeApp', (event, args) => {
