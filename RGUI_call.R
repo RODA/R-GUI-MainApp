@@ -381,14 +381,20 @@ env$RGUI_call <- function() {
     env$RGUI_hashes <- hashes # overwrite the hash information
     env$RGUI_objtype <- objtype
     
-    temp <- tempfile()
+    # temp <- tempfile()
+    temp <- "bla.Rhistory"
     utils::savehistory(file = temp) # only in Terminal, not working on MacOS
     history <- readLines(temp)
     lhistory <- length(history)
     
-    writeLines(history[seq(lhistory - 1)], con = temp)
+    if (lhistory == 1) {
+        writeLines("\n", con = temp)
+    }
+    else {
+        writeLines(history[seq(lhistory - 1)], con = temp)
+    }
     loadhistory(file = temp)
-    unlink(temp)
+    # unlink(temp)
 
     if (length(env$RGUI_result) > 0) {
         env$RGUI_result <- paste("{", paste(env$RGUI_result, collapse = ",\n"), "}", sep = "")
