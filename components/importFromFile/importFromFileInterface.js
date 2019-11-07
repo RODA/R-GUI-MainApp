@@ -12,6 +12,7 @@ let importOptions = {};
 let cModify = new EventEmitter();
 let headerNames;
 let paper;
+let importObj = {};
 
 // the window is redy - the data is loaded 
 ipcRenderer.on('dataLoaded', (event, args) => {
@@ -105,8 +106,10 @@ cModify.on('elementChanged', (event, args) => {
     let theCommand = makeCommand();
     if (theCommand !== '') {
         ipcRenderer.send('dialogCommandUpdate', theCommand);
-        // ipcRenderer.send('runCommandInvisible', theCommand);
-        ipcRenderer.send('sendComandForPreviewData', theCommand);
+        
+        // add number of rows
+        importObj.nrows = 7;
+        ipcRenderer.send('sendComandForPreviewData', importObj);        
     }
 });
 // draw the import preview
@@ -614,9 +617,7 @@ let drawCheckBox = {
         let thisObj = this;
         this.cover = paper.rect(x, y, 12, 12)
             .attr({fill: "#fff", opacity: 0, cursor: "pointer"})
-            .click(function() {
-                console.log('inside');
-                
+            .click(function() {                
                 // the element
                 thisObj.checked = !thisObj.checked;
                 
@@ -679,9 +680,12 @@ function makeCommand()
     // reading with CSV
     if (importOptions.sep === 'comma') {
         theCommand = importOptions.dataset + ' <- read.csv(\'' + upath.normalize(importOptions.filePath) + '\'';
+        importObj.command = 'read.csv';
+        // importObj.sep = '';
     } 
     // reading with table
     else {      
+        importObj.command = 'read.table';
         theCommand = importOptions.dataset + ' <- read.table(\'' + upath.normalize(importOptions.filePath) + '\'';
     }
     // do we have the firt row as header ?
@@ -690,46 +694,77 @@ function makeCommand()
     }
     if (importOptions.header && importOptions.sep !== 'comma') {
         theCommand += ', header = TRUE';
+        
+    }
+    // for sending it to R preview
+    if (importOptions.header) {
+        importObj.header = 'TRUE';
+    } else {
+        importObj.header = 'FALSE';
     }
 
     // setting the separator
     if (importOptions.sep != 'comma' & importOptions.sep != 'space' & importOptions.sep != 'tab' & importOptions.sep != '') {
         theCommand += ', sep = "' + importOptions.sep + '"';
+        importObj.sep = importOptions.sep;
+    } else {
+        delete importObj.sep;
     }
     // setting quote char
     switch(importOptions.quote){
         case 'Single':
             theCommand += ', quote = "\'"';
+            importObj.quote = "\'";
             break;
         case 'None':
             theCommand += ', quote = ""';
-            break;    
+            importObj.quote = "";
+            break;
+        default:
+            importObj.quote = "\"";
     }
     // setting the decimal
     if (importOptions.dec === 'comma') {
         theCommand += ', dec=","';
+        importObj.dec = ",";
+    } else {
+        importObj.dec = ".";
     }
+
     // setting NA values
     if (importOptions.nastrings !== 'NA') {
         theCommand += ', na.strings = "' + importOptions.nastrings + '"';
+        importObj.naStrings = importOptions.nastrings;
+    } else {
+        importObj.naStrings = 'NA';
     }
     // setting skip
     if (importOptions.skip !== '0') {
-        theCommand += ', skip = "' + importOptions.skip + '"';
+        let newSkip = isNaN(parseInt(importOptions.skip)) ? 0 : parseInt(importOptions.skip); 
+        theCommand += ', skip = "' + newSkip + '"';
+        importObj.skip = newSkip;
+    } else if (importOptions.skip == '0'){
+        importObj.skip = 0;
     }
     // setting strip white | trim space
     if (importOptions.stripwhite) {
         theCommand += ', strip.white = TRUE';
+        importObj.stripWhite = 'TRUE';
+    } else {
+        importObj.stripWhite = 'FALSE';
     }
     // setting comment char
     switch(importOptions.commentchar) {
         case '#':
+            importObj.commentChar = '#';
             break;
         case 'Disabled':
             theCommand += ', comment.char =""';
+            importObj.commentChar = '';
             break;
         default:
             theCommand += ', comment.char ="' + importOptions.commentchar + '"';
+            importObj.commentChar = importOptions.commentchar;
     }
     // closing the command
     theCommand += ")";

@@ -311,7 +311,15 @@ const comm = {
                         }
                     }
                 }  
+                if(obj.imported !== void 0) {
 
+                    let data = {
+                        vdata: obj.imported.vdata,
+                        colnames: obj.imported.colnames,
+                        rownames: obj.imported.rownames
+                    };
+                    ipcRenderer.send('importDataForPreview', data);
+                }
                 // send update to dialogs
                 // console.log('sending data');
                 ipcRenderer.send('dialogIncomingData', {name: null, data: infobjs});

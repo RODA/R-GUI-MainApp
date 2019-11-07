@@ -1,6 +1,7 @@
 const { ipcRenderer, webFrame } = require('electron');
 const Split = require('split.js');
 const comm = require('../../libraries/communication');
+const commHelpers = require('./communicationHelpers');
 
 
 ipcRenderer.on('initializeApp', (event, args) => {
@@ -50,8 +51,7 @@ ipcRenderer.on('runCommandInvisible', (event, args) => {
 
 // run a R commmand from system | invisible
 ipcRenderer.on('sendComandForPreviewData', (event, args) => {
-    let data = comm.sendComandForPreviewData(args);
-    ipcRenderer.send('importDataForPreview', data);
+    comm.runRCommandInvisible(commHelpers.Rify(args));
 });
 
 // dialog send initial data
