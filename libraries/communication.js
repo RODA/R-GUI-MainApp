@@ -204,8 +204,14 @@ const comm = {
     // process invisible data
     processData: function(data) 
     {
+        console.log('-----');
+        console.log(data);
+        
+        
         let jsonData = this.getJsonText(data);
         console.log('processing');
+        console.log(jsonData);
+        
         if (jsonData) {
             try {
                 response = '';
@@ -311,14 +317,18 @@ const comm = {
                         }
                     }
                 }  
+                console.log(obj);
+                
                 if(obj.imported !== void 0) {
 
-                    let data = {
-                        vdata: obj.imported.vdata,
-                        colnames: obj.imported.colnames,
-                        rownames: obj.imported.rownames
-                    };
-                    ipcRenderer.send('importDataForPreview', data);
+                    console.log(obj.imported);
+                    
+                    // let data = {
+                    //     vdata: obj.imported.vdata,
+                    //     colnames: obj.imported.colnames,
+                    //     rownames: obj.imported.rownames
+                    // };
+                    ipcRenderer.send('importDataForPreview', obj.imported);
                 }
                 // send update to dialogs
                 // console.log('sending data');
@@ -334,7 +344,7 @@ const comm = {
                 response = '';
             }
         }
-        invisible = false;
+        // invisible = false;
     },
 
     // return current data

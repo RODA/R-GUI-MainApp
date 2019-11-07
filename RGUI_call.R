@@ -305,10 +305,14 @@ env$RGUI_editorsize <- function(visiblerows, visiblecols) {
 
 env$RGUI_import <- function(objlist) {
     env <- as.environment("RGUI")
-    objlist[[2]] <- pipe(paste("cut -f1-7 -d','", objlist[[2]]))
-    obj <- call(objlist[[1]], objlist[-1])
+    callist <- list(file = pipe(paste("cut -f1-8 -d','", objlist$file)))
+    command <- objlist$command
+    objlist$file <- NULL
+    objlist$command <- NULL
+    callist <- c(callist, objlist)
+    obj <- do.call(command, callist)
 
-    dscrollvh <- c(1, 1)
+print(obj)
 
     imported <- list(
         rownames = rownames(obj),
@@ -430,3 +434,4 @@ env$RGUI_call <- function() {
 }
 
 rm(env)
+# RGUI_import(list(command = "read.csv", commentChar = "#", dec = ".", header = "TRUE", na.strings = "NA", nrows = 7, quote = "\"", skip = 0, stripWhite = "FALSE")

@@ -51,7 +51,9 @@ ipcRenderer.on('runCommandInvisible', (event, args) => {
 
 // run a R commmand from system | invisible
 ipcRenderer.on('sendComandForPreviewData', (event, args) => {
-    comm.runRCommandInvisible(commHelpers.Rify(args));
+    console.log("RGUI_import(list(" + commHelpers.Rify(args) + "))");
+    
+    comm.runRCommandInvisible("RGUI_import(list(" + commHelpers.Rify(args) + "))\nRGUI_call()");
 });
 
 // dialog send initial data

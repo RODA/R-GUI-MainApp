@@ -13,6 +13,7 @@ let cModify = new EventEmitter();
 let headerNames;
 let paper;
 let importObj = {};
+let previewData = [];
 
 // the window is redy - the data is loaded 
 ipcRenderer.on('dataLoaded', (event, args) => {
@@ -29,7 +30,8 @@ ipcRenderer.on('dataLoaded', (event, args) => {
     // create paper and background
     paper = Raphael('paperImportFromFile', wWidth, wHeight);
     paper.rect(0, 0, wWidth, wHeight).attr({fill: '#FFFFFF', stroke: '#FFFFFF'});
-
+    
+    // paper.previewData = paper.set();
     // create the browse file
     selectFile(paper, wWidth, wHeight);
 
@@ -108,7 +110,7 @@ cModify.on('elementChanged', (event, args) => {
         ipcRenderer.send('dialogCommandUpdate', theCommand);
         
         // add number of rows
-        importObj.nrows = 7;
+        importObj.nrows = 8;
         ipcRenderer.send('sendComandForPreviewData', importObj);        
     }
 });
@@ -116,32 +118,41 @@ cModify.on('elementChanged', (event, args) => {
 ipcRenderer.on('importDataForPreview', (event, args) => {
 
     let headerRow = args.colnames;
-    let rows = args.vdata;
-    let previewData = paper.set();
+    let vdata = args.vdata;
+console.log(previewData.length);
 
+    if (previewData.length){
+        for (let index = 0; index < previewData.length; index++) {
+            if( typeof previewData[index].remove === 'function'){
+                previewData[index].remove();
+            };
+        }
+        previewData.length = 0;
+    }
+    
     if(Array.isArray(headerRow)) {
         // do not show more than 10 column
-        let count = headerRow.length < 8 ? headerRow.length : 7;  
+        let count = headerRow.length < 9 ? headerRow.length : 8;  
         for (let index = 0; index < count; index++) {
-            previewData.push(paper.rect(20 + index*100, 105, 98, 20).attr({fill: "#d6d6d6", stroke: "none"}));
+            previewData.push(paper.rect(20 + index*94, 100, 90, 20).attr({fill: "#d6d6d6", stroke: "none"}));
             // make text fit 100px cell width
-            let txt = headerRow[index].length > 11 ? headerRow[index].substring(0,9) + '...' : headerRow[index];            
-            previewData.push(paper.text(25 + index*100, 115, txt).attr({"text-anchor": "start", "font-size": "14px", fill: "black"}));
+            let txt = headerRow[index].length > 9 ? headerRow[index].substring(0,7) + '...' : headerRow[index];            
+            previewData.push(paper.text(25 + index*94, 110, txt).attr({"text-anchor": "start", "font-size": "14px", fill: "black"}));
         }
     }
 
-    if(Array.isArray(rows)) {
+    if(Array.isArray(vdata)) {
         // do not show more than 7 column
-        let count = rows.length < 8 ? rows.length : 7;  
+        let count = vdata.length < 9 ? vdata.length : 8;  
         for (let index = 0; index < count; index++) {
-            if (Array.isArray(rows[index])) {
-                // do not show more than 7 rows
-                let count2 = rows[index].length < 8 ? rows[index].length : 7;  
+            if (Array.isArray(vdata[index])) {
+                // do not show more than 7 vdata
+                let count2 = vdata[index].length < 9 ? vdata[index].length : 8;  
                 for (let j = 0; j < count2; j++) {
-                    previewData.push(paper.rect(20 + j*100, 130 + index*23, 98, 20).attr({fill: "#f8f8f8", stroke: "none"}));
+                    previewData.push(paper.rect(20 + index*94, 125 + j*23, 90, 20).attr({fill: "#f8f8f8", stroke: "none"}));
                     // make text fit 100px cell width
-                    let txt = rows[index][j].length > 11 ? rows[index][j].substring(0,9) + '...' : rows[index][j];            
-                    previewData.push(paper.text(25 + j*100, 140 + index*23, txt).attr({"text-anchor": "start", "font-size": "14px", fill: "black"}));    
+                    let txt = vdata[index][j].length > 9 ? vdata[index][j].substring(0,7) + '...' : vdata[index][j];            
+                    previewData.push(paper.text(25 + index*94, 135 + j*23, txt).attr({"text-anchor": "start", "font-size": "14px", fill: "black"}));    
                 }
             }
         }
@@ -681,6 +692,7 @@ function makeCommand()
     if (importOptions.sep === 'comma') {
         theCommand = importOptions.dataset + ' <- read.csv(\'' + upath.normalize(importOptions.filePath) + '\'';
         importObj.command = 'read.csv';
+        importObj.file = importOptions.filePath;
         // importObj.sep = '';
     } 
     // reading with table
@@ -698,9 +710,9 @@ function makeCommand()
     }
     // for sending it to R preview
     if (importOptions.header) {
-        importObj.header = 'TRUE';
+        importObj.header = true;
     } else {
-        importObj.header = 'FALSE';
+        importObj.header = false;
     }
 
     // setting the separator
@@ -714,14 +726,14 @@ function makeCommand()
     switch(importOptions.quote){
         case 'Single':
             theCommand += ', quote = "\'"';
-            importObj.quote = "\'";
+            importObj.quote = "\\\'";
             break;
         case 'None':
             theCommand += ', quote = ""';
             importObj.quote = "";
             break;
         default:
-            importObj.quote = "\"";
+            importObj.quote = "\\\"";
     }
     // setting the decimal
     if (importOptions.dec === 'comma') {
@@ -734,9 +746,9 @@ function makeCommand()
     // setting NA values
     if (importOptions.nastrings !== 'NA') {
         theCommand += ', na.strings = "' + importOptions.nastrings + '"';
-        importObj.naStrings = importOptions.nastrings;
+        importObj['na.strings'] = importOptions.nastrings;
     } else {
-        importObj.naStrings = 'NA';
+        importObj['na.strings'] = 'NA';
     }
     // setting skip
     if (importOptions.skip !== '0') {
@@ -749,22 +761,22 @@ function makeCommand()
     // setting strip white | trim space
     if (importOptions.stripwhite) {
         theCommand += ', strip.white = TRUE';
-        importObj.stripWhite = 'TRUE';
+        importObj['strip.white'] = true;
     } else {
-        importObj.stripWhite = 'FALSE';
+        importObj['strip.white'] = false;
     }
     // setting comment char
     switch(importOptions.commentchar) {
         case '#':
-            importObj.commentChar = '#';
+            importObj['comment.char'] = '#';
             break;
         case 'Disabled':
             theCommand += ', comment.char =""';
-            importObj.commentChar = '';
+            importObj['comment.char'] = '';
             break;
         default:
             theCommand += ', comment.char ="' + importOptions.commentchar + '"';
-            importObj.commentChar = importOptions.commentchar;
+            importObj['comment.char'] = importOptions.commentchar;
     }
     // closing the command
     theCommand += ")";
