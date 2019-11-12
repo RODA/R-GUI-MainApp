@@ -33,11 +33,9 @@
     "directories": {
       "output": "build/output"
     },
-    "extraResources": [
-      "dialogs",
-      "locales"
-    ],
     "extraFiles": [
+      "dialogs",
+      "locales",
       "settings.json",
       "./menus/menu.json"
     ],
