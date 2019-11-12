@@ -1,6 +1,7 @@
 const { Menu, dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const importDialog = require('../components/importDialog');
 const menuCustomize = require('../components/menuCustomize/menuCustomize');
@@ -10,7 +11,9 @@ const logging = require('../libraries/logging');
 const menuBuilder = (app, mainWindow, i18next, theSettings) => {
 
     let menuTemplate;
-    let menuData = fs.readFileSync(path.resolve('./menus/menu.json'), "utf8");
+    // get the menu.json path
+    let menuPath = theSettings.appPath + '/menus/menu.json';
+    let menuData = fs.readFileSync(menuPath, "utf8");
     try {
         menuData = JSON.parse(menuData);
     } catch (error) {

@@ -2,13 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const { dialog } = require('electron');
 const logging = require('../libraries/logging');
+const os = require('os');
 
 const importDialog = {
     
+    appPath: '',
+
     //save the dialog
     save: function(data, mWindow, theSettings)
     {
         let dialogData;
+        this.appPath = theSettings.appPath;
         try {
             dialogData = JSON.parse(data);
         } catch (err) {
@@ -16,7 +20,10 @@ const importDialog = {
         }
         if (dialogData !== void 0 && dialogData.properties.name !== void 0) {
             let dialogName = dialogData.properties.name.toLowerCase().replace(' ', '-');
-            let dialogPath = path.resolve('dialogs/' + dialogName + '.json');
+            let dialogPath = this.appPath + '/dialogs/' + dialogName + '.json';
+            // if (process.env.NODE_ENV === 'production' && os.type() === 'Darwin') {
+            //     dialogPath = path.join(__dirname, '/../dialogs/' + dialogName + '.json');
+            // }
             let dialogExists = false;
 
             // check if the file exist sync    
@@ -74,7 +81,9 @@ const importDialog = {
     // update new dependencies
     updateMainDependencies: function(dependencies)
     {        
-        fs.open(path.resolve('./settings.json'), "r+", function(err, fd) {
+        let settingsPath = this.appPath + '/settings.json';
+
+        fs.open(settingsPath, "r+", function(err, fd) {
             if (err) {
                 logging.error('Opening setting when importing dialog: ' + err);
             } else {
@@ -111,7 +120,7 @@ const importDialog = {
                             settingsData.dependencies = newDependencies;
 
                             // write settings back
-                            fs.writeFile(path.resolve('./settings.json'), JSON.stringify(settingsData), {encoding: 'utf8', flag: 'w+'}, (err) => {
+                            fs.writeFile(settingsPath, JSON.stringify(settingsData), {encoding: 'utf8', flag: 'w+'}, (err) => {
                                 if (err) { 
                                     logging.error('Writing back to setting when importing dialog: ' + err);
                                 } else {

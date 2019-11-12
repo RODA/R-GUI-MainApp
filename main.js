@@ -25,13 +25,15 @@ let theSettings = {
   languageNS: 'en_US',
   workingDirectory: os.homedir(),
   dependencies: '',
+  appPath: app.getAppPath(),
   dialogs: {},
   currentCommand: '',
   missingPackages: ''
 };
 
 // loading language from settings
-let settingsFileData  = fs.readFileSync(path.resolve('./settings.json'), 'utf8');
+let settingsPath = theSettings.appPath + '/settings.json';
+let settingsFileData  = fs.readFileSync(settingsPath, 'utf8');
 try{
   settingsFileData = JSON.parse(settingsFileData);
   theSettings.dependencies = settingsFileData.dependencies;

@@ -24,7 +24,7 @@ const loadFile = {
             loadFileWindow = new BrowserWindow({
                 width: this.windowWidth,
                 height: this.windowHeight,
-                title: i18next.t('Import from text file'),
+                title: i18next.t('Import data from file'),
                 parent: theWindow,
                 webPreferences: {
                     nodeIntegration: true

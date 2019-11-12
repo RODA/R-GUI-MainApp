@@ -144,6 +144,9 @@ function drawSelect(paper, x, y, list)
         select.objSelected = paper.text(dataLeft+10, dataTop+12, data).attr({"text-anchor": "start",fill: "#000000", "font-size": "13px", "font-family": "Arial"});
         select.value = data;
         select.selected = true;       
+        listSupport.hide();
+        select.element.downsign.show();
+        select.element.upsign.hide();
     });
     eventMe.on('deSelected', function(data) {
         if(typeof select.objSelected.remove === "function") {
@@ -151,6 +154,9 @@ function drawSelect(paper, x, y, list)
         }
         select.value = '';
         select.selected = false;
+        listSupport.hide();
+        select.element.downsign.show();
+        select.element.upsign.hide();
     });
 
     const listSupport = {

@@ -1,4 +1,6 @@
 const path = require('path');
+const os = require('os');
+
 const i18nextOptions = {
     language: 'en',
     namespace: 'en_US',
@@ -12,6 +14,7 @@ const i18nextOptions = {
     getOptions: function(env, front)
     {
         if (env == 'production') {
+            let pathAdd = os.type() == 'Darwin' ? '/../' : './'; 
             return {
                 lng: this.language,
                 ns: ['en_US', this.namespace],
@@ -22,9 +25,9 @@ const i18nextOptions = {
                 preload: [this.language],
                 backend:{
                     // path where resources get loaded from
-                    loadPath: './resources/locales/{{ lng }}/{{ ns }}.json',
+                    loadPath: pathAdd + 'locales/{{ lng }}/{{ ns }}.json',
                     // path to post missing resources
-                    addPath: './resources/locales/{{ lng }}/{{ ns }}.missing.json',
+                    addPath: pathAdd + 'locales/{{ lng }}/{{ ns }}.missing.json',
                     // jsonIndent to use when storing json files
                     jsonIndent: 2,
                 },
