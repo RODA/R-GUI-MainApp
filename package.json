@@ -33,11 +33,11 @@
     "directories": {
       "output": "build/output"
     },
-    "extraFiles": [
+    "extraResources": [
       "dialogs",
       "locales",
       "settings.json",
-      "./menus/menu.json"
+      "menus/menu.json"
     ],
     "mac": {
       "category": "public.app-category.developer-tools",

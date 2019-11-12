@@ -11,8 +11,8 @@ const logging = require('./libraries/logging');
 const upath = require("upath");
 
 // Setting ENVIROMENT
-process.env.NODE_ENV = 'development';
-// process.env.NODE_ENV = 'production';
+// process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 
 // testing flags
 // process.env.ELECTRON_NO_ATTACH_CONSOLE = false;
@@ -26,13 +26,14 @@ let theSettings = {
   workingDirectory: os.homedir(),
   dependencies: '',
   appPath: app.getAppPath(),
+  pathSeparator: (process.env.NODE_ENV == 'production') ? '/..' : '',
   dialogs: {},
   currentCommand: '',
   missingPackages: ''
 };
 
 // loading language from settings
-let settingsPath = theSettings.appPath + '/settings.json';
+let settingsPath = theSettings.appPath + theSettings.pathSeparator + '/settings.json';
 let settingsFileData  = fs.readFileSync(settingsPath, 'utf8');
 try{
   settingsFileData = JSON.parse(settingsFileData);

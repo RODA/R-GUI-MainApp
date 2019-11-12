@@ -14,11 +14,13 @@ const settings = {
     windowWidth: 640,
     windowHeight: 480,
     appPath: '',
+    pathSeparator: '',
 
     createSettingsWindow: function(i18next, theWindow, theSettings) 
     {
         this.appPath = theSettings.appPath;    
-        fs.readFile(this.appPath + '/settings.json', function rs(err, data){
+        this.pathSeparator = theSettings.pathSeparator;    
+        fs.readFile(this.appPath + this.pathSeparator + '/settings.json', function rs(err, data){
             if (err) {
                 dialog.showMessageBox(theWindow, {type: "error", message: i18next.t("An error occured we can not open the settings window!"), title: theLanguage.t("Error"), buttons: ["OK"]});
             }
@@ -88,7 +90,7 @@ const settings = {
             }
         }
 
-        fs.open(this.appPath + '/settings.json', 'w', (err, fd) => {
+        fs.open(this.appPath + this.pathSeparator + '/settings.json', 'w', (err, fd) => {
             if (err) { 
                 dialog.showMessageBox(theWindow, {type: "error", message: theLanguage.t("An error occured while trying to save the settings!"), title: theLanguage.t("Error"), buttons: ["OK"]});
             } else {
