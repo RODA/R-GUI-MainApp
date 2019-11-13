@@ -2,6 +2,8 @@ const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const fixPath = require('fix-path');
+fixPath();
 
 // language
 const menuFactroy = require('./menus/menuFactory');
@@ -56,7 +58,7 @@ if ( settingsFileData.defaultLanguage !== void 0) {
 }
 
 i18nextOptions.setLanguage(theSettings.language, theSettings.languageNS);
-i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV, true));
+i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV, true, theSettings.appPath));
 //---------------------------------------
 
 let mainWindow;

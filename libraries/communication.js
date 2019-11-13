@@ -14,6 +14,7 @@ const commandExec = require('child_process');
 
 // check if R is installed
 
+
 let shell = '';
 let command = '';
 let appR = '';
@@ -24,33 +25,17 @@ if(os.type() === 'Win32') {
   command = 'which';
   appR = 'R';
 }
-// console.log(process.env);
 
-// commandExec.exec(command, {shell: process.env.SHELL}, (error, stdout, stderr) => {
-//   if (error) {
-//     dialog.showMessageBoxSync({type: "warning", buttons: ["OK"], title: "Error", message:"Please install the R Software in order to use the application"});
-//     // ipcRenderer.send('quitApplication');
-//     console.error(`exec error: ${error}`);
-//     return;
-//   }
-//   shell = stdout;
-//   console.log(`stdout: ${stdout}`);
-//   console.error(`stderr: ${stderr}`);
-// });
-// const which = commandExec.execSync('which R', {shell: process.env.SHELL});
-const which = commandExec.spawnSync('where.exe', ['R.exe'], {shell: 'cmd.exe'});
+const which = commandExec.execSync('which R',
+{
+    shell: '/bin/bash',
+    cwd: process.cwd(),
+    env: process.env,
+    encoding: 'UTF8'
+});
 
-// console.log(which);
-// console.log();
-// console.log(which.stderr.toString());
-shell = which.stdout.toString().replace(/(\r\n|\n|\r)/gm, "");
+shell = which.replace(/(\r\n|\n|\r)/gm, "");
 
-// console.log(which.toString());
-// console.log(which.stderr.toString());
-// console.log(which.error);
-// console.log(which.output.toString());
-
-// console.log(process.env);
 // we use this variable to send invisible data to R
 var invisible = false;
 var runFromVisible = false;
@@ -58,24 +43,34 @@ var response = '';
 let keyboardEnter = false;
 let initial = true;
 
-console.log(process.env);
-
 // terminal PTY
+// let ptyEnv = {
+//     TERM: 'xterm-256color',
+//     WINPTY_FLAG_PLAIN_OUTPUT: '1',
+//     SHELL: shell,
+//     USER: process.env.USERNAME,
+//     PATH: process.env.PATH,
+//     PWD: process.env.PWD,
+//     SHLVL: '5',
+//     HOME: process.env.HOMEPATH,
+//     LOGNAME: process.env.USERNAME,
+//     FORCE_COLOR: '1',
+//     TMP: process.env.TMP
+// };
 let ptyEnv = {
     TERM: 'xterm-256color',
     WINPTY_FLAG_PLAIN_OUTPUT: '1',
     SHELL: shell,
-    USER: process.env.USERNAME,
+    USER: process.env.LOGNAME,
     PATH: process.env.PATH,
     PWD: process.env.PWD,
     SHLVL: '5',
-    HOME: process.env.HOMEPATH,
-    LOGNAME: process.env.USERNAME,
+    HOME: process.env.HOME,
+    LOGNAME: process.env.LOGNAME,
     FORCE_COLOR: '1',
-    TMP: process.env.TMP
+    TMP: process.env.TMPDIR
 };
 
-console.log(ptyEnv);
 
 const ptyProcess = pty.spawn(shell, ['-q'], { //, '--no-save'
     // const ptyProcess = pty.spawn(shell, [], {

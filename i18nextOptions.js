@@ -11,10 +11,9 @@ const i18nextOptions = {
         this.namespace = ns;
     },
 
-    getOptions: function(env, front)
+    getOptions: function(env, front, appPath)
     {
         if (env == 'production') {
-            let pathAdd = os.type() == 'Darwin' ? '/../' : './'; 
             return {
                 lng: this.language,
                 ns: ['en_US', this.namespace],
@@ -25,9 +24,9 @@ const i18nextOptions = {
                 preload: [this.language],
                 backend:{
                     // path where resources get loaded from
-                    loadPath: pathAdd + 'locales/{{ lng }}/{{ ns }}.json',
+                    loadPath: appPath + '/locales/{{ lng }}/{{ ns }}.json',
                     // path to post missing resources
-                    addPath: pathAdd + 'locales/{{ lng }}/{{ ns }}.missing.json',
+                    addPath: appPath + '/locales/{{ lng }}/{{ ns }}.missing.json',
                     // jsonIndent to use when storing json files
                     jsonIndent: 2,
                 },
