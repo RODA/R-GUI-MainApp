@@ -38,17 +38,17 @@ if(os.type() === 'Win32') {
 //   console.error(`stderr: ${stderr}`);
 // });
 // const which = commandExec.execSync('which R', {shell: process.env.SHELL});
-const which = commandExec.spawnSync('which', ['R'], {shell: '/bin/bash'});
+const which = commandExec.spawnSync('where.exe', ['R.exe'], {shell: 'cmd.exe'});
 
-console.log(which);
+// console.log(which);
 // console.log();
 // console.log(which.stderr.toString());
 shell = which.stdout.toString().replace(/(\r\n|\n|\r)/gm, "");
 
-console.log(which.toString());
+// console.log(which.toString());
 // console.log(which.stderr.toString());
 // console.log(which.error);
-console.log(which.output.toString());
+// console.log(which.output.toString());
 
 // console.log(process.env);
 // we use this variable to send invisible data to R
@@ -58,6 +58,7 @@ var response = '';
 let keyboardEnter = false;
 let initial = true;
 
+console.log(process.env);
 
 // terminal PTY
 let ptyEnv = {
@@ -68,10 +69,10 @@ let ptyEnv = {
     PATH: process.env.PATH,
     PWD: process.env.PWD,
     SHLVL: '5',
-    HOME: process.env.HOME,
+    HOME: process.env.HOMEPATH,
     LOGNAME: process.env.USERNAME,
     FORCE_COLOR: '1',
-    _: process.env._
+    TMP: process.env.TMP
 };
 
 console.log(ptyEnv);
