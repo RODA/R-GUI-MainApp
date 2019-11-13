@@ -7,14 +7,12 @@ const os = require('os');
 const importDialog = {
     
     appPath: '',
-    pathSeparator: '',
 
     //save the dialog
     save: function(data, mWindow, theSettings)
     {
         let dialogData;
         this.appPath = theSettings.appPath;
-        this.pathSeparator = theSettings.pathSeparator;
         try {
             dialogData = JSON.parse(data);
         } catch (err) {
@@ -22,7 +20,7 @@ const importDialog = {
         }
         if (dialogData !== void 0 && dialogData.properties.name !== void 0) {
             let dialogName = dialogData.properties.name.toLowerCase().replace(' ', '-');
-            let dialogPath = this.appPath + this.pathSeparator + '/dialogs/' + dialogName + '.json';
+            let dialogPath = this.appPath + '/dialogs/' + dialogName + '.json';
             // if (process.env.NODE_ENV === 'production' && os.type() === 'Darwin') {
             //     dialogPath = path.join(__dirname, '/../dialogs/' + dialogName + '.json');
             // }
@@ -83,7 +81,7 @@ const importDialog = {
     // update new dependencies
     updateMainDependencies: function(dependencies)
     {        
-        let settingsPath = this.appPath + this.pathSeparator  + '/settings.json';
+        let settingsPath = this.appPath + '/settings.json';
 
         fs.open(settingsPath, "r+", function(err, fd) {
             if (err) {

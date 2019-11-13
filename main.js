@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+
 // language
 const menuFactroy = require('./menus/menuFactory');
 const i18next = require("i18next");
@@ -14,10 +15,11 @@ const upath = require("upath");
 // process.env.NODE_ENV = 'development';
 process.env.NODE_ENV = 'production';
 
-// testing flags
-// process.env.ELECTRON_NO_ATTACH_CONSOLE = false;
-// process.env.WINPTY_FLAG_PLAIN_OUTPUT = true;
-// process.env.WINPTY_FLAG_CONERR = true;
+let appPathTmp = app.getAppPath();
+if(process.env.NODE_ENV === 'production') {
+  let p = upath.parse(appPathTmp);
+  appPathTmp = p.dir;
+}
 
 // the settings object - to be passed around - add here other properties
 let theSettings = {
@@ -25,15 +27,17 @@ let theSettings = {
   languageNS: 'en_US',
   workingDirectory: os.homedir(),
   dependencies: '',
-  appPath: app.getAppPath(),
-  pathSeparator: (process.env.NODE_ENV == 'production') ? '/..' : '',
+  appPath: appPathTmp,
   dialogs: {},
   currentCommand: '',
   missingPackages: ''
 };
 
+//console.log(theSettings.appPath);
+
 // loading language from settings
-let settingsPath = theSettings.appPath + theSettings.pathSeparator + '/settings.json';
+let settingsPath = theSettings.appPath + '/settings.json';
+
 let settingsFileData  = fs.readFileSync(settingsPath, 'utf8');
 try{
   settingsFileData = JSON.parse(settingsFileData);
@@ -154,4 +158,7 @@ ipcMain.on('runCommand', (event, args) => {
 ipcMain.on('sendComandForPreviewData', (event, args) => {
   mainWindow.webContents.send('sendComandForPreviewData', args);
 });
+ipcMain.on('quitApplication', (ev, args) => {
+  app.quit();
+})
 

@@ -12,7 +12,7 @@ const menuBuilder = (app, mainWindow, i18next, theSettings) => {
 
     let menuTemplate;
     // get the menu.json path
-    let menuPath = theSettings.appPath + theSettings.pathSeparator + '/menus/menu.json';
+    let menuPath = theSettings.appPath + '/menus/menu.json';
     let menuData = fs.readFileSync(menuPath, "utf8");
     try {
         menuData = JSON.parse(menuData);

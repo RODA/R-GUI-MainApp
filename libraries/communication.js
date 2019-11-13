@@ -3,11 +3,52 @@ const pty = require('node-pty');
 const Terminal = require('xterm').Terminal;
 const chalk = require('chalk');
 const { ipcRenderer } = require('electron');
-const { BrowserWindow } = require('electron').remote;
-const logger = require('./logging');
-const upath = require("upath");
+const { BrowserWindow, dialog } = require('electron').remote;
+// const logger = require('./logging');
+// const upath = require("upath");
 const commHelpers = require('./communicationHelpers');
-const stripAnsi = require('strip-ansi');
+// const stripAnsi = require('strip-ansi');
+const commandExec = require('child_process');
+// const { cprocess } = require('child_process');
+
+
+// check if R is installed
+
+let shell = '';
+let command = '';
+let appR = '';
+if(os.type() === 'Win32') {
+  command = 'where.exe';
+  appR = 'R.exe';
+} else {
+  command = 'which';
+  appR = 'R';
+}
+// console.log(process.env);
+
+// commandExec.exec(command, {shell: process.env.SHELL}, (error, stdout, stderr) => {
+//   if (error) {
+//     dialog.showMessageBoxSync({type: "warning", buttons: ["OK"], title: "Error", message:"Please install the R Software in order to use the application"});
+//     // ipcRenderer.send('quitApplication');
+//     console.error(`exec error: ${error}`);
+//     return;
+//   }
+//   shell = stdout;
+//   console.log(`stdout: ${stdout}`);
+//   console.error(`stderr: ${stderr}`);
+// });
+// const which = commandExec.execSync('which R', {shell: process.env.SHELL});
+const which = commandExec.spawnSync('which', ['R'], {shell: '/bin/bash'});
+
+console.log(which);
+// console.log();
+// console.log(which.stderr.toString());
+shell = which.stdout.toString().replace(/(\r\n|\n|\r)/gm, "");
+
+console.log(which.toString());
+// console.log(which.stderr.toString());
+// console.log(which.error);
+console.log(which.output.toString());
 
 // console.log(process.env);
 // we use this variable to send invisible data to R
@@ -19,10 +60,9 @@ let initial = true;
 
 
 // terminal PTY
-let shell = (os.platform() === 'win32') ? 'R.exe' : 'R';
 let ptyEnv = {
     TERM: 'xterm-256color',
-    WINPTY_FLAG_PLAIN_OUTPUT: '0x2ull',
+    WINPTY_FLAG_PLAIN_OUTPUT: '1',
     SHELL: shell,
     USER: process.env.USERNAME,
     PATH: process.env.PATH,
@@ -33,6 +73,8 @@ let ptyEnv = {
     FORCE_COLOR: '1',
     _: process.env._
 };
+
+console.log(ptyEnv);
 
 const ptyProcess = pty.spawn(shell, ['-q'], { //, '--no-save'
     // const ptyProcess = pty.spawn(shell, [], {
@@ -83,7 +125,7 @@ ptyProcess.on('data', (data) => {
     // console.log('invisible');
     // console.log(data);
     // console.log(stripAnsi(data).replace(/[\r\n]+/g,"").trim());
-    console.log(data);
+    // console.log(data);
 
     const prompter = data.charAt(0) === '>';
     const dl = data.length;
@@ -204,13 +246,13 @@ const comm = {
     // process invisible data
     processData: function(data) 
     {
-        console.log('-----');
-        console.log(data);
+        // console.log('-----');
+        // console.log(data);
         
         
         let jsonData = this.getJsonText(data);
-        console.log('processing');
-        console.log(jsonData);
+        // console.log('processing');
+        // console.log(jsonData);
         
         if (jsonData) {
             try {
@@ -350,7 +392,7 @@ const comm = {
     // return current data
     getCurrentData: function()
     {
-        console.log(infobjs);
+        // console.log(infobjs);
         
         return infobjs;
     },
