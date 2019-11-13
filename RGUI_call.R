@@ -312,7 +312,6 @@ env$RGUI_import <- function(objlist) {
     callist <- c(callist, objlist)
     obj <- do.call(command, callist)
 
-print(obj)
 
     imported <- list(
         rownames = rownames(obj),
