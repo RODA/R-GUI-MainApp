@@ -14,8 +14,8 @@ const logging = require('./libraries/logging');
 const upath = require("upath");
 
 // Setting ENVIROMENT
-// process.env.NODE_ENV = 'development';
-process.env.NODE_ENV = 'production';
+process.env.NODE_ENV = 'development';
+// process.env.NODE_ENV = 'production';
 
 let appPathTmp = app.getAppPath();
 if(process.env.NODE_ENV === 'production') {

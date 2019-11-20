@@ -119,7 +119,7 @@ ipcRenderer.on('importDataForPreview', (event, args) => {
 
     let headerRow = args.colnames;
     let vdata = args.vdata;
-console.log(previewData.length);
+    console.log(previewData.length);
 
     if (previewData.length){
         for (let index = 0; index < previewData.length; index++) {
@@ -692,7 +692,10 @@ function makeCommand()
     if (importOptions.sep === 'comma') {
         theCommand = importOptions.dataset + ' <- read.csv(\'' + upath.normalize(importOptions.filePath) + '\'';
         importObj.command = 'read.csv';
-        importObj.file = importOptions.filePath;
+        importObj.file = upath.normalize(importOptions.filePath);
+        // importObj.file = upath.normalize(importOptions.filePath).replace(/(\s+)/g, '\\\\\$1');
+        // console.log(upath.normalize(importOptions.filePath));
+        
         // importObj.sep = '';
     } 
     // reading with table

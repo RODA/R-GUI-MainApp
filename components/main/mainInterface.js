@@ -5,16 +5,13 @@ const commHelpers = require('../../libraries/communicationHelpers');
 
 
 ipcRenderer.on('initializeApp', (event, args) => {
-    
-    
-    
     // waiting for terminal to finish loading
     setTimeout(function(){
         // resize terminal according to window size
         comm.resizeTerm();    
         // check for R packages dependencies
         comm.initiateCommunication(args);   
-    }, 200);
+    }, 400);
     
 });
 
@@ -52,7 +49,6 @@ ipcRenderer.on('runCommandInvisible', (event, args) => {
 // run a R commmand from system | invisible
 ipcRenderer.on('sendComandForPreviewData', (event, args) => {
     console.log("RGUI_import(list(" + commHelpers.Rify(args) + "))");
-    
     comm.runRCommandInvisible("RGUI_import(list(" + commHelpers.Rify(args) + "))\nRGUI_call()");
 });
 

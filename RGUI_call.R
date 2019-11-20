@@ -305,7 +305,8 @@ env$RGUI_editorsize <- function(visiblerows, visiblecols) {
 
 env$RGUI_import <- function(objlist) {
     env <- as.environment("RGUI")
-    callist <- list(file = pipe(paste("cut -f1-8 -d','", objlist$file)))
+    # callist <- list(file = pipe(paste("cut -f1-8 -d','", objlist$file)))
+    callist <- list(file = pipe(paste("cut -f1-8 -d','", paste("'", objlist$file, "'", sep=""))))
     command <- objlist$command
     objlist$file <- NULL
     objlist$command <- NULL

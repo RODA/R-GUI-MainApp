@@ -9,32 +9,32 @@ const { BrowserWindow, dialog } = require('electron').remote;
 const commHelpers = require('./communicationHelpers');
 // const stripAnsi = require('strip-ansi');
 const commandExec = require('child_process');
-// const { cprocess } = require('child_process');
 
 
 // check if R is installed
-
-
 let shell = '';
-let command = '';
-let appR = '';
-if(os.type() === 'Win32') {
-  command = 'where.exe';
-  appR = 'R.exe';
+let findR; 
+
+if(process.platform === 'win32') {
+    findR = commandExec.execSync('where.exe R.exe',
+    {
+        shell: 'cmd.exe',
+        cwd: process.cwd(),
+        env: process.env,
+        encoding: 'UTF8'
+    });
 } else {
-  command = 'which';
-  appR = 'R';
+  findR = commandExec.execSync('which R',
+    {
+        shell: '/bin/bash',
+        cwd: process.cwd(),
+        env: process.env,
+        encoding: 'UTF8'
+    });
 }
 
-const which = commandExec.execSync('which R',
-{
-    shell: '/bin/bash',
-    cwd: process.cwd(),
-    env: process.env,
-    encoding: 'UTF8'
-});
-
-shell = which.replace(/(\r\n|\n|\r)/gm, "");
+// The R Shell
+shell = findR.replace(/(\r\n|\n|\r)/gm, "");
 
 // we use this variable to send invisible data to R
 var invisible = false;
@@ -44,36 +44,53 @@ let keyboardEnter = false;
 let initial = true;
 
 // terminal PTY
-// let ptyEnv = {
-//     TERM: 'xterm-256color',
-//     WINPTY_FLAG_PLAIN_OUTPUT: '1',
-//     SHELL: shell,
-//     USER: process.env.USERNAME,
-//     PATH: process.env.PATH,
-//     PWD: process.env.PWD,
-//     SHLVL: '5',
-//     HOME: process.env.HOMEPATH,
-//     LOGNAME: process.env.USERNAME,
-//     FORCE_COLOR: '1',
-//     TMP: process.env.TMP
-// };
-let ptyEnv = {
-    TERM: 'xterm-256color',
-    WINPTY_FLAG_PLAIN_OUTPUT: '1',
-    SHELL: shell,
-    USER: process.env.LOGNAME,
-    PATH: process.env.PATH,
-    PWD: process.env.PWD,
-    SHLVL: '5',
-    HOME: process.env.HOME,
-    LOGNAME: process.env.LOGNAME,
-    FORCE_COLOR: '1',
-    TMP: process.env.TMPDIR
-};
+let ptyEnv;
+if(process.platform === 'win32') {
+    ptyEnv = {
+        TERM: 'xterm-256color',
+        WINPTY_FLAG_PLAIN_OUTPUT: '1',
+        SHELL: shell,
+        USER: process.env.USERNAME,
+        PATH: process.env.PATH,
+        PWD: process.env.PWD,
+        SHLVL: '5',
+        HOME: process.env.HOMEPATH,
+        LOGNAME: process.env.USERNAME,
+        FORCE_COLOR: '1',
+        TMP: process.env.TMP
+    };
+} else if (process.platform === 'darwin') {
+    ptyEnv = {
+        TERM: 'xterm-256color',
+        WINPTY_FLAG_PLAIN_OUTPUT: '1',
+        SHELL: shell,
+        USER: process.env.LOGNAME,
+        PATH: process.env.PATH,
+        PWD: process.env.PWD,
+        SHLVL: '5',
+        HOME: process.env.HOME,
+        LOGNAME: process.env.LOGNAME,
+        FORCE_COLOR: '1',
+        TMP: process.env.TMPDIR
+    };
+} else if (process.platform === 'linux') {
+    // needs testing
+    ptyEnv = {
+        TERM: 'xterm-256color',
+        WINPTY_FLAG_PLAIN_OUTPUT: '1',
+        SHELL: shell,
+        USER: process.env.LOGNAME,
+        PATH: process.env.PATH,
+        PWD: process.env.PWD,
+        SHLVL: '5',
+        HOME: process.env.HOME,
+        LOGNAME: process.env.LOGNAME,
+        FORCE_COLOR: '1',
+        TMP: process.env.TMPDIR
+    };
+}
 
-
-const ptyProcess = pty.spawn(shell, ['-q'], { //, '--no-save'
-    // const ptyProcess = pty.spawn(shell, [], {
+const ptyProcess = pty.spawn(shell, ['-q', '--no-save'], {
     name: 'xterm-color',
     cols: 80,
     rows: 50,
@@ -115,14 +132,9 @@ xterm.onKey( (e) => {
         keyboardEnter = true;   
     }
 });
-// process.stdout.write(chalk.red('Emilian'));
-
 ptyProcess.on('data', (data) => {
-    // console.log('invisible');
-    // console.log(data);
-    // console.log(stripAnsi(data).replace(/[\r\n]+/g,"").trim());
-    // console.log(data);
 
+    console.log(data);
     const prompter = data.charAt(0) === '>';
     const dl = data.length;
 
@@ -131,12 +143,7 @@ ptyProcess.on('data', (data) => {
         if (!prompter) {
             response += data;          
         } else {
-            // console.log('processing');
             comm.processData(response);
-//            if(initial){
-//                xterm.write(data);
-//                initial = false;
-//            }
         }
     } else
     // send data to terminal 
@@ -161,12 +168,9 @@ ptyProcess.on('data', (data) => {
         }
     }
 });
-
 ptyProcess.on('exit', (code, signal) => {
   ptyProcess.kill();
 });
-
-
 
 
 // TODO -- to be removed testing only
@@ -190,7 +194,6 @@ const mockupData = {
     "vector": [], // just the names of the objects
 };
 
-
 // number of visible rows and columns assume all cells have equal height and width
 // but this mig`ht change when further developing the data editor
 let infobjs = {
@@ -204,11 +207,6 @@ let infobjs = {
         "vector": []
     }
 };
-
-
-const mkd = require('./test.json');
-// const mkd = JSON.parse(testData);
-// console.log(mkd);
 
 const comm = {
     // used for window resize event
@@ -241,14 +239,8 @@ const comm = {
     
     // process invisible data
     processData: function(data) 
-    {
-        // console.log('-----');
-        // console.log(data);
-        
-        
+    {      
         let jsonData = this.getJsonText(data);
-        // console.log('processing');
-        // console.log(jsonData);
         
         if (jsonData) {
             try {
@@ -267,18 +259,12 @@ const comm = {
                 if (obj.changed !== void 0) {
                     for( let key in obj.changed) {
                         // update / create data frame
-                        
                         if (key === 'dataframe') {
                             for (let i in obj.changed[key]) {
                                 if (infobjs.dataframe[i] === void 0) {
                                     infobjs.dataframe[i] = {};
-                                    // infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
                                     infobjs.dataframe[i] = obj.changed[key][i];
-                                    // console.log(i);
-                                    // console.log(obj.changed[key][i]);
-                                    
                                 } else {
-                                    // infobjs.dataframe[i] = Object.create({}, obj.changed[key][i]);
                                     infobjs.dataframe[i] = obj.changed[key][i];
                                 }
                             }
@@ -355,7 +341,6 @@ const comm = {
                         }
                     }
                 }  
-                console.log(obj);
                 
                 if(obj.imported !== void 0) {
 
@@ -369,7 +354,6 @@ const comm = {
                     ipcRenderer.send('importDataForPreview', obj.imported);
                 }
                 // send update to dialogs
-                // console.log('sending data');
                 ipcRenderer.send('dialogIncomingData', {name: null, data: infobjs});
             }
             catch(e){
