@@ -38,6 +38,7 @@
       "dialogs",
       "locales",
       "settings.json",
+      "RGUI_call.R",
       "menus/menu.json"
     ],
     "mac": {

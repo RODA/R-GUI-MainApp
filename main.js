@@ -104,7 +104,7 @@ function createMainWindow () {
     // when data is ready show window
     mainWindow.once("show", () => {
         let appPath = path.resolve('./'); 
-        mainWindow.webContents.send('initializeApp', {dependencies: theSettings.dependencies, appPath: upath.normalize(appPath)});
+        mainWindow.webContents.send('initializeApp', {dependencies: theSettings.dependencies, appPath: upath.normalize(theSettings.appPath)});
     });
 }
 

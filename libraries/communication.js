@@ -376,18 +376,18 @@ const comm = {
         
         return infobjs;
     },
-    // For testing only
-    sendComandForPreviewData: function(args)
-    {
-        return {
-            colnames: ["a.b.c.d"],
-            vdata: [["1,2,3,4","5,6,7,8","9,10,11,12","13,14,15,16"]]
-        };
-        // return {
-        //     colnames: ["asdvafs dfsdvsrgs", "b", "c","d"],
-        //     vdata: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,16]]
-        // };
-    },
+    // // For testing only
+    // sendComandForPreviewData: function(args)
+    // {
+    //     return {
+    //         colnames: ["a.b.c.d"],
+    //         vdata: [["1,2,3,4","5,6,7,8","9,10,11,12","13,14,15,16"]]
+    //     };
+    //     // return {
+    //     //     colnames: ["asdvafs dfsdvsrgs", "b", "c","d"],
+    //     //     vdata: [[1,5,9,13],[2,6,10,14],[3,7,11,15],[4,8,12,16]]
+    //     // };
+    // },
 
     // Helpers ===========================================================
     //return a json seq from string
