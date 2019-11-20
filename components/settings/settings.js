@@ -11,8 +11,8 @@ const settings = {
     // used later fot saving
     data: {},
     i18next: {},
-    windowWidth: 640,
-    windowHeight: 480,
+    windowWidth: 540,
+    windowHeight: 320,
     appPath: '',
 
     createSettingsWindow: function(i18next, theWindow, theSettings) 

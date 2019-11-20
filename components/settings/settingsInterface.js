@@ -22,8 +22,8 @@ ipcRenderer.on('settingsLoaded', (event, args) => {
     i18next.use(Backend).init(i18nextOptions.getOptions(process.env.NODE_ENV, false));    
 
     // create paper and background
-    let paper = Raphael('paperSettings', wWidth, wHeight);
-    paper.rect(0, 0, wWidth, wHeight).attr({fill: '#FFFFFF', stroke: '#FFFFFF'});
+    let paper = Raphael('paperSettings', wWidth - 10, wHeight - 10);
+    paper.rect(0, 0, wWidth - 10, wHeight - 10).attr({fill: '#FFFFFF', stroke: '#FFFFFF'});
 
     // Default language
     paper.text(15, 25, i18next.t('Language')).attr({'fill': '#000000', "font-size": '13px', "font-family": 'Arial', 'text-anchor': 'start', "cursor": "default"});
@@ -170,7 +170,7 @@ function drawSelect(paper, x, y, list)
         makeSupport: function(noElements) {
             listSupport.div.style.position = "absolute";
             listSupport.div.style.top = (dataTop + 24) + 'px';
-            listSupport.div.style.left = (dataLeft + 1) + 'px';
+            listSupport.div.style.left = (dataLeft - 1) + 'px';
             listSupport.div.style.width = (dataWidth -1) + 'px';
             // initial height only visible
             listSupport.div.style.height = '0px';
