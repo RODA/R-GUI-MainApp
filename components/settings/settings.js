@@ -49,7 +49,9 @@ const settings = {
                     });
                     
                     // Open the DevTools.
-                    settingsWindow.webContents.openDevTools();
+                    if (process.env.NODE_ENV == 'development') {
+                        settingsWindow.webContents.openDevTools();
+                    }
                     
                     // and load the settings.html of the app.
                     settingsWindow.loadFile('./components/settings/settings.html');

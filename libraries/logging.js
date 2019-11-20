@@ -32,7 +32,6 @@ const logging = {
     writeToFile: function(data) {
         fs.writeFile(path.resolve(logging.theFile), data, {encoding: 'utf8', flag:'a+'}, function writingLog(err){
             if (err) {
-                console.log('error');
                 throw err;
                 
             }

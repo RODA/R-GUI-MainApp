@@ -73,7 +73,9 @@ const dialogBuilder = {
             });
 
             // Open the DevTools.
-            theWindow.webContents.openDevTools();
+            if (process.env.NODE_ENV == 'development') {
+                theWindow.webContents.openDevTools();
+            }
                     
             // and load the settings.html of the app.
             theWindow.loadFile('./components/dialogBuilder/dialogBuilder.html');
@@ -101,8 +103,6 @@ const dialogBuilder = {
     // check for required packages
     checkForPackages: function(dependencies, missing)
     {   
-        console.log(dependencies);
-        
         let packages = dependencies.split(';');
         let resp = '';
         let first = true;

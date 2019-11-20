@@ -134,7 +134,7 @@ xterm.onKey( (e) => {
 });
 ptyProcess.on('data', (data) => {
 
-    console.log(data);
+    // console.log(data);
     const prompter = data.charAt(0) === '>';
     const dl = data.length;
 
@@ -343,9 +343,6 @@ const comm = {
                 }  
                 
                 if(obj.imported !== void 0) {
-
-                    console.log(obj.imported);
-                    
                     // let data = {
                     //     vdata: obj.imported.vdata,
                     //     colnames: obj.imported.colnames,

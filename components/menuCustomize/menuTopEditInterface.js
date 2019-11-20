@@ -185,8 +185,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
             for (let j = 0; j < menuItemList.length; j++) {
                 if (menuItemList[j].name === name) {
                     menuItemList[j].position = position;
-                    console.log(menuItemList[j]);
-                    
                     theList.splice(position, 0, menuItemList[j]);
                     found = true;
                     position++;

@@ -34,7 +34,9 @@ const loadFile = {
             });
             
             // Open the DevTools.
-            loadFileWindow.webContents.openDevTools();
+            if (process.env.NODE_ENV == 'development') {
+                loadFileWindow.webContents.openDevTools();
+            }
             
             // and load the settings.html of the app.
             loadFileWindow.loadFile('./components/importFromFile/importFromFile.html');

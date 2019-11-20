@@ -21,9 +21,7 @@ const importDialog = {
         if (dialogData !== void 0 && dialogData.properties.name !== void 0) {
             let dialogName = dialogData.properties.name.toLowerCase().replace(' ', '-');
             let dialogPath = this.appPath + '/dialogs/' + dialogName + '.json';
-            // if (process.env.NODE_ENV === 'production' && os.type() === 'Darwin') {
-            //     dialogPath = path.join(__dirname, '/../dialogs/' + dialogName + '.json');
-            // }
+
             let dialogExists = false;
 
             // check if the file exist sync    

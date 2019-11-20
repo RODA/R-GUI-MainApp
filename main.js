@@ -82,11 +82,10 @@ function createMainWindow () {
     mainWindow.loadFile('./components/main/main.html');
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
-
-    // maximize
-    // mainWindow.maximize();
-
+    if (process.env.NODE_ENV == 'development') {
+      mainWindow.webContents.openDevTools();
+    }
+    
     // Emitted when the window is closed.
     mainWindow.on('closed', () => {
         mainWindow = null;
