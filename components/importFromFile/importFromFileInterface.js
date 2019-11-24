@@ -718,6 +718,12 @@ function makeCommand()
         importObj.header = false;
     }
 
+    if(importOptions.sep === 'tab') {
+        theCommand += ', sep = "\t"';
+    }
+    if(importOptions.sep === 'space') {
+        theCommand += ', sep = ""';
+    }
     // setting the separator
     if (importOptions.sep != 'comma' & importOptions.sep != 'space' & importOptions.sep != 'tab' & importOptions.sep != '') {
         theCommand += ', sep = "' + importOptions.sep + '"';
