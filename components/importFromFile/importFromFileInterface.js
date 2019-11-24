@@ -719,11 +719,13 @@ function makeCommand()
     }
 
     if(importOptions.sep === 'tab') {
-        theCommand += ', sep = "\t"';
+        theCommand += ', sep = "\\t"';
     }
-    if(importOptions.sep === 'space') {
-        theCommand += ', sep = ""';
-    }
+    // if(importOptions.sep === 'space') {
+    //     theCommand += ', sep = ""';
+    // }
+    console.log(importOptions.sep);
+    
     // setting the separator
     if (importOptions.sep != 'comma' & importOptions.sep != 'space' & importOptions.sep != 'tab' & importOptions.sep != '') {
         theCommand += ', sep = "' + importOptions.sep + '"';
