@@ -1985,6 +1985,10 @@ var objects =
         // set to false - we have initialized the element
         select.initialize = false;
 
+        // set the first element as default
+        if(select.dataList.length > 0) {
+            select.setValue(select.dataList[0]);
+        }
         // add the element to the main list
         objects.objList[obj.name] = select;
     },
