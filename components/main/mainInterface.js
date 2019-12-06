@@ -48,6 +48,7 @@ ipcRenderer.on('runCommandInvisible', (event, args) => {
 
 // run a R commmand from system | invisible
 ipcRenderer.on('sendComandForPreviewData', (event, args) => {
+    console.log(args);
     console.log("RGUI_import(list(" + commHelpers.Rify(args) + "))");
     comm.runRCommandInvisible("RGUI_import(list(" + commHelpers.Rify(args) + "))\nRGUI_call()");
 });

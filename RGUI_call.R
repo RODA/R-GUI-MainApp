@@ -111,6 +111,7 @@ env$RGUI_jsonify <- function(x, n = 1) {
             }
 
             x[[i]] <- gsub('"', '\\\\\"', x[[i]])
+            x[[i]][is.na(x[[i]])] <- ""
             # check <- length(x[[i]]) > 1 | is.character(x)
             result <- paste(result,
                 ifelse (is.null(nms[i]), 
@@ -313,6 +314,7 @@ env$RGUI_import <- function(objlist) {
     callist <- c(callist, objlist)
     obj <- do.call(command, callist)
 
+    obj <- obj[seq(min(nrow(obj), 8)), seq(min(ncol(obj), 8)), drop = FALSE]
 
     imported <- list(
         rownames = rownames(obj),

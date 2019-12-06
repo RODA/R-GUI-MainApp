@@ -688,29 +688,35 @@ function makeCommand()
         return '';
     }
 
+    importObj.file = upath.normalize(importOptions.filePath);
+
     // reading with CSV
     if (importOptions.sep === 'comma') {
-        theCommand = importOptions.dataset + ' <- read.csv(\'' + upath.normalize(importOptions.filePath) + '\'';
         importObj.command = 'read.csv';
-        importObj.file = upath.normalize(importOptions.filePath);
+        theCommand = importOptions.dataset + ' <- read.csv("' + importObj.file + '"';
         // importObj.file = upath.normalize(importOptions.filePath).replace(/(\s+)/g, '\\\\\$1');
         // console.log(upath.normalize(importOptions.filePath));
         
         // importObj.sep = '';
-    } 
+    } else if (importOptions.sep === 'tab') {
+        importObj.command = 'read.delim';
+        theCommand = importOptions.dataset + ' <- read.delim("' + importObj.file + '"';
+    }
     // reading with table
     else {      
         importObj.command = 'read.table';
-        theCommand = importOptions.dataset + ' <- read.table(\'' + upath.normalize(importOptions.filePath) + '\'';
+        theCommand = importOptions.dataset + ' <- read.table("' + importObj.file + '"';
     }
-    // do we have the firt row as header ?
-    if (!importOptions.header && importOptions.sep === 'comma') {
+
+    // do we have the first row as header ?
+    if (importObj.command == "read.table" && importOptions.header) {
+        theCommand += ', header = TRUE';
+    }
+
+    if (importObj.command != "read.table" && !importOptions.header) {
         theCommand += ', header = FALSE';
     }
-    if (importOptions.header && importOptions.sep !== 'comma') {
-        theCommand += ', header = TRUE';
-        
-    }
+
     // for sending it to R preview
     if (importOptions.header) {
         importObj.header = true;
@@ -718,9 +724,9 @@ function makeCommand()
         importObj.header = false;
     }
 
-    if(importOptions.sep === 'tab') {
-        theCommand += ', sep = "\\t"';
-    }
+    // if(importOptions.sep === 'tab') {
+    //     theCommand += ', sep = "\\t"';
+    // }
     // if(importOptions.sep === 'space') {
     //     theCommand += ', sep = ""';
     // }
@@ -733,6 +739,7 @@ function makeCommand()
     } else {
         delete importObj.sep;
     }
+
     // setting quote char
     switch(importOptions.quote){
         case 'Single':
